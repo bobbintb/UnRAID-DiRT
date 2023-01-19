@@ -1,3 +1,4 @@
 /config.ini
 /main.log
 /.idea
+!/.gitignore
