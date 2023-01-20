@@ -10,6 +10,7 @@ class Instance:
                                           f"{settings['port']}"
                                           f"/?authMechanism=DEFAULT&authSource=admin")
         self.db = self.client[settings['db']]
+        self.settings = self.db['settings']
         self.collection = self.db[settings['collection']]
 
     def possibleDupesSize(self):

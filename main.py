@@ -79,10 +79,6 @@ def main():
     mainLog.debug('Loading settings.')
     settings = common.loadConfig()
 
-    # Scan root directory for all files and get their metadata
-    mainLog.debug('Beginning scan.')
-    allFiles = _scan(settings["Settings"]["dir"])
-
     # Create DB instance
     mainLog.debug('Connecting to and creating database.')
     try:
@@ -90,6 +86,11 @@ def main():
     except Exception as e:
         print(e)
         sys.exit()
+    instance.settings.update_one({'_id': 1}, {'$set': {'status': 'scanning'}}, upsert=True)
+
+    # Scan root directory for all files and get their metadata
+    mainLog.debug('Beginning scan.')
+    allFiles = _scan(settings["Settings"]["dir"])
 
     # Add files to DB
     mainLog.debug('Adding file metadata to database.')
@@ -107,8 +108,8 @@ def main():
     instance.possibleDupesHashCount()
     instance.possibleDupesHash()
     _hash_files(instance.possibleDupesHash, instance.collection, instance.possibleDupesHashCount, -1)
+    instance.settings.update_one({'_id': 1}, {'$set': {'status': 'ready'}}, upsert=True)
     mainLog.debug('Done.')
-
 
 main()
 
