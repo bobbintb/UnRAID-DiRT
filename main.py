@@ -5,6 +5,7 @@ import os
 from blake3 import blake3
 import common
 import logging
+from collections import defaultdict
 
 
 def _scan(rootdir):
@@ -17,12 +18,41 @@ def _scan(rootdir):
             allFiles.append(common.getFileStats(folder, file))
             x += 1
     scanLog.info("Files found: " + "{:,}".format(x))
-    print("")
-    for i, file in enumerate(allFiles):
-        print("Adding file", str("{:,}".format(i + 1)) + "/" + str("{:,}".format(len(allFiles))), end= "\r")
-    print("")
+    #for i, file in enumerate(allFiles):
+    #   print("Adding file", str("{:,}".format(i + 1)) + "/" + str("{:,}".format(len(allFiles))), end= "\r")
     return allFiles
 
+def remove_unique_sizes(LOD):
+    size_counts = {}
+    for d in LOD:
+        size = d["st_size"]
+        if size in size_counts:
+            size_counts[size] += 1
+        else:
+            size_counts[size] = 1
+    LOD[:] = [d for d in LOD if size_counts[d["st_size"]] > 1]
+    print(f"Files with non-unique sizes: {len(LOD)}")
+
+
+def remove_unique_partial_hash(LOD):
+    hash_counts = {}
+    for d in LOD:
+        hash = d[0]["partialHash"].hexdigest()
+        if hash in hash_counts:
+            hash_counts[hash] += 1
+        else:
+            hash_counts[hash] = 1
+    LOD[:] = [d for d in LOD if hash_counts[d[0]["partialHash"].hexdigest()] > 1]
+    print(f"Files with non-unique hashes: {len(LOD)}")
+
+
+def group_by_ino(LOD):
+    grouped = defaultdict(list)
+    for d in LOD:
+        ino = d["st_ino"]
+        grouped[ino].append(d)
+    LOD[:] = list(grouped.values())
+    print(f"File inode groups: {len(LOD)}")
 
 def hashFiles(item, read_size):
     try:
@@ -35,7 +65,6 @@ def hashFiles(item, read_size):
         print(e)
 
 def _hash_files(db_data, collection, count, read_size):
-    # TODO: don't bother hashing hard links. need to think about efficient way to handle this.
     if read_size == 1024:
         phase = 1
     else:
@@ -45,15 +74,18 @@ def _hash_files(db_data, collection, count, read_size):
         hashL = "fullHash"
     else:
         hashL = "partialHash"
-    length = count._CommandCursor__data[0]['root']
-    for i, item in enumerate(db_data):
+    #length = count._CommandCursor__data[0]['root']
+    length = len(db_data)
+    for i, group in enumerate(db_data):
         # if (int(item["st_size"]) <= 1024) and (read_size == -1):  # Skip files smaller than 1k when doing full hash.
         #    pass
         # TODO: try catch for missing files, should they be deleted midprocess
         print(f"\r(Phase {phase} of 2) Hashing file {i + 1} of {length}...", end="")
-        h = hashFiles(item, read_size)
-        b = pymongo.operations.UpdateOne({'_id': item['_id']}, {'$set': {hashL: h.hexdigest()}})
-        requests.append(b)
+        h = hashFiles(group[0], read_size)
+        for item in group:
+            b = pymongo.operations.UpdateOne({'_id': item['_id']}, {'$set': {hashL: h.hexdigest()}})
+            item['partialHash'] = h
+            requests.append(b)
     print('done.')
     collection.bulk_write(requests)
     if read_size == -1:
@@ -66,20 +98,20 @@ def main():
                         datefmt='%m-%d %H:%M',
                         filename='main.log',
                         filemode='w')
-    # define a Handler which writes INFO messages or higher to the sys.stderr
+# define a Handler which writes INFO messages or higher to the sys.stderr
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
-    # tell the handler to use this format
+# tell the handler to use this format
     console.setFormatter(common.CustomFormatter())
-    # add the handler to the root logger
+# add the handler to the root logger
     logging.getLogger().addHandler(console)
     mainLog = logging.getLogger('main')
 
-    # Load settings
+# Load settings
     mainLog.debug('Loading settings.')
     settings = common.loadConfig()
 
-    # Create DB instance
+# Create DB instance
     mainLog.debug('Connecting to and creating database.')
     try:
         instance = mongoInstance.Instance(settings['Mongodb'])
@@ -88,26 +120,25 @@ def main():
         sys.exit()
     instance.settings.update_one({'_id': 1}, {'$set': {'status': 'scanning'}}, upsert=True)
 
-    # Scan root directory for all files and get their metadata
+# Scan root directory for all files and get their metadata
     mainLog.debug('Beginning scan.')
     allFiles = _scan(settings["Settings"]["dir"])
 
-    # Add files to DB
+# Add files to DB
     mainLog.debug('Adding file metadata to database.')
     instance.collection.insert_many(allFiles)
 
-    # get partial hash (first 1k) of possible dupes (files of exact same size. can't be dupes if different size)
-    # if the first 1k is different, then they can't be dupes. saves time hashing large files.
+# get partial hash (first 1k) of possible dupes (files of exact same size. can't be dupes if different size)
+# if the first 1k is different, then they can't be dupes. saves time hashing large files.
     mainLog.debug('Hashing first 1k of possible duplicates.')
-    instance.possibleDupesSizeCount()
-    instance.possibleDupesSize()
-    _hash_files(instance.possibleDupesSize, instance.collection, instance.possibleDupesSizeCount, 1024)
+    remove_unique_sizes(allFiles)
+    group_by_ino(allFiles)
+    _hash_files(allFiles, instance.collection, len(allFiles), 1024)
 
-    # get full hash of possible dupes (files of the same size with hash of firs 1k the same)
+# get full hash of possible dupes (files of the same size with hash of firs 1k the same)
+    remove_unique_partial_hash(allFiles)
     mainLog.debug('Fully hashing remaining possible duplicates.')
-    instance.possibleDupesHashCount()
-    instance.possibleDupesHash()
-    _hash_files(instance.possibleDupesHash, instance.collection, instance.possibleDupesHashCount, -1)
+    _hash_files(allFiles, instance.collection, len(allFiles), -1)
     instance.settings.update_one({'_id': 1}, {'$set': {'status': 'ready'}}, upsert=True)
     mainLog.debug('Done.')
 
