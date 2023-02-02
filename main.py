@@ -69,7 +69,7 @@ def hashFiles(item, read_size):
     except Exception as e:
         print(e)
 
-def _hash_files(db_data, collection, count, read_size):
+def _hash_files(db_data, collection, read_size):
     if read_size == 1024:
         phase = 1
     else:
@@ -138,12 +138,12 @@ def main():
     mainLog.debug('Hashing first 1k of possible duplicates.')
     remove_unique_sizes(allFiles)
     group_by_ino(allFiles)
-    _hash_files(allFiles, instance.collection, len(allFiles), 1024)
+    _hash_files(allFiles, instance.collection, 1024)
 
 # get full hash of possible dupes (files of the same size with hash of firs 1k the same)
     remove_unique_partial_hash(allFiles)
     mainLog.debug('Fully hashing remaining possible duplicates.')
-    _hash_files(allFiles, instance.collection, len(allFiles), -1)
+    _hash_files(allFiles, instance.collection, -1)
     instance.settings.update_one({'_id': 1}, {'$set': {'status': 'ready'}}, upsert=True)
     mainLog.debug('Done.')
 
