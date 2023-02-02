@@ -36,15 +36,15 @@ def remove_unique_sizes(LOD):
     print(f"Files with non-unique sizes: {len(LOD)}")
 
 
-def remove_unique_partial_hash(LOD):
+def remove_unique_hashes(LOD, type):
     hash_counts = {}
     for d in LOD:
-        hash = d[0]["partialHash"].hexdigest()
+        hash = d[0][type].hexdigest()
         if hash in hash_counts:
             hash_counts[hash] += 1
         else:
             hash_counts[hash] = 1
-    LOD[:] = [d for d in LOD if hash_counts[d[0]["partialHash"].hexdigest()] > 1]
+    LOD[:] = [d for d in LOD if hash_counts[d[0][type].hexdigest()] > 1]
     print(f"Files with non-unique hashes: {len(LOD)}")
 
 
@@ -90,8 +90,8 @@ def _hash_files(db_data, collection, read_size):
         print(f"\r(Phase {phase} of 2) Hashing file {i + 1} of {length}...", end="")
         h = hashFiles(group[0], read_size)
         for item in group:
+            item[hashL] = h
             b = pymongo.operations.UpdateOne({'_id': item['_id']}, {'$set': {hashL: h.hexdigest()}})
-            item['partialHash'] = h
             requests.append(b)
     print('done.')
     collection.bulk_write(requests)
@@ -144,10 +144,11 @@ def main():
     _hash_files(allFiles, instance.collection, readSize)
 
 # get full hash of possible dupes (files of the same size with hash of firs 1k the same)
-    remove_unique_partial_hash(allFiles)
+    remove_unique_hashes(allFiles, "partialHash")
     mainLog.debug('Fully hashing remaining possible duplicates.')
     _hash_files(allFiles, instance.collection, -1)
     instance.settings.update_one({'_id': 1}, {'$set': {'status': 'ready'}}, upsert=True)
+    remove_unique_hashes(allFiles, "fullHash")
     mainLog.debug('Done.')
 
 
