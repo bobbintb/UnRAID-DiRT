@@ -6,6 +6,7 @@ from blake3 import blake3
 import common
 import logging
 from collections import defaultdict
+import time
 
 
 def _scan(rootdir):
@@ -56,7 +57,11 @@ def group_by_ino(LOD):
 
 def hashFiles(item, read_size):
     try:
+
         f = open(os.path.join(item['dir'], item['file']), 'rb')
+        if read_size == 1024:
+            start_pos = max(0, item['st_size'] // 2 - 512)
+            f.seek(start_pos)
         f_bytes = f.read(read_size)
         h = blake3(f_bytes)
         f.close()
@@ -142,7 +147,13 @@ def main():
     instance.settings.update_one({'_id': 1}, {'$set': {'status': 'ready'}}, upsert=True)
     mainLog.debug('Done.')
 
+
+start_time = time.time()
 main()
+end_time = time.time()
+time_elapsed = end_time - start_time
+minutes, seconds = divmod(time_elapsed, 60)
+print("Time elapsed: {0:.0f} minutes and {1:.2f} seconds".format(minutes, seconds))
 
 '''
 make an update function:
