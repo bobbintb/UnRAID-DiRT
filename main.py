@@ -8,6 +8,7 @@ import logging
 from collections import defaultdict
 import time
 
+readSize = 1024
 
 def _scan(rootdir):
     scanLog = logging.getLogger('_scan')
@@ -57,9 +58,9 @@ def group_by_ino(LOD):
 
 def hashFiles(item, read_size):
     try:
-
+        global readSize
         f = open(os.path.join(item['dir'], item['file']), 'rb')
-        if read_size == 1024:
+        if read_size == readSize:
             start_pos = max(0, item['st_size'] // 2 - 512)
             f.seek(start_pos)
         f_bytes = f.read(read_size)
@@ -70,7 +71,8 @@ def hashFiles(item, read_size):
         print(e)
 
 def _hash_files(db_data, collection, read_size):
-    if read_size == 1024:
+    global readSize
+    if read_size == readSize:
         phase = 1
     else:
         phase = 2
@@ -98,6 +100,7 @@ def _hash_files(db_data, collection, read_size):
 
 
 def main():
+    global readSize
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                         datefmt='%m-%d %H:%M',
@@ -138,7 +141,7 @@ def main():
     mainLog.debug('Hashing first 1k of possible duplicates.')
     remove_unique_sizes(allFiles)
     group_by_ino(allFiles)
-    _hash_files(allFiles, instance.collection, 1024)
+    _hash_files(allFiles, instance.collection, readSize)
 
 # get full hash of possible dupes (files of the same size with hash of firs 1k the same)
     remove_unique_partial_hash(allFiles)
