@@ -11,7 +11,7 @@ This program is very fast at finding duplicates because of the approach it uses.
 
 The database is updated with the file and hash data at various points in the process. Any files that have the same full hash are duplicates but through this process, the number of files needed to be fully hashed to determine duplicate status it significantly reduced. This is a work in progress but here are a few anecdotal test scans I did with real data in my UnRAID server.
 
----------------------------------------------------
+```
 Files found: 53,647
 3.80 TB (4,181,981,773,439 bytes)
 After omitting 1,881 hard linked files: 51,766
@@ -21,7 +21,8 @@ After omitting 968 unique hashes: 13,540
      Hashing file 13,540 of 13,540...done.
 After omitting 185 unique hashes: 13,355
 Time elapsed: 13 minutes and 10.19 seconds
----------------------------------------------------
+```
+```
 Files found: 26,602
 2.05 TB (2,257,131,773,393 bytes)
 After omitting 0 hard linked files: 26,602
@@ -31,4 +32,4 @@ After omitting 3,539 unique hashes: 602
      Hashing file 602 of 602...done.
 After omitting 96 unique hashes: 506
 Time elapsed: 3 minutes and 22.26 seconds
----------------------------------------------------
+```
