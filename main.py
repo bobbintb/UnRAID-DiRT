@@ -15,7 +15,7 @@ def _scan(rootdir):
     scanLog = logging.getLogger('_scan')
     allFiles = []
     x = 0
-    scanLog.debug('Traversing folders.')
+    scanLog.info('Traversing folders...')
     for folder, subfolders, files in os.walk(rootdir, topdown=True):
         for file in files:
             allFiles.append(common.getFileStats(folder, file))
