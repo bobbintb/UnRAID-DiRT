@@ -7,6 +7,7 @@ import common
 import logging
 from collections import defaultdict
 import time
+import humanfriendly
 
 readSize = 1024
 
@@ -20,8 +21,9 @@ def _scan(rootdir):
             allFiles.append(common.getFileStats(folder, file))
             x += 1
     scanLog.info("Files found: " + "{:,}".format(x))
-    #for i, file in enumerate(allFiles):
-    #   print("Adding file", str("{:,}".format(i + 1)) + "/" + str("{:,}".format(len(allFiles))), end= "\r")
+    total = sum(d.get("st_size", 0) for d in allFiles)
+    totalpretty = format(total, ",")
+    scanLog.info(f"Total size: {humanfriendly.format_size(total)} ({totalpretty} bytes)")
     return allFiles
 
 def remove_unique_sizes(LOD):
@@ -35,7 +37,7 @@ def remove_unique_sizes(LOD):
             size_counts[size] = 1
     LOD[:] = [d for d in LOD if size_counts[d[0]["st_size"]] > 1]
     new_length = len(LOD)
-    print(f"After omitting {length-new_length} unique file sizes: {new_length}")
+    print(f"After omitting {format(length-new_length, ',')} unique file sizes: {format(new_length, ',')}")
 
 
 def remove_unique_hashes(LOD, type):
@@ -49,7 +51,7 @@ def remove_unique_hashes(LOD, type):
             hash_counts[hash] = 1
     LOD[:] = [d for d in LOD if hash_counts[d[0][type].hexdigest()] > 1]
     new_length = len(LOD)
-    print(f"After omitting {length-new_length} unique hashes: {new_length}")
+    print(f"After omitting {format(length-new_length, ',')} unique hashes: {format(new_length, ',')}")
 
 
 def group_by_ino(LOD):
@@ -60,7 +62,7 @@ def group_by_ino(LOD):
         grouped[ino].append(d)
     LOD[:] = list(grouped.values())
     new_length = len(LOD)
-    print(f"After omitting {length-new_length} hard linked files: {new_length}")
+    print(f"After omitting {format(length-new_length, ',')} hard linked files: {format(new_length, ',')}")
 
 def hashFiles(item, read_size):
     try:
@@ -83,13 +85,12 @@ def _hash_files(db_data, collection, read_size):
         hashL = "fullHash"
     else:
         hashL = "partialHash"
-    #length = count._CommandCursor__data[0]['root']
     length = len(db_data)
     for i, group in enumerate(db_data):
         # if (int(item["st_size"]) <= 1024) and (read_size == -1):  # Skip files smaller than 1k when doing full hash.
         #    pass
         # TODO: try catch for missing files, should they be deleted midprocess
-        print(f"\r     Hashing file {i + 1} of {length}...", end="")
+        print(f"\r     Hashing file {format(i + 1, ',')} of {format(length, ',')}...", end="")
         h = hashFiles(group[0], read_size)
         for item in group:
             item[hashL] = h
@@ -138,14 +139,14 @@ def main():
     mainLog.debug('Adding file metadata to database.')
     instance.collection.insert_many(allFiles)
 
-# get partial hash (first 1k) of possible dupes (files of exact same size. can't be dupes if different size)
-# if the first 1k is different, then they can't be dupes. saves time hashing large files.
-    mainLog.debug('Hashing first 1k of possible duplicates.')
+# get partial hash (middle 1k) of possible dupes (files of exact same size. can't be dupes if different size)
+# if the middle 1k is different, then they can't be dupes. saves time hashing large files.
+    mainLog.debug('Hashing middle 1k of possible duplicates.')
     group_by_ino(allFiles)
     remove_unique_sizes(allFiles)
     _hash_files(allFiles, instance.collection, readSize)
 
-# get full hash of possible dupes (files of the same size with hash of firs 1k the same)
+# get full hash of possible dupes (files of the same size with hash of middle 1k the same)
     remove_unique_hashes(allFiles, "partialHash")
     mainLog.debug('Fully hashing remaining possible duplicates.')
     _hash_files(allFiles, instance.collection, -1)
