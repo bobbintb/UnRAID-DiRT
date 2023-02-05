@@ -22,6 +22,8 @@ After omitting 968 unique hashes: 13,540
 After omitting 185 unique hashes: 13,355
 Time elapsed: 13 minutes and 10.19 seconds
 ```
+3.80 TB took 13 minutes and 10.19 seconds to scan.
+
 ```
 Files found: 26,602
 2.05 TB (2,257,131,773,393 bytes)
@@ -33,3 +35,6 @@ After omitting 3,539 unique hashes: 602
 After omitting 96 unique hashes: 506
 Time elapsed: 3 minutes and 22.26 seconds
 ```
+2.05 TB took 3 minutes and 22.26 seconds.
+
+Of course this is just two examples and the total times depends on a number of factors but overall, I am pleased with the efficiency so far.
