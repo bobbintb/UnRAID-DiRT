@@ -9,7 +9,7 @@ This program is very fast at finding duplicates because of the approach it uses.
 4. The middle 1k of each remaining file is read and hashed. This is especially useful for large files, as many files can be determined to be unique without having to hash the entire file. The middle of the file was chosen because it resulted in more eliminations in my tests than the first 1k. I may tweak this over time. The Blake3 algorithm is used to hash as it is extremeley fast. Files with a unique 1k hash are removed from the list.
 5. The remaining files in the list are then fully hashed.
 
-The database is updated with the file and hash data at various points in the process. Any files that have the same full hash are duplicates but through this process, the number of files needed to be fully hashed to determine duplicate status it significantly reduced. This is a work in progress but here are a few anecdotal test scans I did with real data in my UnRAID server.
+The database is updated with the file and hash data at various points in the process. Any files in the database that have the same full hash are duplicates but through this process, the number of files needed to be fully hashed to determine duplicate status it significantly reduced. This is a work in progress but here are a few anecdotal test scans I did with real data in my UnRAID server.
 
 ```
 Files found: 53,647
@@ -37,4 +37,4 @@ Time elapsed: 3 minutes and 22.26 seconds
 ```
 2.05 TB took 3 minutes and 22.26 seconds.
 
-Of course this is just two examples and the total times depends on a number of factors but overall, I am pleased with the efficiency so far.
+Of course this is just two examples and the total times depends on a number of factors but overall, I am pleased with the efficiency so far. I am also working on the daemon and the webui but they are not available at the moment.
