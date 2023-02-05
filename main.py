@@ -26,18 +26,21 @@ def _scan(rootdir):
 
 def remove_unique_sizes(LOD):
     size_counts = {}
+    length = len(LOD)
     for d in LOD:
-        size = d["st_size"]
+        size = d[0]["st_size"]
         if size in size_counts:
             size_counts[size] += 1
         else:
             size_counts[size] = 1
-    LOD[:] = [d for d in LOD if size_counts[d["st_size"]] > 1]
-    print(f"Files with non-unique sizes: {len(LOD)}")
+    LOD[:] = [d for d in LOD if size_counts[d[0]["st_size"]] > 1]
+    new_length = len(LOD)
+    print(f"After omitting {length-new_length} unique file sizes: {new_length}")
 
 
 def remove_unique_hashes(LOD, type):
     hash_counts = {}
+    length = len(LOD)
     for d in LOD:
         hash = d[0][type].hexdigest()
         if hash in hash_counts:
@@ -45,16 +48,19 @@ def remove_unique_hashes(LOD, type):
         else:
             hash_counts[hash] = 1
     LOD[:] = [d for d in LOD if hash_counts[d[0][type].hexdigest()] > 1]
-    print(f"Files with non-unique hashes: {len(LOD)}")
+    new_length = len(LOD)
+    print(f"After omitting {length-new_length} unique hashes: {new_length}")
 
 
 def group_by_ino(LOD):
+    length = len(LOD)
     grouped = defaultdict(list)
     for d in LOD:
         ino = d["st_ino"]
         grouped[ino].append(d)
     LOD[:] = list(grouped.values())
-    print(f"File inode groups: {len(LOD)}")
+    new_length = len(LOD)
+    print(f"After omitting {length-new_length} hard linked files: {new_length}")
 
 def hashFiles(item, read_size):
     try:
@@ -72,10 +78,6 @@ def hashFiles(item, read_size):
 
 def _hash_files(db_data, collection, read_size):
     global readSize
-    if read_size == readSize:
-        phase = 1
-    else:
-        phase = 2
     requests = []
     if read_size == -1:
         hashL = "fullHash"
@@ -87,7 +89,7 @@ def _hash_files(db_data, collection, read_size):
         # if (int(item["st_size"]) <= 1024) and (read_size == -1):  # Skip files smaller than 1k when doing full hash.
         #    pass
         # TODO: try catch for missing files, should they be deleted midprocess
-        print(f"\r(Phase {phase} of 2) Hashing file {i + 1} of {length}...", end="")
+        print(f"\r     Hashing file {i + 1} of {length}...", end="")
         h = hashFiles(group[0], read_size)
         for item in group:
             item[hashL] = h
@@ -139,8 +141,8 @@ def main():
 # get partial hash (first 1k) of possible dupes (files of exact same size. can't be dupes if different size)
 # if the first 1k is different, then they can't be dupes. saves time hashing large files.
     mainLog.debug('Hashing first 1k of possible duplicates.')
-    remove_unique_sizes(allFiles)
     group_by_ino(allFiles)
+    remove_unique_sizes(allFiles)
     _hash_files(allFiles, instance.collection, readSize)
 
 # get full hash of possible dupes (files of the same size with hash of firs 1k the same)
