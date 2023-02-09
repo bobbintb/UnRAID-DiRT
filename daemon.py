@@ -10,7 +10,7 @@ class MyEventHandler(AIOEventHandler):
     async def on_created(self, event):
         directory, file = common.splitFileName(event.src_path)
         stats = common.getFileStats(directory, file)
-        mongoInstance.Instance.add(stats)
+        #mongoInstance.Instance.add(stats)
         print('Created:', event.src_path)
         print('       :', event)
         logging.info(f'Created: {event.src_path}')
@@ -18,14 +18,14 @@ class MyEventHandler(AIOEventHandler):
 
     async def on_deleted(self, event):
         directory, file = common.splitFileName(event.src_path)
-        mongoInstance.Instance.delete(directory, file)
+        #mongoInstance.Instance.delete(directory, file)
         print('Deleted:', event.src_path)
         print('       :', event)
         logging.info(f'Deleted: {event.src_path}')
         logging.info(f'       : {event}')
 
     async def on_moved(self, event):
-        mongoInstance.Instance.moveOrRename(event.src_path, event.dest_path)
+        #mongoInstance.Instance.moveOrRename(event.src_path, event.dest_path)
         print('Moved:', event.src_path)
         print('   to:', event.dest_path)
         print('       :', event)
@@ -55,5 +55,5 @@ logging.basicConfig(level=logging.DEBUG,
                     datefmt='%m-%d %H:%M',
                     filename='daemon.log',
                     filemode='w')
-asyncio.get_event_loop().run_until_complete(watch_fs(WATCH_DIRECTORY))
+asyncio.run(watch_fs(WATCH_DIRECTORY))
 
