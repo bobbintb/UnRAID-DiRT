@@ -9,24 +9,24 @@ from collections import defaultdict
 import time
 import humanfriendly
 
-readSize = 1024
 
 def _scan(rootdir):
-    scanLog = logging.getLogger('_scan')
+    log = logging.getLogger('_scan')
     allFiles = []
     x = 0
-    scanLog.info('Traversing folders...')
+    log.info('Traversing folders...')
     for folder, subfolders, files in os.walk(rootdir, topdown=True):
         for file in files:
             allFiles.append(common.getFileStats(folder, file))
             x += 1
-    scanLog.info("Files found: " + "{:,}".format(x))
+    log.info("Files found: " + "{:,}".format(x))
     total = sum(d.get("st_size", 0) for d in allFiles)
     totalpretty = format(total, ",")
-    scanLog.info(f"Total size: {humanfriendly.format_size(total)} ({totalpretty} bytes)")
+    log.info(f"Total size: {humanfriendly.format_size(total)} ({totalpretty} bytes)")
     return allFiles
 
 def remove_unique_sizes(LOD):
+    log = logging.getLogger('remove_unique_sizes')
     size_counts = {}
     length = len(LOD)
     for d in LOD:
@@ -37,10 +37,11 @@ def remove_unique_sizes(LOD):
             size_counts[size] = 1
     LOD[:] = [d for d in LOD if size_counts[d[0]["st_size"]] > 1]
     new_length = len(LOD)
-    print(f"After omitting {format(length-new_length, ',')} unique file sizes: {format(new_length, ',')}")
+    log.info(f"After omitting {format(length-new_length, ',')} unique file sizes: {format(new_length, ',')}")
 
 
 def remove_unique_hashes(LOD, type):
+    log = logging.getLogger('remove_unique_hashes')
     hash_counts = {}
     length = len(LOD)
     for d in LOD:
@@ -51,10 +52,11 @@ def remove_unique_hashes(LOD, type):
             hash_counts[hash] = 1
     LOD[:] = [d for d in LOD if hash_counts[d[0][type].hexdigest()] > 1]
     new_length = len(LOD)
-    print(f"After omitting {format(length-new_length, ',')} unique hashes: {format(new_length, ',')}")
+    log.info(f"After omitting {format(length-new_length, ',')} unique hashes: {format(new_length, ',')}")
 
 
 def group_by_ino(LOD):
+    log = logging.getLogger('group_by_ino')
     length = len(LOD)
     grouped = defaultdict(list)
     for d in LOD:
@@ -62,48 +64,10 @@ def group_by_ino(LOD):
         grouped[ino].append(d)
     LOD[:] = list(grouped.values())
     new_length = len(LOD)
-    print(f"After omitting {format(length-new_length, ',')} hard linked files: {format(new_length, ',')}")
-
-def hashFiles(item, read_size):
-    try:
-        global readSize
-        f = open(os.path.join(item['dir'], item['file']), 'rb')
-        if read_size == readSize:
-            start_pos = max(0, item['st_size'] // 2 - 512)
-            f.seek(start_pos)
-        f_bytes = f.read(read_size)
-        h = blake3(f_bytes)
-        f.close()
-        return h
-    except Exception as e:
-        print(e)
-
-def _hash_files(db_data, collection, read_size):
-    global readSize
-    requests = []
-    if read_size == -1:
-        hashL = "fullHash"
-    else:
-        hashL = "partialHash"
-    length = len(db_data)
-    for i, group in enumerate(db_data):
-        # if (int(item["st_size"]) <= 1024) and (read_size == -1):  # Skip files smaller than 1k when doing full hash.
-        #    pass
-        # TODO: try catch for missing files, should they be deleted midprocess
-        print(f"\r     Hashing file {format(i + 1, ',')} of {format(length, ',')}...", end="")
-        h = hashFiles(group[0], read_size)
-        for item in group:
-            item[hashL] = h
-            b = pymongo.operations.UpdateOne({'_id': item['_id']}, {'$set': {hashL: h.hexdigest()}})
-            requests.append(b)
-    print('done.')
-    collection.bulk_write(requests)
-    if read_size == -1:
-        return db_data
+    log.info(f"After omitting {format(length-new_length, ',')} hard linked files: {format(new_length, ',')}")
 
 
 def main():
-    global readSize
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                         datefmt='%m-%d %H:%M',
@@ -144,12 +108,12 @@ def main():
     mainLog.debug('Hashing middle 1k of possible duplicates.')
     group_by_ino(allFiles)
     remove_unique_sizes(allFiles)
-    _hash_files(allFiles, instance.collection, readSize)
+    common.hashFiles(allFiles, instance.collection, 1024)
 
 # get full hash of possible dupes (files of the same size with hash of middle 1k the same)
     remove_unique_hashes(allFiles, "partialHash")
     mainLog.debug('Fully hashing remaining possible duplicates.')
-    _hash_files(allFiles, instance.collection, -1)
+    common.hashFiles(allFiles, instance.collection, -1)
     instance.settings.update_one({'_id': 1}, {'$set': {'status': 'ready'}}, upsert=True)
     remove_unique_hashes(allFiles, "fullHash")
     mainLog.debug('Done.')

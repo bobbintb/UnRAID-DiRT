@@ -1,5 +1,7 @@
 import pymongo
 import common
+
+
 class Instance:
     def __init__(self, settings):
         # create db
@@ -179,16 +181,24 @@ class Instance:
             }
         ])
 
-    def delete(self, dir, file):
-        self.collection.delete_one({'dir': dir, 'file': file})
+    def sameSize(self, size):
+        return list(self.collection.find({"st_size": size}))
 
-    def add(self, item):
-        self.collection.insert_one(item)
+    def delete(self, directory, file):
+        self.collection.delete_one({'dir': directory, 'file': file})
+
+    def addOrModify(self, item):
+        files = self.sameSize(item["st_size"])
+        if len(files) > 1:
+            print(len(files))
+            # need a loop to hash each file in files. maybe reuse method in main.
+            common.hashFiles(files, self.collection, 1024)
+        #self.collection.insert_one(item)
 
     def moveOrRename(self, src_path, dest_path):
         src_dir, src_file = common.splitFileName(src_path)
         dest_dir, dest_file = common.splitFileName(dest_path)
-        self.collection.updateOne({"dir": src_dir,
+        self.collection.update_one({"dir": src_dir,
                                    "file": src_file},
                                   {"$set": {"dir": dest_dir,
                                             "file": dest_file}})
