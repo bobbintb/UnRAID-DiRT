@@ -73,7 +73,6 @@ def hashFiles(db_data, collection, read_size):
     for i, group in enumerate(db_data):
         # if (int(item["st_size"]) <= 1024) and (read_size == -1):  # Skip files smaller than 1k when doing full hash.
         #    pass
-        # TODO: try catch for missing files, should they be deleted midprocess
         print(f"\r     Hashing file {format(i + 1, ',')} of {format(length, ',')}...", end="")
         h = _hash_files(group[0], read_size)
         for item in group:
