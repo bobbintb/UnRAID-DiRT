@@ -184,6 +184,9 @@ class Instance:
     def sameSize(self, size):
         return list(self.collection.find({"st_size": size}))
 
+    def samePartialHash(self, hash):
+        return list(self.collection.find({"partialHash": hash}))
+
     def delete(self, directory, file):
         self.collection.delete_one({'dir': directory, 'file': file})
 
@@ -191,9 +194,11 @@ class Instance:
         files = self.sameSize(item["st_size"])
         if len(files) > 1:
             print(len(files))
-            # need a loop to hash each file in files. maybe reuse method in main.
             common.hashFiles(files, self.collection, 1024)
-        #self.collection.insert_one(item)
+            files2 = self.sameSize(item["partialHash"])
+            if len(files2) > 1:
+                common.hashFiles(files, self.collection, -1)
+        # insert function in hashFiles as updateone. maybe move to new function. why update one vs upsert?
 
     def moveOrRename(self, src_path, dest_path):
         src_dir, src_file = common.splitFileName(src_path)
