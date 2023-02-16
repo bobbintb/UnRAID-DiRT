@@ -1,6 +1,5 @@
 import asyncio
 import sys
-
 from hachiko.hachiko import AIOWatchdog, AIOEventHandler
 import logging
 import common
@@ -38,32 +37,26 @@ class MyEventHandler(AIOEventHandler):
             stats = common.getFileStats(directory, file)
             #dbinstance.addOrModify(stats)
             print(action, event.src_path)
-            print('        :', event)
             logging.info(f'{action} {event.src_path}')
-            logging.info(f'        :{event}')
 
 
     async def on_deleted(self, event):
         if not event.is_directory:
             directory, file = common.splitFileName(event.src_path)
             #dbinstance.delete(directory, file)
-            print(f' Deleted: {event.src_path}')
-            print(f'        :{event}')
-            logging.info(f' Deleted: {event.src_path}')
-            logging.info(f'        :{event}')
+            print(f'Deleted: {event.src_path}')
+            logging.info(f'Deleted: {event.src_path}')
 
     async def on_moved(self, event):
         if not event.is_directory:
             #dbinstance.moveOrRename(event.src_path, event.dest_path)
-            action = '   Moved:'
+            action = '  Moved:'
             if common.splitFileName(event.src_path)[0] == common.splitFileName(event.dest_path)[0]:
                 action = ' Renamed:'
             print(action, event.src_path)
-            print('      to:', event.dest_path)
-            print('        :', event)
+            print('     to:', event.dest_path)
             logging.info(f'{action} {event.src_path}')
-            logging.info(f'      to: {event.dest_path}')
-            logging.info(f'        :{event}')
+            logging.info(f'     to: {event.dest_path}')
 
     async def on_closed(self, event):
         if not event.is_directory:
@@ -73,9 +66,7 @@ class MyEventHandler(AIOEventHandler):
                 stats = common.getFileStats(directory, file)
                 #dbinstance.addOrModify(stats)
                 print(action, event.src_path)
-                print('        :', event)
                 logging.info(f'{action} {event.src_path}')
-                logging.info(f'        :{event}')
 
 
 async def watch_fs(watch_dir):
@@ -103,4 +94,3 @@ except Exception as e:
     sys.exit()
 
 asyncio.run(watch_fs(WATCH_DIRECTORY))
-
