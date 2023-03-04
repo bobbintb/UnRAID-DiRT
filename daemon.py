@@ -35,7 +35,7 @@ class MyEventHandler(AIOEventHandler):
             action = "Created:"
             directory, file = common.splitFileName(event.src_path)
             stats = common.getFileStats(directory, file)
-            #dbinstance.addOrModify(stats)
+            dbinstance.addOrModify(stats)
             print(action, event.src_path)
             logging.info(f'{action} {event.src_path}')
 
@@ -43,13 +43,13 @@ class MyEventHandler(AIOEventHandler):
     async def on_deleted(self, event):
         if not event.is_directory:
             directory, file = common.splitFileName(event.src_path)
-            #dbinstance.delete(directory, file)
+            dbinstance.delete(directory, file)
             print(f'Deleted: {event.src_path}')
             logging.info(f'Deleted: {event.src_path}')
 
     async def on_moved(self, event):
         if not event.is_directory:
-            #dbinstance.moveOrRename(event.src_path, event.dest_path)
+            dbinstance.moveOrRename(event.src_path, event.dest_path)
             action = '  Moved:'
             if common.splitFileName(event.src_path)[0] == common.splitFileName(event.dest_path)[0]:
                 action = ' Renamed:'
@@ -64,7 +64,7 @@ class MyEventHandler(AIOEventHandler):
                 action = "Modified:"
                 directory, file = common.splitFileName(event.src_path)
                 stats = common.getFileStats(directory, file)
-                #dbinstance.addOrModify(stats)
+                dbinstance.addOrModify(stats)
                 print(action, event.src_path)
                 logging.info(f'{action} {event.src_path}')
 
@@ -75,7 +75,6 @@ async def watch_fs(watch_dir):
     watch.start()
     while True:
         await asyncio.sleep(1)
-    watch.stop()
 
 WATCH_DIRECTORY = common.loadConfig()["Settings"]["dir"]
 

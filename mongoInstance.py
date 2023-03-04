@@ -181,24 +181,30 @@ class Instance:
             }
         ])
 
-    def sameSize(self, size):
-        return list(self.collection.find({"st_size": size}))
+    def sameAttr(self, attr, value):
+        return list(self.collection.find({attr: value}))
 
     def samePartialHash(self, hash):
         return list(self.collection.find({"partialHash": hash}))
 
     def delete(self, directory, file):
+        print(directory,file)
         self.collection.delete_one({'dir': directory, 'file': file})
 
     def addOrModify(self, item):
-        files = self.sameSize(item["st_size"])
-        if len(files) > 1:
-            print(len(files))
+        files = self.sameAttr("st_size", item["st_size"])
+        item["_id"] = self.collection.insert_one(item).inserted_id
+        files.append(item)
+        files = [[d] for d in files]
+        if len(files) > 0:
             common.hashFiles(files, self.collection, 1024)
-            files2 = self.sameSize(item["partialHash"])
+            files2 = self.sameAttr("partialHash", item["partialHash"])
             if len(files2) > 1:
                 common.hashFiles(files, self.collection, -1)
-        # insert function in hashFiles as updateone. maybe move to new function. why update one vs upsert?
+        for doc in files:
+            query = {"file": doc["file"], "dir": doc["dir"]}
+            update = {"$setOnInsert": doc}
+            self.collection.update_many(query, update, upsert=True)
 
     def moveOrRename(self, src_path, dest_path):
         src_dir, src_file = common.splitFileName(src_path)
