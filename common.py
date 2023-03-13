@@ -1,13 +1,14 @@
 import configparser
 import os
 import logging
+import random
+from datetime import time
 
 import pymongo
 from blake3 import blake3
 
 
 class CustomFormatter(logging.Formatter):
-
     grey = "\x1b[38;20m"
     yellow = "\x1b[33;20m"
     red = "\x1b[31;20m"
@@ -28,6 +29,7 @@ class CustomFormatter(logging.Formatter):
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
 
+
 def loadConfig():
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -45,41 +47,35 @@ def getFileStats(folder, file):
             "st_mtime": stats.st_mtime,
             "st_ctime": stats.st_ctime}
 
+
 def splitFileName(file):
     splitFileName = os.path.split(file)
     # dir, file
-    return splitFileName[0], splitFileName[1]
+    return os.path.join(splitFileName[0], ''), splitFileName[1]
 
-def _hash_files(item, read_size):
+
+def _hash_files(item, filesize, read_size= -1):
+    # Not sure which method is better. Maybe see about 1k raw instead of hash or other improvements.
+    # This reads the first 1k of the file
+    '''
     try:
-        f = open(os.path.join(item['dir'], item['file']), 'rb')
-        if read_size == 1024:
-            start_pos = max(0, item['st_size'] // 2 - 512)
-            f.seek(start_pos)
+        f = open(item, 'rb')
         f_bytes = f.read(read_size)
-        h = blake3(f_bytes)
+        h = blake3(f_bytes).hexdigest()
         f.close()
         return h
     except Exception as e:
         print(e)
-
-def hashFiles(db_data, collection, read_size):
-    requests = []
-    if read_size == -1:
-        hashL = "fullHash"
-    else:
-        hashL = "partialHash"
-    length = len(db_data)
-    for i, group in enumerate(db_data):
-        # if (int(item["st_size"]) <= 1024) and (read_size == -1):  # Skip files smaller than 1k when doing full hash.
-        #    pass
-        print(f"\r     Hashing file {format(i + 1, ',')} of {format(length, ',')}...", end="")
-        h = _hash_files(group[0], read_size)
-        for item in group:
-            item[hashL] = h
-            b = pymongo.operations.UpdateOne({'_id': item['_id']}, {'$set': {hashL: h.hexdigest()}})
-            requests.append(b)
-    print('done.')
-    collection.bulk_write(requests)
-    if read_size == -1:
-        return db_data
+'''
+    # This reads the middle 1k of the file.
+    try:
+        f = open(item, 'rb')
+        if read_size == 1024:
+            start_pos = max(0, (filesize // 2) - (read_size // 2))
+            f.seek(start_pos)
+        f_bytes = f.read(read_size)
+        h = blake3(f_bytes).hexdigest()
+        f.close()
+        return h
+    except Exception as e:
+        print(e)
