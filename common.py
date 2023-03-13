@@ -55,6 +55,9 @@ def splitFileName(file):
 
 
 def _hash_files(item, filesize, read_size= -1):
+    # Not sure which method is better. Maybe see about 1k raw instead of hash or other improvements.
+    # This reads the first 1k of the file
+    '''
     try:
         f = open(item, 'rb')
         f_bytes = f.read(read_size)
@@ -63,8 +66,9 @@ def _hash_files(item, filesize, read_size= -1):
         return h
     except Exception as e:
         print(e)
-
-    '''try:
+'''
+    # This reads the middle 1k of the file.
+    try:
         f = open(item, 'rb')
         if read_size == 1024:
             start_pos = max(0, (filesize // 2) - (read_size // 2))
@@ -74,43 +78,4 @@ def _hash_files(item, filesize, read_size= -1):
         f.close()
         return h
     except Exception as e:
-        print(e)'''
-
-
-def hashFiles(db_data, collection, read_size):
-    requests = []
-    if read_size == -1:
-        hashL = "fullHash"
-    else:
-        hashL = "partialHash"
-    length = len(db_data)
-
-    # [[print(f"\r     Hashing file {i + j * len(group) + 1:,}/{len(db_data) * len(group):,}") or hasher(d) for
-    #  i, d in enumerate(group)] for j, group in enumerate(db_data)]
-
-    total = sum(len(group) for group in db_data)
-
-    for idx, group in enumerate(db_data, 1):
-        partial_hash = _hash_files(group[0])
-        for file in group:
-            file['partialHash'] = partial_hash
-        print(
-            f"\r     Hashing file  {idx}/{len(db_data)} groups ({len(group)} files) - Total progress: {idx * len(group):,}/{total:,} files")
-
-    '''for i, group in enumerate(db_data):
-        # if (int(item["st_size"]) <= 1024) and (read_size == -1):  # Skip files smaller than 1k when doing full hash.
-        #    pass
-        print(f"\r     Hashing file {format(i + 1, ',')} of {format(length, ',')}...", end="")
-        h = _hash_files(group[0], read_size).hexdigest()
-        for item in group:
-            item[hashL] = h
-            # TODO fix this so it works with main and daemon. group needs another list
-            b = pymongo.operations.UpdateOne({'_id': item['_id']}, {'$set': {hashL: h}})
-            requests.append(b)'''
-    print('done.')
-    try:
-        collection.bulk_write(requests)
-    except Exception as e:
         print(e)
-    if read_size == -1:
-        return db_data
