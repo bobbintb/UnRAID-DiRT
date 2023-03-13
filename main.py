@@ -80,7 +80,9 @@ def prep_for_mongo(allFiles):
              'st_nlink': allFiles[size][inode]['st_nlink'],
              'st_atime': allFiles[size][inode]['st_atime'],
              'st_mtime': allFiles[size][inode]['st_mtime'],
-             'st_ctime': allFiles[size][inode]['st_ctime']}
+             'st_ctime': allFiles[size][inode]['st_ctime'],
+             'partialHash': allFiles[size][inode]['partialHash'],
+             'fullHash': allFiles[size][inode]['fullHash']}
             for size in allFiles for inode in allFiles[size] for file in allFiles[size][inode]['files']]
 
 
