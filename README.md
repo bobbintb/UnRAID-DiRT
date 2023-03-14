@@ -1,15 +1,18 @@
 # UnRAID-DeDuper
-This project will eventually become a plugin for UnRAID. The complete plugin will consist of three parts. This is just one of those parts. This script will scan a given directory (specified in the config file) for duplicate files. The results are stored in a MongoDB. The other two pieces of the eventual plugin are a daemon and a webui. The daemon will monitor file changes in real time and update the database. The webui will allow for management of duplicate files.
+This project will eventually become a plugin for UnRAID. The complete plugin will consist of three parts:
+* Scanner - Ran once upon initialization. Reads the config file and scans the specified directrory and stores the results in a MongoDB.
+* Daemon - Monitors file system changes in real time and update the MongoDB accordingly.
+* WebUI - Manage everything from here.
 
 This program is very fast at finding duplicates because of the approach it uses. Most programs hash files and compare those hashes to determine duplicates. This program uses several steps to increase effeciency.
 
-1. The directory is scanned and a list of all files and their properties is created.
-2. Files are grouped by inode number, so only one operation is done on hard linked files.
-3. Files with a unique file size are removed from the list. If no other file has the same size as it, it can't possibly have a duplicate so no sense in performing additional operations on it.
-4. The middle 1k of each remaining file is read and hashed. This is especially useful for large files, as many files can be determined to be unique without having to hash the entire file. The middle of the file was chosen because it resulted in more eliminations in my tests than the first 1k. I may tweak this over time. The Blake3 algorithm is used to hash as it is extremeley fast. Files with a unique 1k hash are removed from the list.
+1. The directory is scanned for all files. During scan, file alltributes are recorded and files are organized by size, then inode number (grouping by inode eliminates duplicating tasks on hard linked files).
+2. Files with a unique file size are filtered from the list, since files of a unique size can't possible have a duplicate.
+3. The middle 1k of each remaining file is read and hashed. This is especially useful for large files, as many files can be determined to be unique without having to hash the entire file. The middle of the file was chosen because it resulted in more eliminations in my tests than the first 1k. I may tweak this over time. The Blake3 algorithm is used to hash as it is extremeley fast.
+4. Files with a unique 1k hash are filtered from the list.
 5. The remaining files in the list are then fully hashed.
 
-The database is updated with the file and hash data at various points in the process. Any files in the database that have the same full hash are duplicates but through this process, the number of files needed to be fully hashed to determine duplicate status it significantly reduced. This is a work in progress but here are a few anecdotal test scans I did with real data in my UnRAID server.
+Any files in the database that have the same full hash are duplicates but through this process, the number of files needed to be fully hashed to determine duplicate status it significantly reduced. This is a work in progress but here are a few anecdotal test scans I did with real data in my UnRAID server.
 
 ```
 Files found: 53,647
@@ -38,3 +41,5 @@ Time elapsed: 3 minutes and 22.26 seconds
 2.05 TB took 3 minutes and 22.26 seconds.
 
 Of course this is just two examples and the total times depends on a number of factors but overall, I am pleased with the efficiency so far. I am also working on the daemon and the webui but they are not available at the moment.
+
+If anyone would care to contribute, I am severely lacking in web development skills. The scanner and daemon parts are nearly complete but the webUI is going to take a while as I am figuring it out as I go along.
