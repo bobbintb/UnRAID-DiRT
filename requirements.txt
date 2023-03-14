@@ -1,9 +1,4 @@
 pymongo
 blake3
-setuptools
 configparser
 hachiko
-self
-Flask
-humanfriendly
-watchdog
