@@ -32,7 +32,7 @@ def hasher(allFiles, hashtype):
     for i, item in enumerate(allFiles.items()):
         size_key, group = item
         for inode, file_attr in group.items():
-            file_attr[hashtype] = common._hash_files(file_attr["files"][0], size_key, size)
+            file_attr[hashtype] = common.hashFiles(file_attr["files"][0], size_key, size)
         print(f"\rHashing file {format(i + 1, ',')}/{format(num_of_groups, ',')}", end="")
     print("")
 
@@ -74,7 +74,7 @@ def filter_unique_hashes(allFiles, hashtype):
 
 def prep_for_mongo(allFiles):
     return [{'file': os.path.basename(file),
-             'dir': os.path.dirname(file),
+             'dir': os.path.join(os.path.dirname(file), ""),
              'st_size': size,
              'st_inode': inode,
              'st_nlink': allFiles[size][inode]['st_nlink'],
