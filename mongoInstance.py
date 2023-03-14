@@ -1,3 +1,5 @@
+import os.path
+
 import pymongo
 import common
 
@@ -188,22 +190,26 @@ class Instance:
         return list(self.collection.find({"partialHash": hash}))
 
     def delete(self, directory, file):
-        print(directory,file)
+        print(directory, file)
         self.collection.delete_one({'dir': directory, 'file': file})
 
     def addOrModify(self, item):
         files = self.sameAttr("st_size", item["st_size"])
         item["_id"] = self.collection.insert_one(item).inserted_id
         files.append(item)
-        files = [[d] for d in files]
-        if len(files) > 0:
-            common.hashFiles(files, self.collection, 1024)
-            files2 = self.sameAttr("partialHash", item["partialHash"])
-            if len(files2) > 1:
-                common.hashFiles(files, self.collection, -1)
+        if len(files) > 1:
+            for file in files:
+                if "partialHash" not in file:
+                    file["partialHash"] = common.hashFiles(os.path.join(file["dir"], file["file"]), file["st_size"], 1024)
+        files2 = self.sameAttr("partialHash", item["partialHash"])
+        files2.append(item)
+        if len(files2) > 1:
+            for file in files2:
+                if "fullHash" not in file:
+                    file["fullHash"] = common.hashFiles(os.path.join(file["dir"], file["file"]), file["st_size"], -1)
         for doc in files:
             query = {"file": doc["file"], "dir": doc["dir"]}
-            update = {"$setOnInsert": doc}
+            update = {"$set": doc}
             self.collection.update_many(query, update, upsert=True)
 
     def moveOrRename(self, src_path, dest_path):
