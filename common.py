@@ -54,7 +54,7 @@ def splitFileName(file):
     return os.path.join(splitFileName[0], ''), splitFileName[1]
 
 
-def _hash_files(item, filesize, read_size= -1):
+def hashFiles(item, filesize, read_size=-1):
     # Not sure which method is better. Maybe see about 1k raw instead of hash or other improvements.
     # This reads the first 1k of the file
     '''
