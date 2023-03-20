@@ -42,4 +42,4 @@ Time elapsed: 3 minutes and 22.26 seconds
 
 Of course this is just two examples and the total times depends on a number of factors but overall, I am pleased with the efficiency so far. I am also working on the daemon and the webui but they are not available at the moment.
 
-If anyone would care to contribute, I am severely lacking in web development skills. The scanner and daemon parts are nearly complete but the webUI is going to take a while as I am figuring it out as I go along.
+If anyone would care to contribute, I am severely lacking in web development skills. The scanner and daemon parts are nearly complete but the webUI is going to take a while as I am figuring it the PHP and JavaScript as I go along.
