@@ -219,3 +219,27 @@ class Instance:
                                   {"$set": {"dir": dest_dir,
                                             "file": dest_file}})
         pass
+
+
+import sqlite3
+
+# Connect to the database
+conn = sqlite3.connect('your_database.db')
+c = conn.cursor()
+
+# Define the hash value to search for
+hash = 'your_partial_hash_value'
+
+# Execute the query
+c.execute("SELECT data FROM files WHERE JSON_EXTRACT(data, '$.partialHash') = ?", (hash,))
+
+# Fetch the results
+results = c.fetchall()
+
+# Close the cursor and connection
+c.close()
+conn.close()
+
+# Print the results
+for row in results:
+    print(row[0])
