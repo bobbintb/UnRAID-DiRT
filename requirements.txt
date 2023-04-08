@@ -2,3 +2,4 @@ pymongo
 blake3
 configparser
 hachiko
+watchdog

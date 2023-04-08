@@ -4,7 +4,6 @@ import logging
 import logstuff
 import os
 import time
-
 import sqlinstance
 
 
@@ -74,16 +73,16 @@ def filter_unique_hashes(allFiles, hashtype):
 
 
 def prep_for_sql(allFiles):
-    return [json.dumps({'file': os.path.basename(file),
-             'dir': os.path.join(os.path.dirname(file), ""),
-             'st_size': size,
-             'st_inode': inode,
-             'st_nlink': allFiles[size][inode]['st_nlink'],
-             'st_atime': allFiles[size][inode]['st_atime'],
-             'st_mtime': allFiles[size][inode]['st_mtime'],
-             'st_ctime': allFiles[size][inode]['st_ctime'],
-             'partialHash': allFiles[size][inode].get('partialHash'),
-             'fullHash': allFiles[size][inode].get('fullHash')})
+    return [json.dumps({'dir': os.path.join(os.path.dirname(file), ""),
+                        'file': os.path.basename(file),
+                        'st_inode': inode,
+                        'st_nlink': allFiles[size][inode]['st_nlink'],
+                        'st_size': size,
+                        'st_atime': allFiles[size][inode]['st_atime'],
+                        'st_mtime': allFiles[size][inode]['st_mtime'],
+                        'st_ctime': allFiles[size][inode]['st_ctime'],
+                        'partialHash': allFiles[size][inode].get('partialHash'),
+                        'fullHash': allFiles[size][inode].get('fullHash')})
             for size in allFiles for inode in allFiles[size] for file in allFiles[size][inode]['files']]
 
 
