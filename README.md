@@ -1,6 +1,6 @@
 # UnRAID-DeDuper
 This project will eventually become a plugin for UnRAID. The complete plugin will consist of three parts:
-* Scanner - Ran once upon initialization. Reads the config file and scans the specified directrory and stores the results in a MongoDB.
+* Scanner - Ran once upon initialization. Reads the config file and scans the specified directrory and stores the results in a SQLite database.
 * Daemon - Monitors file system changes in real time and update the MongoDB accordingly.
 * WebUI - Manage everything from here.
 
