@@ -1,10 +1,10 @@
-import logging
-import sys
-import logstuff
-import mongoInstance
-import os
 import common
+import json
+import logging
+import logstuff
+import os
 import time
+import sqlinstance
 
 
 def _scan(path):
@@ -72,17 +72,17 @@ def filter_unique_hashes(allFiles, hashtype):
     return nonUniqueHashes
 
 
-def prep_for_mongo(allFiles):
-    return [{'file': os.path.basename(file),
-             'dir': os.path.join(os.path.dirname(file), ""),
-             'st_size': size,
-             'st_inode': inode,
-             'st_nlink': allFiles[size][inode]['st_nlink'],
-             'st_atime': allFiles[size][inode]['st_atime'],
-             'st_mtime': allFiles[size][inode]['st_mtime'],
-             'st_ctime': allFiles[size][inode]['st_ctime'],
-             'partialHash': allFiles[size][inode]['partialHash'],
-             'fullHash': allFiles[size][inode]['fullHash']}
+def prep_for_sql(allFiles):
+    return [json.dumps({'dir': os.path.join(os.path.dirname(file), ""),
+                        'file': os.path.basename(file),
+                        'st_inode': inode,
+                        'st_nlink': allFiles[size][inode]['st_nlink'],
+                        'st_size': size,
+                        'st_atime': allFiles[size][inode]['st_atime'],
+                        'st_mtime': allFiles[size][inode]['st_mtime'],
+                        'st_ctime': allFiles[size][inode]['st_ctime'],
+                        'partialHash': allFiles[size][inode].get('partialHash'),
+                        'fullHash': allFiles[size][inode].get('fullHash')})
             for size in allFiles for inode in allFiles[size] for file in allFiles[size][inode]['files']]
 
 
@@ -90,31 +90,30 @@ def main():
     logstuff.log()
     start_time = time.time()
     settings = common.loadConfig()
-    try:
-        instance = mongoInstance.Instance(settings['Mongodb'])
-    except Exception as e:
-        print(e)
-        sys.exit()
-    instance.settings.update_one({'_id': 1}, {'$set': {'status': 'scanning'}}, upsert=True)
 
+    # Scan
     logging.info("Starting scan... ")
     allFiles = _scan(settings["Settings"]["dir"])
     logging.info("done.")
 
+    # Filter sizes
     logging.info("Filtering unique sizes... ")
     allFiles_no_unique_sizes = filter_unique_sizes(allFiles)
     logging.info("done.")
 
+    # Filter hashes
     hasher(allFiles_no_unique_sizes, "partialHash")
     allFiles_no_unique_partHashes = filter_unique_hashes(allFiles_no_unique_sizes, "partialHash")
+
+    # Filter hashes #2
     hasher(allFiles_no_unique_partHashes, "fullHash")
     allFiles_no_unique_Hashes = filter_unique_hashes(allFiles_no_unique_partHashes, "fullHash")
 
-    mongo_list = prep_for_mongo(allFiles_no_unique_Hashes)
-
     # Add files to DB
-    instance.collection.insert_many(mongo_list)
-    instance.settings.update_one({'_id': 1}, {'$set': {'status': 'ready'}}, upsert=True)
+    json_list = prep_for_sql(allFiles)
+    db = sqlinstance.JsonDatabase("deduper.db")
+    db.insert_data(json_list)
+    db.close()
 
     end_time = time.time()
     time_elapsed = end_time - start_time

@@ -3,13 +3,21 @@ import sys
 from hachiko.hachiko import AIOWatchdog, AIOEventHandler
 import logging
 import common
-import mongoInstance
+import sqlinstance
+import signal
 
 EVENT_TYPE_MOVED = "moved"
 EVENT_TYPE_DELETED = "deleted"
 EVENT_TYPE_CREATED = "created"
 EVENT_TYPE_MODIFIED = "modified"
 EVENT_TYPE_CLOSED = "closed"
+WATCH_DIRECTORY = common.loadConfig()["Settings"]["dir"]
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M',
+                    filename='daemon.log',
+                    filemode='a')
 
 class MyEventHandler(AIOEventHandler):
     """Subclass of asyncio-compatible event handler."""
@@ -35,7 +43,7 @@ class MyEventHandler(AIOEventHandler):
             action = "Created:"
             directory, file = common.splitFileName(event.src_path)
             stats = common.getFileStats(directory, file)
-            dbinstance.addOrModify(stats)
+            dbinstance.addOrModify(stats, True)
             print(action, event.src_path)
             logging.info(f'{action} {event.src_path}')
 
@@ -64,32 +72,43 @@ class MyEventHandler(AIOEventHandler):
                 action = "Modified:"
                 directory, file = common.splitFileName(event.src_path)
                 stats = common.getFileStats(directory, file)
-                dbinstance.addOrModify(stats)
+                dbinstance.addOrModify(stats, False)
                 print(action, event.src_path)
                 logging.info(f'{action} {event.src_path}')
 
+
+class GracefulKiller:
+    kill_now = False
+
+    def __init__(self):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+
+    def exit_gracefully(self, *args):
+        self.kill_now = True
 
 async def watch_fs(watch_dir):
     evh = MyEventHandler()
     watch = AIOWatchdog(watch_dir, event_handler=evh)
     watch.start()
-    while True:
+    killer = GracefulKiller()
+    while not killer.kill_now:
         await asyncio.sleep(1)
+    print("DeDuper daemon has been gracefully shut down.")
 
-WATCH_DIRECTORY = common.loadConfig()["Settings"]["dir"]
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                    datefmt='%m-%d %H:%M',
-                    filename='daemon.log',
-                    filemode='a')
 
 # Create DB instance
 settings = common.loadConfig()
 try:
-    dbinstance = mongoInstance.Instance(settings['Mongodb'])
+    dbinstance = sqlinstance.JsonDatabase(settings['sqlite']['dbfile'])
 except Exception as e:
     print(e)
     sys.exit()
 
 asyncio.run(watch_fs(WATCH_DIRECTORY))
+
+
+
+
+
