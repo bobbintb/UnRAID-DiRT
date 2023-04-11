@@ -1,7 +1,7 @@
 # UnRAID-DeDuper
 This project will eventually become a plugin for UnRAID. The complete plugin will consist of three parts:
 * Scanner - Ran once upon initialization. Reads the config file and scans the specified directrory and stores the results in a SQLite database.
-* Daemon - Monitors file system changes in real time and update the MongoDB accordingly.
+* Daemon - Monitors file system changes in real time and update the database accordingly.
 * WebUI - Manage everything from here.
 
 This program is very fast at finding duplicates because of the approach it uses. Most programs hash files and compare those hashes to determine duplicates. This program uses several steps to increase effeciency.
