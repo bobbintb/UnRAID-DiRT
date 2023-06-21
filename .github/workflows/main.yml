@@ -46,4 +46,4 @@ jobs:
         uses: Smart-Transportation/push@v1.3
         with:
           # Token for the repo. Can be passed in using $\{{ secrets.GITHUB_TOKEN }}
-          github_token: $\{{ secrets.PAT }}
+          github_token: ${{ secrets.PAT }}
