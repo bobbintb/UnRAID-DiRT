@@ -22,23 +22,11 @@ jobs:
           mkdir -p "$dest"
           echo "Copying files to temporary folder to archive..."
           ls -l
-          # rsync -a --exclude=bundle.bat --exclude=bobbintb.system.dedupe.plg --exclude=deduper.db --exclude=query.txt --exclude=.gitignore --exclude="*.yml" --exclude=usr --exclude=.git --exclude=.vs ./src "$dest"
           cp -r ./src/* $dest
           echo "Archiving..."
           ls -l ../src
-          #tar cJf ./artifacts/bobbintb.system.dedupe.txz -C ../src/* .
-          #echo "Contents of artifact folder:"
-          #ls -l ./artifacts
+          7z a -ttar -so -an ../src/usr | 7z a -txz -si ./artifacts/bobbintb.system.dedupe.txz
           #rm -rf $dest
-      - name: Compress action step
-        uses: a7ul/tar-action@master
-        id: compress
-        with:
-          command: c
-          cwd: ../src
-          files: |
-            ./
-          outPath: ./artifacts/bobbintb.system.dedupe.txz
       - name: Update MD5 in plg file
         shell: bash
         run: |
