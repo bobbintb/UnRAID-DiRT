@@ -13,7 +13,12 @@ jobs:
 
       - name: Edit file
         run: |
-          dir
+          @echo off
+          set "dest=./usr\local\emhttp\plugins\bobbintb.system.dedupe"
+          mkdir "%dest%"
+          robocopy ./src "%dest%" /E /XF bundle.bat /XF bobbintb.system.dedupe.plg /XF deduper.db /XF query.txt /XF .gitignore /XF *.yml /XD usr .git .vs
+          7z.exe a -ttar -so -an ./usr | 7z.exe a -txz -si $(Build.SourcesDirectory)\artifacts\bobbintb.system.dedupe.txz
+          rd /s /q usr
 
       - name: Commit and push changes
         run: |
