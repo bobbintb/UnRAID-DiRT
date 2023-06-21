@@ -27,16 +27,18 @@ jobs:
           echo "Contents of artifact folder:"
           ls -l ./artifacts
           rm -rf $dest
-      - name: Edit file with PowerShell
+      - name: Update MD5 in plg file
         shell: bash
         run: |
           #!/bin/bash
           file="./artifacts/bobbintb.system.dedupe.plg"
-          cat $file
           md5Hash=$(md5sum "$file" | awk '{print $1}')
           pattern='ENTITY MD5\s+"([^"]+)"'
           content=$(<"$file")
           newContent=$(echo "$content" | sed -E "s/$pattern/ENTITY MD5       \"$md5Hash\"/")
           echo "$newContent" > "$file"
-          cat $file
+      - name: Git Commit and Push
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.PAT }}
 
