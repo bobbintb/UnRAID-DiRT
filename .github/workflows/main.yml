@@ -21,6 +21,7 @@ jobs:
           dest="../src/usr/local/emhttp/plugins/bobbintb.system.dedupe"
           mkdir -p "$dest"
           echo "Copying files to temporary folder to archive..."
+          ls -l
           rsync -a --exclude=bundle.bat --exclude=bobbintb.system.dedupe.plg --exclude=deduper.db --exclude=query.txt --exclude=.gitignore --exclude="*.yml" --exclude=usr --exclude=.git --exclude=.vs ./ "$dest"
           echo "Archiving..."
           tar cJf ./artifacts/bobbintb.system.dedupe.txz -C ../src/usr .
