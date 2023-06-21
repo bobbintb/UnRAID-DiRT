@@ -5,7 +5,7 @@ on:
 
 jobs:
   pull_and_edit:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repository
