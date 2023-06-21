@@ -37,7 +37,6 @@ jobs:
           content=$(<"$file")
           newContent=$(echo "$content" | sed -E "s/$pattern/ENTITY MD5       \"$md5Hash\"/")
           echo "$newContent" > "$file"
-          - name: Commit files
       - name: Git Commit 
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
