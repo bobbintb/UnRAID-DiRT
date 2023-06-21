@@ -1,0 +1,46 @@
+Menu="Dedupe:1"
+Title="Main"
+---
+<?php
+$db = new SQLite3('plugins/bobbintb.system.dedupe/deduper.db');
+$query = "
+SELECT json_group_array(json_object('fullHash', fullHash, 'st_size', st_size, 'count', count)) AS result
+FROM (
+  SELECT json_extract(data, '$.fullHash') AS fullHash,
+         json_extract(data, '$.st_size') AS st_size,
+         COUNT(*) AS count
+  FROM files
+  WHERE json_extract(data, '$.fullHash') IN (
+    SELECT json_extract(data, '$.fullHash')
+    FROM files
+    GROUP BY json_extract(data, '$.fullHash')
+    HAVING COUNT(*) > 1
+  )
+  GROUP BY fullHash, st_size
+) AS subquery
+GROUP BY '';
+";
+$results = $db->query($query);
+$jsonResults = json_encode($results->fetchArray(SQLITE3_ASSOC));
+
+echo '<tr>
+    <title>Parcel Sandbox</title>
+    <meta charset="UTF-8" />
+    <script type="text/javascript">
+      var results = ' . $jsonResults . ';
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@revolist/revogrid@latest/dist/revo-grid/revo-grid.js"></script>
+    <script src="/plugins/bobbintb.system.dedupe/javascript/utils.js"></script>
+    <script src="/plugins/bobbintb.system.dedupe/javascript/templates.js"></script>
+    <script src="/plugins/bobbintb.system.dedupe/javascript/grids/leftColumns.js"></script>
+    <script src="/plugins/bobbintb.system.dedupe/javascript/grids/leftGrid.js"></script>
+    <script src="/plugins/bobbintb.system.dedupe/javascript/grids/rightColumns.js"></script>
+    <script src="/plugins/bobbintb.system.dedupe/javascript/grids/rightGrid.js"></script>
+    <script src="/plugins/bobbintb.system.dedupe/javascript/grids/bottomColumns.js"></script>
+    <script src="/plugins/bobbintb.system.dedupe/javascript/grids/bottomGrid.js"></script>
+    <script src="/plugins/bobbintb.system.dedupe/javascript/buttons.js"></script>
+        <revo-grid class="grid-component">
+      <script src="/plugins/bobbintb.system.dedupe/javascript/dupeindex.js"></script>
+    </revo-grid>
+  </tr>';
+?>

@@ -1,0 +1,87 @@
+<?xml version='1.0' standalone='yes'?>
+
+<!DOCTYPE PLUGIN [
+<!ENTITY name      "bobbintb.system.dedupe">
+<!ENTITY author    "bobbintb">
+<!ENTITY repo      "UnRAID-dedupe">
+<!ENTITY version   "2020.06.21">
+<!ENTITY launch    "Settings/dedupe">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&name;/&repo;/main/&name;.plg">
+<!ENTITY source    "/boot/config/plugins/&name;/&name;">
+<!ENTITY MD5       "89a2367d059f8794502c3f971077feeb">
+]>
+
+<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.1.9">
+
+<CHANGES>
+</CHANGES>
+
+<!--
+Copyright and author stuff for later
+-->
+
+
+<!--
+The 'install' script.
+-->
+<FILE Run="/bin/bash" Method="install">
+<INLINE>
+
+echo ""
+echo "-----------------------------------------------------------"
+echo " &name; has been installed."
+echo ""
+echo " Copyright 2023, &author;"
+echo " Version: &version;"
+echo "-----------------------------------------------------------"
+echo ""
+</INLINE>
+</FILE>
+
+<!-- SOURCE PACKAGE -->
+<FILE Name="&source;.txz" Run="upgradepkg --install-new --reinstall">
+<URL>https://raw.githubusercontent.com/&name;/&repo;/main/&name;.txz</URL>
+<MD5>&MD5;</MD5>
+</FILE>
+
+<!-- POST-INSTALL SCRIPT -->
+<FILE Run="/bin/bash">
+<INLINE>
+#cfg=&source;.cfg
+#if [[ ! -e $cfg ]]; then
+#  cfg=/usr/local/emhttp/plugins/&name;/default.cfg
+#fi
+
+# Start service
+#enable=$(grep -Po '^service="\K[^"]+' $cfg)
+#if [[ $enable -eq 1 ]]; then
+#  at -M -f /tmp/start_service now 2>/dev/null
+#fi
+#rm -f /tmp/start_service
+
+echo ""
+echo "-----------------------------------------------------------"
+echo " Plugin &name; is installed."
+echo " This plugin requires Dynamix webGui to operate"
+echo " Copyright 2020, Bergware International"
+echo " Version: &version;"
+echo "-----------------------------------------------------------"
+echo ""
+</INLINE>
+</FILE>
+
+<!-- REMOVE SCRIPT -->
+<FILE Run="/bin/bash" Method="remove">
+<INLINE>
+# Stop service
+#/usr/local/emhttp/plugins/&name;/scripts/rc.autofan stop 2>/dev/null
+
+# Remove plugin related files
+rm -rf /boot/config/plugins/&name;
+
+# Uninstall the 'source' package
+removepkg &name;
+</INLINE>
+</FILE>
+
+</PLUGIN>

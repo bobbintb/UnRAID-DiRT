@@ -1,0 +1,68 @@
+Menu="Dedupe:2"
+Title="Settings"
+---
+<link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/jquery.filetree.css")?>">
+<script src="<?autov("/webGui/javascript/jquery.filetree.js")?>"></script>
+
+<script>
+$(function(){
+  $("#scanDir").fileTreeAttach();
+});
+
+$(function(){
+  $("#dbDir").fileTreeAttach();
+});
+
+function path_selected(ElementId) {
+  var share = $("#fiotdestinationShare").val();
+  document.getElementById(ElementId).value = share;
+}
+</script>
+
+
+<?php
+$bgcolor = strstr('white,azure',$display['theme']) ? '#f2f2f2' : '#1c1c1c';
+
+if (count($_POST)) {
+	if ($_POST['#apply'] == "_(Add FileIO)_") {
+  
+      $size = $_POST["size"];
+      $name = $_POST["name"];
+      $path = $_POST["sharefolder"];
+      $writeback = $_POST["write_back"];
+      $cmdstr="/backstores/fileio create ".$name." ".$path.$name.".img ".$size." write_back=".$writeback ;
+      processTargetcli($cmdstr) ;
+    
+    }
+}
+?>
+
+<style>
+  dt {
+    width: 150px;
+  }
+body{-webkit-overflow-scrolling:touch}
+.errortext{color:#EF3D47;display:none}
+.fileTree{background:<?=$bgcolor?>;width:300px;max-height:150px;overflow-y:scroll;overflow-x:hidden;position:absolute;z-index:100;display:none}
+</style>
+
+<link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/jquery.filetree.css")?>">
+<script src="<?=autov("/webGui/javascript/jquery.filetree.js")?>"></script>
+<dl>
+<dt>Scan directory:</dt>
+
+    <dd>
+        <input id="pathfromjs" name="scanDirFromJs" type="hidden"></input>
+        <input type='text' size="15" class='setting' id="scanDir" placeholder="/mnt/user/" name="sharefolder" data-pickroot="/mnt/user" data-pickfilter="HIDE_FILES_FILTER" data-pickfolders="true" onchange="path_selected(scanDirFromJs)" required>
+    </dd>
+
+<dt>Database file:</dt>
+
+    <dd>
+        <input id="dbpathfromjs" name="dbDirFromJs" type="hidden"></input>
+        <input type='text' size="15" class='setting' id="dbDir" placeholder="/mnt/cache/deduper.db" name="sharefolder2" data-pickroot="/mnt/cache" data-pickfilter="db" data-pickfolders="true" onchange="path_selected(dbDirFromJs)" required>
+    </dd>
+
+<input type="submit" name="#apply" value='_(Save)_'>
+</td></tr>
+</dl>
