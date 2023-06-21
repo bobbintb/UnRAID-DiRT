@@ -2,11 +2,9 @@ name: Pull and Edit
 
 on:
   workflow_dispatch:
-
 jobs:
   pull_and_edit:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -20,7 +18,6 @@ jobs:
           rsync -a --exclude=bundle.bat --exclude=bobbintb.system.dedupe.plg --exclude=deduper.db --exclude=query.txt --exclude=.gitignore --exclude="*.yml" --exclude=usr --exclude=.git --exclude=.vs ./src/ "$dest"
           tar cJf ./artifacts/bobbintb.system.dedupe.txz -C ./usr .
           rm -rf usr
-
       - name: Edit file with PowerShell
         shell: bash
         run: |
@@ -31,14 +28,9 @@ jobs:
           content=$(<"$file")
           newContent=$(echo "$content" | sed -E "s/$pattern/ENTITY MD5       \"$md5Hash\"/")
           echo "$newContent" > "$file"
-
-      - name: Use the secret
-        run: |
-          echo ${{ secrets.PAT }}
-      
       - name: Git Commit and Push
           # You may pin to the exact commit or the version.
           # uses: github-actions-x/commit@722d56b8968bf00ced78407bbe2ead81062d8baa
         uses: actions-js/push@v1.4
         with:
-          github_token: ${{ secrets.PAT }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
