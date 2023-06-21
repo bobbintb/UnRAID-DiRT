@@ -13,8 +13,7 @@ jobs:
 
       - name: Edit file
         run: |
-          # Replace 'path/to/file' with the actual path to the file you want to edit
-          echo "New content" >> path/to/file
+          dir
 
       - name: Commit and push changes
         run: |
