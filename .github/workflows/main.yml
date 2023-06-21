@@ -14,12 +14,15 @@ jobs:
         shell: bash
         run: |
           #!/bin/bash
-          dest="./usr/local/emhttp/plugins/bobbintb.system.dedupe"
+          echo "Current working directory:"
           pwd
+          ls -l
+          echo "Creating folder structure..."
+          dest="../src/usr/local/emhttp/plugins/bobbintb.system.dedupe"
           mkdir -p "$dest"
-          rsync -a --exclude=bundle.bat --exclude=bobbintb.system.dedupe.plg --exclude=deduper.db --exclude=query.txt --exclude=.gitignore --exclude="*.yml" --exclude=usr --exclude=.git --exclude=.vs ./src/ "$dest"
-          tar cJf ./artifacts/bobbintb.system.dedupe.txz -C ./usr .
-          rm -rf usr
+          rsync -a --exclude=bundle.bat --exclude=bobbintb.system.dedupe.plg --exclude=deduper.db --exclude=query.txt --exclude=.gitignore --exclude="*.yml" --exclude=usr --exclude=.git --exclude=.vs ./ "$dest"
+          tar cJf ./artifacts/bobbintb.system.dedupe.txz -C ../src/usr .
+          rm -rf $dest
       - name: Edit file with PowerShell
         shell: bash
         run: |
