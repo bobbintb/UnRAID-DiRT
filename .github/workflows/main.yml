@@ -25,7 +25,7 @@ jobs:
           cp -r ./src/* $dest
           echo "Archiving..."
           ls -l ../src
-          7z a -ttar -so -an ../src/usr | 7z a -txz -si ./artifacts/bobbintb.system.dedupe.txz
+          7z a -ttar -so -an ../src/usr | 7z a -txz -si bobbintb.system.dedupe.txz
           #rm -rf $dest
       - name: Update MD5 in plg file
         shell: bash
