@@ -24,6 +24,21 @@ Copyright and author stuff for later
 <!--
 The 'install' script.
 -->
+
+<!-- PRE-INSTALL SCRIPT -->
+<FILE Run="/bin/bash">
+<INLINE>
+# Stop service
+# /usr/local/emhttp/plugins/&name;/scripts/rc.cachedirs stop 2>/dev/null
+
+# Remove old 'source' packages
+MD5=$(md5sum &source;.txz 2>/dev/null|grep -Po '^\S+')
+if [[ $MD5 != &MD5; ]]; then
+  rm -f &source;*.txz
+fi
+</INLINE>
+</FILE>
+
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
 
