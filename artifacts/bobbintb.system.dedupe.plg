@@ -40,7 +40,7 @@ echo ""
 
 <!-- SOURCE PACKAGE -->
 <FILE Name="&source;.txz" Run="upgradepkg --install-new --reinstall">
-<URL>https://raw.githubusercontent.com/&name;/&repo;/main/&name;.txz</URL>
+<URL>https://raw.githubusercontent.com/&auther;/&repo;/master/artifacts/&name;.txz</URL>
 <MD5>&MD5;</MD5>
 </FILE>
 
