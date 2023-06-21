@@ -32,9 +32,11 @@ jobs:
         run: |
           #!/bin/bash
           file="./artifacts/bobbintb.system.dedupe.plg"
+          cat $file
           md5Hash=$(md5sum "$file" | awk '{print $1}')
           pattern='ENTITY MD5\s+"([^"]+)"'
           content=$(<"$file")
           newContent=$(echo "$content" | sed -E "s/$pattern/ENTITY MD5       \"$md5Hash\"/")
           echo "$newContent" > "$file"
+          cat $file
 
