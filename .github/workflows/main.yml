@@ -40,10 +40,9 @@ jobs:
           $newContent | Set-Content -Path $file
       
       
-      - name: Github commit and push
-        # You may pin to the exact commit or the version.
-        # uses: Smart-Transportation/push@c77535fe7a94645f7ceca83e48e6cc977620710e
-        uses: Smart-Transportation/push@v1.3
+      - name: Git Commit and Push
+          # You may pin to the exact commit or the version.
+          # uses: github-actions-x/commit@722d56b8968bf00ced78407bbe2ead81062d8baa
+        uses: github-actions-x/commit@v2.9
         with:
-          # Token for the repo. Can be passed in using $\{{ secrets.GITHUB_TOKEN }}
           github_token: ${{ secrets.PAT }}
