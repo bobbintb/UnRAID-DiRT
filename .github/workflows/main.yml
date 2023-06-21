@@ -15,6 +15,7 @@ jobs:
         run: |
           #!/bin/bash
           dest="./usr/local/emhttp/plugins/bobbintb.system.dedupe"
+          pwd
           mkdir -p "$dest"
           rsync -a --exclude=bundle.bat --exclude=bobbintb.system.dedupe.plg --exclude=deduper.db --exclude=query.txt --exclude=.gitignore --exclude="*.yml" --exclude=usr --exclude=.git --exclude=.vs ./src/ "$dest"
           tar cJf ./artifacts/bobbintb.system.dedupe.txz -C ./usr .
@@ -29,9 +30,4 @@ jobs:
           content=$(<"$file")
           newContent=$(echo "$content" | sed -E "s/$pattern/ENTITY MD5       \"$md5Hash\"/")
           echo "$newContent" > "$file"
-      - name: Git Commit and Push
-          # You may pin to the exact commit or the version.
-          # uses: github-actions-x/commit@722d56b8968bf00ced78407bbe2ead81062d8baa
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.PAT }}
+
