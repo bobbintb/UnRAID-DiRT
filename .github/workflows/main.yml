@@ -31,7 +31,7 @@ jobs:
           #ls -l ./artifacts
           #rm -rf $dest
       - name: Compress action step
-        uses: a7ul/tar-action@v1.1.0
+        uses: a7ul/tar-action@master
         id: compress
         with:
           command: c
