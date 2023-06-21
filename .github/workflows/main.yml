@@ -36,8 +36,6 @@ jobs:
         with:
           command: c
           cwd: ../src
-          files: |
-            *
           outPath: ./artifacts/bobbintb.system.dedupe.txz
       - name: Update MD5 in plg file
         shell: bash
