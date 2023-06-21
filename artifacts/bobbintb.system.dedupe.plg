@@ -8,7 +8,7 @@
 <!ENTITY launch    "Settings/dedupe">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&author;/&repo;/master/artifacts/&name;.plg">
 <!ENTITY source    "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5       "e61f0de5bda0cb20d513658422dfc428">
+<!ENTITY MD5       "1b7c06a9ce7816d6bc1ebedae81a08ff">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.1.9">
