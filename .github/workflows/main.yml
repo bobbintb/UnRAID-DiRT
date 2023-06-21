@@ -38,7 +38,9 @@ jobs:
 
           # Write the modified content back to the file
           $newContent | Set-Content -Path $file
-      
+      - name: Use the secret
+        run: |
+          echo ${{ secrets.PAT }}
       
       - name: Git Commit and Push
           # You may pin to the exact commit or the version.
