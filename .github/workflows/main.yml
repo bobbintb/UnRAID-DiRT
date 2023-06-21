@@ -37,7 +37,13 @@ jobs:
           content=$(<"$file")
           newContent=$(echo "$content" | sed -E "s/$pattern/ENTITY MD5       \"$md5Hash\"/")
           echo "$newContent" > "$file"
-      - name: Git Commit and Push
+          - name: Commit files
+      - name: Git Commit 
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -a -m "Updated plg and txz files"
+      - name: Git Push
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.PAT }}
