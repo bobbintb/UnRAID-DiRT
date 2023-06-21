@@ -12,6 +12,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Edit file
+        shell: cmd
         run: |
           @echo off
           set "dest=./usr\local\emhttp\plugins\bobbintb.system.dedupe"
