@@ -1,11 +1,17 @@
 name: Package TXZ and update PLG
-
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - master
 jobs:
   pull_and_edit:
     runs-on: ubuntu-latest
     steps:
+      - name: Check if workflow should stop
+        if: ${{ github.actor == 'github-actions[bot]' }}
+        run: |
+          echo "Workflow stopped because it was triggered by the bot."
+          exit 1
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
