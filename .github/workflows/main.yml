@@ -26,10 +26,19 @@ jobs:
           cp -r ./src/* $dest
           echo "Archiving..."
           ls -l ../src
-          tar cJf ./artifacts/bobbintb.system.dedupe.txz -C ../src/* .
-          echo "Contents of artifact folder:"
-          ls -l ./artifacts
-          rm -rf $dest
+          #tar cJf ./artifacts/bobbintb.system.dedupe.txz -C ../src/* .
+          #echo "Contents of artifact folder:"
+          #ls -l ./artifacts
+          #rm -rf $dest
+      - name: Compress action step
+        uses: a7ul/tar-action@v1.1.0
+        id: compress
+        with:
+          command: c
+          cwd: ../src
+          files: |
+            ./
+          outPath: ./artifacts/bobbintb.system.dedupe.txz
       - name: Update MD5 in plg file
         shell: bash
         run: |
