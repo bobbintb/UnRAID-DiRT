@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check if workflow should stop
-        if: ${{ github.actor == 'github-actions[bot]' }}
+        if: ${{ github.actor == 'github-actions[bot]' }} == 'true'
         run: |
           echo "Workflow stopped because it was triggered by the bot."
           exit 1
