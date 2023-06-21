@@ -1,4 +1,4 @@
-name: Pull and Edit
+name: Package TXZ and update PLG
 
 on:
   workflow_dispatch:
@@ -32,12 +32,13 @@ jobs:
         shell: bash
         run: |
           #!/bin/bash
-          file="./artifacts/bobbintb.system.dedupe.plg"
-          md5Hash=$(md5sum "$file" | awk '{print $1}')
+          txz="./artifacts/bobbintb.system.dedupe.txz"
+          plg="./artifacts/bobbintb.system.dedupe.plg"
+          md5Hash=$(md5sum "$txz" | awk '{print $1}')
           pattern='ENTITY MD5\s+"([^"]+)"'
-          content=$(<"$file")
+          content=$(<"$plg")
           newContent=$(echo "$content" | sed -E "s/$pattern/ENTITY MD5       \"$md5Hash\"/")
-          echo "$newContent" > "$file"
+          echo "$newContent" > "$plg"
       - name: Git Commit 
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
