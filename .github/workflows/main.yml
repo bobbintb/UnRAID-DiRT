@@ -24,6 +24,7 @@ jobs:
           ls -l
           rsync -a --exclude=bundle.bat --exclude=bobbintb.system.dedupe.plg --exclude=deduper.db --exclude=query.txt --exclude=.gitignore --exclude="*.yml" --exclude=usr --exclude=.git --exclude=.vs ./ "$dest"
           echo "Archiving..."
+          ls -l ../src
           tar cJf ./artifacts/bobbintb.system.dedupe.txz -C ../src .
           echo "Contents of artifact folder:"
           ls -l ./artifacts
