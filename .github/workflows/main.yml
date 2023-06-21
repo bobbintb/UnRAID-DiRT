@@ -5,39 +5,33 @@ on:
 
 jobs:
   pull_and_edit:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Package plugin as txz
-        shell: cmd
+        shell: bash
         run: |
-          @echo off
-          set "dest=./usr\local\emhttp\plugins\bobbintb.system.dedupe"
-          mkdir "%dest%"
-          robocopy ./src "%dest%" /E /XF bundle.bat /XF bobbintb.system.dedupe.plg /XF deduper.db /XF query.txt /XF .gitignore /XF *.yml /XD usr .git .vs
-          7z.exe a -ttar -so -an ./usr | 7z.exe a -txz -si ./artifacts\bobbintb.system.dedupe.txz
-          rd /s /q usr
+          #!/bin/bash
+          dest="./usr/local/emhttp/plugins/bobbintb.system.dedupe"
+          mkdir -p "$dest"
+          rsync -a --exclude=bundle.bat --exclude=bobbintb.system.dedupe.plg --exclude=deduper.db --exclude=query.txt --exclude=.gitignore --exclude="*.yml" --exclude=usr --exclude=.git --exclude=.vs ./src/ "$dest"
+          tar cJf ./artifacts/bobbintb.system.dedupe.txz -C ./usr .
+          rm -rf usr
+
       - name: Edit file with PowerShell
-        shell: powershell
+        shell: bash
         run: |
-          # Set the path to your file
-          $file = "./artifacts\bobbintb.system.dedupe.plg"
-          $md5Hash = ((Get-FileHash -Path $file -Algorithm MD5).Hash).ToLower()
-          # Read the file contents
-          $content = Get-Content -Path $file
+          #!/bin/bash
+          file="./artifacts/bobbintb.system.dedupe.plg"
+          md5Hash=$(md5sum "$file" | awk '{print $1}')
+          pattern='ENTITY MD5\s+"([^"]+)"'
+          content=$(<"$file")
+          newContent=$(echo "$content" | sed -E "s/$pattern/ENTITY MD5       \"$md5Hash\"/")
+          echo "$newContent" > "$file"
 
-          # Define the regular expression pattern to match the text within quotes
-          $pattern = 'ENTITY MD5\s+"([^"]+)"'
-
-          # Find and replace the text within quotes
-          $newContent = $content -replace $pattern, "ENTITY MD5       `"$md5Hash`""
-
-
-          # Write the modified content back to the file
-          $newContent | Set-Content -Path $file
       - name: Use the secret
         run: |
           echo ${{ secrets.PAT }}
