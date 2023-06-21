@@ -1,0 +1,25 @@
+name: Pull and Edit
+
+on:
+  workflow_dispatch:
+
+jobs:
+  pull_and_edit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Edit file
+        run: |
+          # Replace 'path/to/file' with the actual path to the file you want to edit
+          echo "New content" >> path/to/file
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "Your Name"
+          git config --global user.email "youremail@example.com"
+          git add .
+          git commit -m "Updated file"
+          git push
