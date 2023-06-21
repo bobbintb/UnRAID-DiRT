@@ -8,7 +8,7 @@ function popRightGrid() {
     const rightrows = rightrowsArray.map(item => {
         return {
             action: item.action,
-            file: item.dir + item.file + '\n' + 'test',
+            file: item.dir + item.file,
             size: item.st_size
         };
     });

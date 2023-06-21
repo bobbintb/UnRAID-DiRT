@@ -1,7 +1,7 @@
 const bottomGrid = document.createElement('revo-grid');
 bottomGrid.readonly = true;
 bottomGrid.resize = true;
-bottomGrid.style.height = '35%';
+bottomGrid.style.height = '15%';
 bottomGrid.style.border = '1px solid white';
 
 function popBottomGrid(data) {

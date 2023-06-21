@@ -3,7 +3,13 @@ Title="Main"
 ---
 <?php
 $db = new SQLite3('plugins/bobbintb.system.dedupe/deduper.db');
-$query = "
+
+$settingsPath = '/boot/config/plugins/bobbintb.system.dedupe/config.ini';
+$settings = parse_ini_file($settingsPath, true);
+$hardlinks = $settings['Settings']['hardlinks'];
+
+if ($hardlinks == "true") {
+    $query = "
 SELECT json_group_array(json_object('fullHash', fullHash, 'st_size', st_size, 'count', count)) AS result
 FROM (
   SELECT json_extract(data, '$.fullHash') AS fullHash,
@@ -20,6 +26,27 @@ FROM (
 ) AS subquery
 GROUP BY '';
 ";
+} else {
+      $query = "
+SELECT json_group_array(json_object('fullHash', fullHash, 'st_size', st_size, 'count', count)) AS result
+FROM (
+  SELECT json_extract(data, '$.fullHash') AS fullHash,
+         json_extract(data, '$.st_size') AS st_size,
+         COUNT(*) AS count
+  FROM files
+  WHERE json_extract(data, '$.fullHash') IN (
+    SELECT json_extract(data, '$.fullHash')
+    FROM files
+    GROUP BY json_extract(data, '$.fullHash'), json_extract(data, '$.st_size'), json_extract(data, '$.st_ino') -- Include st_ino in the grouping condition
+    HAVING COUNT(*) > 1
+  )
+  GROUP BY fullHash, st_size
+) AS subquery
+GROUP BY '';
+";
+}
+
+
 $results = $db->query($query);
 $jsonResults = json_encode($results->fetchArray(SQLITE3_ASSOC));
 

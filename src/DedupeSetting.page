@@ -63,6 +63,36 @@ body{-webkit-overflow-scrolling:touch}
         <input type='text' size="15" class='setting' id="dbDir" placeholder="/mnt/cache/deduper.db" name="sharefolder2" data-pickroot="/mnt/cache" data-pickfilter="db" data-pickfolders="true" onchange="path_selected(dbDirFromJs)" required>
     </dd>
 
-<input type="submit" name="#apply" value='_(Save)_'>
+<dt>Include hardlinks:</dt>
+
+    <dd><select class='setting' id='compression' onchange='validateOptions();'>
+		  <option value='no'>No</option>
+		  <option value='yes'>Yes</option>
+		  </select>
+	  </dd>
+<br>
+
+<input type="submit" name="#apply" value="_(Apply)_"><input type="button" value="_(Done)_" onclick="done()">
+
+
+<div id="title"><span class="left"><i class="fa fa-search icon"></i>_(Scan)_</span></div>
+<input type="button" value="_(Delete Database)_" id="deletedb";" disabled="">
+<input type="button" value="_(Scan)_" id="scan";" disabled="">
+<br>
+<font size='2'>Scan Status: <span id='backupStatus'></span></font>
+<div style='border:1px;border-style:solid;border-color:white;height:300px;overflow:auto' id='backupLines' ></div>
+<input type='button' value='Abort' id='abort' onclick='abort();' disabled>
+
+//<script>
+//    var eventSource = new EventSource('include/stream.php');
+
+//    eventSource.onmessage = function(event) {
+//        var output = event.data;
+        // Update the content on your page with the received output
+//        document.getElementById('output-container').innerHTML += output;
+//    };
+//</script>
+
+
 </td></tr>
 </dl>

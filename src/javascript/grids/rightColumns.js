@@ -24,7 +24,7 @@ const rightcolumns = [
     {
         size: 30,
         columnType: "regular",
-        //cellTemplate: fa_trash,
+        cellTemplate: fa_trash_queue,
         //columnTemplate: fa_trash_header,
       }
 ];

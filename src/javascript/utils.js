@@ -10,6 +10,10 @@ function addToLocalStorage(storageKey) {
     localStorage.setItem(storageKey, JSON.stringify(window[storageKey]));
 }
 
+function removeFromLocalStorage(storageKey) {
+    localStorage.removeItem(storageKey, JSON.stringify(window[storageKey]));
+}
+
 function convertFileSize(size) {
     if (typeof size !== 'undefined' && size !== null) {
         const units = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
@@ -41,8 +45,13 @@ const numericCompare = (cell1, cell2, ascending) => {
 
 function checkOriginals(t1fullHash, data) {
     if (!(originals.hasOwnProperty(t1fullHash))) {
-        originals[t1fullHash] = data[0].fqfn;
-        addToLocalStorage('originals');
+        try {
+            originals[t1fullHash] = data[0].fqfn;
+        }
+        catch (error) {
+        } finally {
+            addToLocalStorage('originals');
+        }
     }
 }
 

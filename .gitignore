@@ -1,12 +1,6 @@
 /config.ini
 /*.log
-/.idea
-!/test.py
-
-!/test2.py
-
-!/test3.py
-
-!/tests.py
-
-!/timer.py
+src/deduper.db
+artifacts/bobbintb.system.dedupe.txz
+todo.txt
+issues.txt

@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "bobbintb.system.dedupe">
 <!ENTITY author    "bobbintb">
-<!ENTITY repo      "UnRAID-DeDuper">
+<!ENTITY repo      "UnRAID-dedupe">
 <!ENTITY version   "2020.06.21">
 <!ENTITY launch    "Settings/dedupe">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&author;/&repo;/master/artifacts/&name;.plg">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&name;/&repo;/main/&name;.plg">
 <!ENTITY source    "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5       "cf092f6bb19af9176c3c5af86f9055ab">
+<!ENTITY MD5       "3536b54cc4bb6ce407e58b09910a4d6d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.1.9">
@@ -24,21 +24,6 @@ Copyright and author stuff for later
 <!--
 The 'install' script.
 -->
-
-<!-- PRE-INSTALL SCRIPT -->
-<FILE Run="/bin/bash">
-<INLINE>
-# Stop service
-# /usr/local/emhttp/plugins/&name;/scripts/rc.cachedirs stop 2>/dev/null
-
-# Remove old 'source' packages
-MD5=$(md5sum &source;.txz 2>/dev/null|grep -Po '^\S+')
-if [[ $MD5 != &MD5; ]]; then
-  rm -f &source;*.txz
-fi
-</INLINE>
-</FILE>
-
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
 
@@ -55,7 +40,7 @@ echo ""
 
 <!-- SOURCE PACKAGE -->
 <FILE Name="&source;.txz" Run="upgradepkg --install-new --reinstall">
-<URL>https://raw.githubusercontent.com/&author;/&repo;/master/artifacts/&name;.txz</URL>
+<URL>https://raw.githubusercontent.com/&name;/&repo;/main/&name;.txz</URL>
 <MD5>&MD5;</MD5>
 </FILE>
 
@@ -89,7 +74,7 @@ echo ""
 <FILE Run="/bin/bash" Method="remove">
 <INLINE>
 # Stop service
-#/usr/local/emhttp/plugins/&name;/scripts/rc.autofan stop 2>/dev/null
+#/usr/local/emhttp/plugins/&name;/scripts/dedupe stop 2>/dev/null
 
 # Remove plugin related files
 rm -rf /boot/config/plugins/&name;

@@ -103,6 +103,36 @@ const fa_trash = (createElement, props) => {
   });
 };
 
+const fa_trash_queue = (createElement, props) => {
+  fqfn = props.model.dir + props.model.file
+  if (originals[props.model.fullHash] == fqfn) {
+    state = true;
+  } else {
+    state = false;
+  }
+  return createElement('button', {
+    class: 'fa fa-trash',
+    disabled: state,
+    style: {
+      minWidth: 'initial',
+      margin: 'initial',
+      color: '#f2f2f2'
+    },
+    onClick: () => {
+      //props.model.action = 'delete';
+      //checkQueue(props.model, 'queue');
+      console.log(props);
+
+      console.log(typeof props);
+      console.log(props.model.file.trim());
+      console.log(localStorage.queue);
+      //removeFromLocalStorage('queue');
+      localStorage.removeItem('queue', JSON.stringify(window[props]));
+      popRightGrid();
+    },
+  });
+};
+
 const fa_trash_header = (createElement, prop) => {
   return createElement('button', {
     class: 'fa fa-trash',
@@ -147,6 +177,10 @@ const radioTemplate = (createElement, props) => {
 };
 
 const recoverableSize = (createElement, props) => {
-  const recoverSize = convertFileSize([props.model.count - 1] * props.model.size);
-  return createElement('span', {}, recoverSize);
+  if (props.model.fullHash === 'Total') {
+    return convertFileSize(props.model.recoverable);
+  } else {
+    const recoverSize = convertFileSize([props.model.count - 1] * props.model.size);
+    return createElement('span', {}, recoverSize);
+  }
 }

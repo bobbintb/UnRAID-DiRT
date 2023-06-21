@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded', function () {
   enableBorders = true;
-  enableBorders = false;
   enablePadding = true;
+// You can comment the following two lines out to troubleshoot
+  enableBorders = false;
   enablePadding = false;
+
   debugPadingSize = '5px';
   padingSize = '15px';
 
@@ -11,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
   parent.style.display = 'flex';
   parent.style.flex = 1;
   parent.style.height = '100ch';
+  //parent.style.overflowX = 'hidden';
 
   const style = document.createElement('style');
   style.innerHTML = "revo-grid[theme=default] revogr-header .header-rgRow, revo-grid[theme=default] revogr-header .group-rgRow { text-transform: none; }";
@@ -19,7 +22,9 @@ document.addEventListener('DOMContentLoaded', function () {
   // solid gold
   const rightButtonContainer = document.createElement('div');
   rightButtonContainer.appendChild(clearQueue);
-
+  rightButtonContainer.appendChild(clearOriginals);
+  rightButtonContainer.appendChild(processQueue);
+  rightButtonContainer.appendChild(linkButton);
   // solid green
   const rightContainer = document.createElement('div');
   rightContainer.style.display = 'flex';
@@ -33,15 +38,14 @@ document.addEventListener('DOMContentLoaded', function () {
   // dotted purple
   const gridContainer = document.createElement('div');
   gridContainer.style.display = 'flex';
-  gridContainer.style.height = '65%';
+  gridContainer.style.height = '85%';
   gridContainer.style.paddingBottom = padingSize;
   gridContainer.appendChild(leftGrid);
   gridContainer.appendChild(rightContainer);
 
   // solid blue
   const bottomButtonContainer = document.createElement('div');
-  bottomButtonContainer.appendChild(processQueue);
-  bottomButtonContainer.appendChild(linkButton);
+
 
   parent.appendChild(gridContainer);
   parent.appendChild(bottomGrid);
