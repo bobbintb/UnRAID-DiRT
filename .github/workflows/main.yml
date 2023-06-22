@@ -7,11 +7,6 @@ jobs:
   pull_and_edit:
     runs-on: ubuntu-latest
     steps:
-      - name: Check if workflow should stop
-        if: ${{ github.ref_type == 'tag' && github.ref != 'refs/tags/release' }}
-        run: |
-          echo "Workflow stopped because it was triggered by the bot."
-          exit 0
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
@@ -54,4 +49,5 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.PAT }}
+          branch: release
 
