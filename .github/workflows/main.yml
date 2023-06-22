@@ -29,16 +29,18 @@ jobs:
           7z a -ttar -so -an ../src/usr | 7z a -txz -si bobbintb.system.dedupe.txz
           mv bobbintb.system.dedupe.txz ./artifacts
           #rm -rf $dest
-      - name: Update MD5 in plg file
+      - name: Update MD5 and date in plg file
         shell: bash
         run: |
           #!/bin/bash
           txz="./artifacts/bobbintb.system.dedupe.txz"
           plg="./artifacts/bobbintb.system.dedupe.plg"
           md5Hash=$(md5sum "$txz" | awk '{print $1}')
+          curdate=$(date +"%Y.%m.%d")
           pattern='ENTITY MD5\s+"([^"]+)"'
+          datepattern='ENTITY version\s+"([^"]+)"'
           content=$(<"$plg")
-          newContent=$(echo "$content" | sed -E "s/$pattern/ENTITY MD5       \"$md5Hash\"/")
+          newContent=$(echo "$content" | sed -E "s/$datepattern/ENTITY version       \"$curdate\"/" | sed -E "s/$pattern/ENTITY MD5       \"$md5Hash\"/")
           echo "$newContent" > "$plg"
       - name: Git Commit 
         run: |
