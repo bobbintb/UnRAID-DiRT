@@ -64,7 +64,7 @@ echo ""
 <INLINE>
 cfg=&source;.ini
 if [[ ! -e $cfg ]]; then
-  cp /usr/local/emhttp/plugins/&name;.example/config.ini $cfg
+  cp /usr/local/emhttp/plugins/&name;/config.ini.example $cfg
 fi
 
 # Start service
