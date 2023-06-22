@@ -40,7 +40,7 @@ jobs:
           pattern='ENTITY MD5\s+"([^"]+)"'
           datepattern='ENTITY version\s+"([^"]+)"'
           content=$(<"$plg")
-          newContent=$(echo "$content" | sed -E "s/$datepattern/ENTITY version       \"$curdate\"/" | sed -E "s/$pattern/ENTITY MD5       \"$md5Hash\"/")
+          newContent=$(echo "$content" | sed -E "s/$datepattern/ENTITY version   \"$curdate\"/" | sed -E "s/$pattern/ENTITY MD5       \"$md5Hash\"/")
           echo "$newContent" > "$plg"
       - name: Git Commit 
         run: |
