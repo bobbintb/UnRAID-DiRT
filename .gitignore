@@ -1,6 +1,5 @@
 /config.ini
 /*.log
 src/deduper.db
-artifacts/bobbintb.system.dedupe.txz
 todo.txt
 issues.txt
