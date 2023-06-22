@@ -62,10 +62,10 @@ echo ""
 <!-- POST-INSTALL SCRIPT -->
 <FILE Run="/bin/bash">
 <INLINE>
-#cfg=&source;.cfg
-#if [[ ! -e $cfg ]]; then
-#  cfg=/usr/local/emhttp/plugins/&name;/default.cfg
-#fi
+cfg=&source;.ini.example
+if [[ ! -e $cfg ]]; then
+  cp /usr/local/emhttp/plugins/&name;/config.ini $cfg
+fi
 
 # Start service
 #enable=$(grep -Po '^service="\K[^"]+' $cfg)
