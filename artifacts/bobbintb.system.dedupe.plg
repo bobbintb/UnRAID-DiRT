@@ -62,9 +62,9 @@ echo ""
 <!-- POST-INSTALL SCRIPT -->
 <FILE Run="/bin/bash">
 <INLINE>
-cfg="/boot/config/plugins/&name;/config.ini"
+cfg="/boot/config/plugins/&name;/&name;.cfg"
 if [[ ! -e $cfg ]]; then
-  cp /usr/local/emhttp/plugins/&name;/config.ini.example $cfg
+  cp /usr/local/emhttp/plugins/&name;/&name;.cfg.example $cfg
 fi
 
 # Start service

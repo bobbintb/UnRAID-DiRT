@@ -1,9 +1,4 @@
 #!/bin/sh
-#
-# myscript: Startup script for My Python Script
-#
-# chkconfig: 2345 20 80
-# description: My Python Script
 
 case "$1" in
 start)

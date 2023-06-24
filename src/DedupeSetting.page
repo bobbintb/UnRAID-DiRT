@@ -23,6 +23,20 @@ function path_selected(ElementId) {
 <?php
 $bgcolor = strstr('white,azure',$display['theme']) ? '#f2f2f2' : '#1c1c1c';
 
+$plugin = "bobbintb.system.dedupe";
+
+function parse_cfg($plugin,$index) {
+  global $docroot;
+  $ram = "$docroot/plugins/$plugin/$plugin.example.cfg";
+  $rom = "/boot/config/plugins/$plugin/{$plugin}{$index}.cfg";
+  $cfg = file_exists($ram) ? parse_ini_file($ram) : [];
+  return file_exists($rom) ? array_replace_recursive($cfg, parse_ini_file($rom)) : $cfg;
+}
+
+$index  = $_POST['index']?:'';
+$cfg    = parse_cfg($plugin,$index);
+print_r($cfg);
+
 if (count($_POST)) {
 	if ($_POST['#apply'] == "_(Add FileIO)_") {
   
