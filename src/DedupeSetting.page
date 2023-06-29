@@ -1,6 +1,11 @@
 Menu="Dedupe:2"
 Title="Settings"
 ---
+<?PHP
+/* Copyright 2012-2023, Bergware International.
+ */
+?>
+
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/jquery.filetree.css")?>">
 <script src="<?autov("/webGui/javascript/jquery.filetree.js")?>"></script>
 
@@ -17,17 +22,27 @@ function path_selected(ElementId) {
   var share = $("#fiotdestinationShare").val();
   document.getElementById(ElementId).value = share;
 }
+
+function path_selected(element) {
+  var scanDirInput = document.getElementById('dbfile');
+
+  if (element.value !== '') {
+    scanDirInput.disabled = true;
+  } else {
+    scanDirInput.disabled = false;
+  }
+}
+
+
 </script>
 
-
-<?php
+<?
 $bgcolor = strstr('white,azure',$display['theme']) ? '#f2f2f2' : '#1c1c1c';
-
 $plugin = "bobbintb.system.dedupe";
 
 function parse_cfg($plugin,$index) {
   global $docroot;
-  $ram = "$docroot/plugins/$plugin/$plugin.example.cfg";
+  $ram = "$docroot/plugins/$plugin/$plugin.cfg.example";
   $rom = "/boot/config/plugins/$plugin/{$plugin}{$index}.cfg";
   $cfg = file_exists($ram) ? parse_ini_file($ram) : [];
   return file_exists($rom) ? array_replace_recursive($cfg, parse_ini_file($rom)) : $cfg;
@@ -35,20 +50,45 @@ function parse_cfg($plugin,$index) {
 
 $index  = $_POST['index']?:'';
 $cfg    = parse_cfg($plugin,$index);
-print_r($cfg);
 
-if (count($_POST)) {
-	if ($_POST['#apply'] == "_(Add FileIO)_") {
-  
-      $size = $_POST["size"];
-      $name = $_POST["name"];
-      $path = $_POST["sharefolder"];
-      $writeback = $_POST["write_back"];
-      $cmdstr="/backstores/fileio create ".$name." ".$path.$name.".img ".$size." write_back=".$writeback ;
-      processTargetcli($cmdstr) ;
-    
+
+
+
+function deleteFile($filePath) {
+  if (file_exists($filePath)) {
+    if (unlink($filePath)) {
+      return true; // File deleted successfully
+    } else {
+      return false; // Failed to delete the file
     }
+  } else {
+    return false; // File does not exist
+  }
 }
+
+if (isset($_POST['file_path'])) {
+  $filePath = $_POST['file_path'];
+  $deleted = deleteFile($filePath);
+  if ($deleted) {
+    echo 'File deleted successfully.';
+  } else {
+    echo 'Failed to delete the file.';
+  }
+}
+
+function confirmDelete($filePath) {
+  echo "<script>";
+  echo "if (confirm('Are you sure you want to delete the file?')) {";
+  echo "  window.location.href = 'delete_file.php?file_path=" . urlencode($filePath) . "';";
+  echo "}";
+  echo "</script>";
+}
+
+// Call confirmDelete() after the function definition
+if (isset($_GET['file_path'])) {
+  confirmDelete($_GET['file_path']);
+}
+
 ?>
 
 <style>
@@ -60,34 +100,48 @@ body{-webkit-overflow-scrolling:touch}
 .fileTree{background:<?=$bgcolor?>;width:300px;max-height:150px;overflow-y:scroll;overflow-x:hidden;position:absolute;z-index:100;display:none}
 </style>
 
-<link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/jquery.filetree.css")?>">
-<script src="<?=autov("/webGui/javascript/jquery.filetree.js")?>"></script>
-<dl>
-<dt>Scan directory:</dt>
+_(Database file)_:
+: <input id="dbpathfromjs" name="dbDirFromJs" type="hidden"></input>
+<input type="text" size="15" class='setting' id="dbDir" value="<?=$cfg['dbfile']??''?>" name="sharefolder2" data-pickroot="/mnt/cache" data-pickfilter="db" data-pickfolders="true" onchange="path_selected(dbDirFromJs)" required>
+<form method="POST" action="/plugins/bobbintb.system.dedupe/include/delete.php">
+    <input type="hidden" name="file_path" value="<?=$cfg['dbfile']??''?>">
+    <button type="submit" name="deleteButton">Delete DB</button>
+  </form>
 
-    <dd>
-        <input id="pathfromjs" name="scanDirFromJs" type="hidden"></input>
-        <input type='text' size="15" class='setting' id="scanDir" placeholder="/mnt/user/" name="sharefolder" data-pickroot="/mnt/user" data-pickfilter="HIDE_FILES_FILTER" data-pickfolders="true" onchange="path_selected(scanDirFromJs)" required>
-    </dd>
+  <blockquote class='inline_help'>
+  <p>The daemon must be stopped before changing the DB file. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.</p>
+</blockquote>
 
-<dt>Database file:</dt>
+<form markdown="1" method="POST" action="/update.php" target="progressFrame">
+<input type="hidden" name="#file" value="<?=$plugin?>/<?=$plugin.$index?>.cfg">
+<input type="hidden" name="#cleanup" value="true">
 
-    <dd>
-        <input id="dbpathfromjs" name="dbDirFromJs" type="hidden"></input>
-        <input type='text' size="15" class='setting' id="dbDir" placeholder="/mnt/cache/deduper.db" name="sharefolder2" data-pickroot="/mnt/cache" data-pickfilter="db" data-pickfolders="true" onchange="path_selected(dbDirFromJs)" required>
-    </dd>
+_(Scan directory)_:
+: <input id="pathfromjs" name="scanDirFromJs" type="hidden"></input>
+<input type="text" size="15" class="setting" id="scanDir" value="<?=$cfg['dir'] ?? ''?>" name="scanDir" data-pickroot="/mnt/user" data-pickfilter="HIDE_FILES_FILTER" data-pickfolders="true" <?= file_exists($cfg['dbfile']) ? 'disabled' : '' ?> onchange="path_selected(scanDirFromJs)" required>
 
-<dt>Include hardlinks:</dt>
+<blockquote class='inline_help'>
+  <p>The scan directory can only be changed if the database doesn't exists and the daemon is stopped. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.</p>
+</blockquote>
 
-    <dd><select class='setting' id='compression' onchange='validateOptions();'>
-		  <option value='no'>No</option>
-		  <option value='yes'>Yes</option>
-		  </select>
-	  </dd>
-<br>
 
-<input type="submit" name="#apply" value="_(Apply)_"><input type="button" value="_(Done)_" onclick="done()">
 
+_(Include hardlinks)_:
+: <select name="hardlinks">
+  <?=mk_option($cfg['hardlinks']??'', "false", _("No"))?>
+  <?=mk_option($cfg['hardlinks']??'', "true", _("Yes"))?>
+  </select>
+
+<blockquote class='inline_help'>
+  <p>No (Default): Files that are hardlinked (i.e. share the same inode number) are not considered duplicates.</p>
+  <p>Yes: Files that are hardlinked are considered duplicates.</p>
+  <p></p>
+  <p>Note: If File A and File B are hardlinked they are considered one file, as they share the same inode number. In this case, neither file will show up in the list of duplicates if this setting is set to 'No'. However, if File C has the same hash as files A and B but has a different inode number, then file C will be a duplicate of files A and B, collectively. Essentially, setting this option to 'No' will group the files by inode, with one file representing the group.</p>
+</blockquote>
+
+<input type="submit" name="#default" value="_(Default)_">
+: <input type="submit" name="#apply" value="_(Apply)_"><input type="button" value="_(Done)_" onclick="done()">
+</form>
 
 <div id="title"><span class="left"><i class="fa fa-search icon"></i>_(Scan)_</span></div>
 <input type="button" value="_(Delete Database)_" id="deletedb";" disabled="">
@@ -95,18 +149,5 @@ body{-webkit-overflow-scrolling:touch}
 <br>
 <font size='2'>Scan Status: <span id='backupStatus'></span></font>
 <div style='border:1px;border-style:solid;border-color:white;height:300px;overflow:auto' id='backupLines' ></div>
+
 <input type='button' value='Abort' id='abort' onclick='abort();' disabled>
-
-//<script>
-//    var eventSource = new EventSource('include/stream.php');
-
-//    eventSource.onmessage = function(event) {
-//        var output = event.data;
-        // Update the content on your page with the received output
-//        document.getElementById('output-container').innerHTML += output;
-//    };
-//</script>
-
-
-</td></tr>
-</dl>

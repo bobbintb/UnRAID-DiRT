@@ -4,7 +4,7 @@ Title="Main"
 <?php
 $db = new SQLite3('plugins/bobbintb.system.dedupe/deduper.db');
 
-$settingsPath = '/boot/config/plugins/bobbintb.system.dedupe/config.ini';
+$settingsPath = '/boot/config/plugins/bobbintb.system.dedupe/bobbintb.system.dedupe.cfg';
 $settings = parse_ini_file($settingsPath, true);
 $hardlinks = $settings['Settings']['hardlinks'];
 
