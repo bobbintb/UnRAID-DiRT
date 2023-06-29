@@ -9,6 +9,7 @@ Title="Settings"
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/jquery.filetree.css")?>">
 <script src="<?autov("/webGui/javascript/jquery.filetree.js")?>"></script>
 
+<!--JavaScript begin-->
 <script>
 $(function(){
   $("#scanDir").fileTreeAttach();
@@ -18,27 +19,18 @@ $(function(){
   $("#dbDir").fileTreeAttach();
 });
 
-function path_selected(ElementId) {
-  var share = $("#fiotdestinationShare").val();
-  document.getElementById(ElementId).value = share;
+function updateInput(id) {
+  var selectedFilePath = document.getElementById(id).value;
 }
-
-function path_selected(element) {
-  var scanDirInput = document.getElementById('dbfile');
-
-  if (element.value !== '') {
-    scanDirInput.disabled = true;
-  } else {
-    scanDirInput.disabled = false;
-  }
-}
-
-
 </script>
+<!--JavaScript end-->
 
+<!--PHP begin-->
 <?
 $bgcolor = strstr('white,azure',$display['theme']) ? '#f2f2f2' : '#1c1c1c';
 $plugin = "bobbintb.system.dedupe";
+$index  = $_POST['index']?:'';
+$cfg    = parse_cfg($plugin,$index);
 
 function parse_cfg($plugin,$index) {
   global $docroot;
@@ -47,12 +39,6 @@ function parse_cfg($plugin,$index) {
   $cfg = file_exists($ram) ? parse_ini_file($ram) : [];
   return file_exists($rom) ? array_replace_recursive($cfg, parse_ini_file($rom)) : $cfg;
 }
-
-$index  = $_POST['index']?:'';
-$cfg    = parse_cfg($plugin,$index);
-
-
-
 
 function deleteFile($filePath) {
   if (file_exists($filePath)) {
@@ -66,6 +52,14 @@ function deleteFile($filePath) {
   }
 }
 
+function confirmDelete($filePath) {
+  echo "<script>";
+  echo "if (confirm('Are you sure you want to delete the file?')) {";
+  echo "  window.location.href = 'delete_file.php?file_path=" . urlencode($filePath) . "';";
+  echo "}";
+  echo "</script>";
+}
+
 if (isset($_POST['file_path'])) {
   $filePath = $_POST['file_path'];
   $deleted = deleteFile($filePath);
@@ -75,21 +69,12 @@ if (isset($_POST['file_path'])) {
     echo 'Failed to delete the file.';
   }
 }
-
-function confirmDelete($filePath) {
-  echo "<script>";
-  echo "if (confirm('Are you sure you want to delete the file?')) {";
-  echo "  window.location.href = 'delete_file.php?file_path=" . urlencode($filePath) . "';";
-  echo "}";
-  echo "</script>";
-}
-
 // Call confirmDelete() after the function definition
 if (isset($_GET['file_path'])) {
   confirmDelete($_GET['file_path']);
 }
-
 ?>
+<!--PHP end-->
 
 <style>
   dt {
@@ -99,15 +84,20 @@ body{-webkit-overflow-scrolling:touch}
 .errortext{color:#EF3D47;display:none}
 .fileTree{background:<?=$bgcolor?>;width:300px;max-height:150px;overflow-y:scroll;overflow-x:hidden;position:absolute;z-index:100;display:none}
 </style>
+<div>
+<input type="text" required="" class="ftAttach" id="destination" name="destination" value="/mnt/user/AppdataBackup" data-pickfilter="HIDE_FILES_FILTER" data-pickfolders="true" placeholder="Please click to select">
+</div>
 
 _(Database file)_:
-: <input id="dbpathfromjs" name="dbDirFromJs" type="hidden"></input>
-<input type="text" size="15" class='setting' id="dbDir" value="<?=$cfg['dbfile']??''?>" name="sharefolder2" data-pickroot="/mnt/cache" data-pickfilter="db" data-pickfolders="true" onchange="path_selected(dbDirFromJs)" required>
+: <input type="text" size="15" class="setting" id="dbDir" value="<?=$cfg['dbfile'] ?? ''?>" data-pickroot="<?=dirname($cfg['dbfile']) ?? '/mnt/cache'?>" data-pickfilter="db" onchange="updateInput(this.id)" required>
+
+
 <form method="POST" action="/plugins/bobbintb.system.dedupe/include/delete.php">
     <input type="hidden" name="file_path" value="<?=$cfg['dbfile']??''?>">
     <button type="submit" name="deleteButton">Delete DB</button>
-  </form>
+</form>
 
+daemon must be stopped
   <blockquote class='inline_help'>
   <p>The daemon must be stopped before changing the DB file. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.</p>
 </blockquote>
@@ -116,10 +106,12 @@ _(Database file)_:
 <input type="hidden" name="#file" value="<?=$plugin?>/<?=$plugin.$index?>.cfg">
 <input type="hidden" name="#cleanup" value="true">
 
-_(Scan directory)_:
-: <input id="pathfromjs" name="scanDirFromJs" type="hidden"></input>
-<input type="text" size="15" class="setting" id="scanDir" value="<?=$cfg['dir'] ?? ''?>" name="scanDir" data-pickroot="/mnt/user" data-pickfilter="HIDE_FILES_FILTER" data-pickfolders="true" <?= file_exists($cfg['dbfile']) ? 'disabled' : '' ?> onchange="path_selected(scanDirFromJs)" required>
 
+
+_(Scan directory)_:
+: <input type="text" size="15" class="setting" id="scanDir" value="<?=$cfg['dir'] ?? ''?>" data-pickroot="<?=dirname($cfg['dir']) ?? '/mnt/user'?>" data-pickfilter="HIDE_FILES_FILTER" data-pickfolders="true" <?= file_exists($cfg['dbfile']) ? 'disabled' : '' ?> onchange="updateInput(this.id)" required>
+
+daemon must be stopped, no db file
 <blockquote class='inline_help'>
   <p>The scan directory can only be changed if the database doesn't exists and the daemon is stopped. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.</p>
 </blockquote>
@@ -146,8 +138,10 @@ _(Include hardlinks)_:
 <div id="title"><span class="left"><i class="fa fa-search icon"></i>_(Scan)_</span></div>
 <input type="button" value="_(Delete Database)_" id="deletedb";" disabled="">
 <input type="button" value="_(Scan)_" id="scan";" disabled="">
+<input type='button' value='Abort' id='abort' onclick='abort();' disabled>
 <br>
 <font size='2'>Scan Status: <span id='backupStatus'></span></font>
 <div style='border:1px;border-style:solid;border-color:white;height:300px;overflow:auto' id='backupLines' ></div>
 
-<input type='button' value='Abort' id='abort' onclick='abort();' disabled>
+<input type='button' value='Start' id='start' onclick='abort();' disabled>
+<input type='button' value='Stop' id='stop' onclick='abort();' disabled>
