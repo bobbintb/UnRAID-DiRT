@@ -35,7 +35,10 @@ jobs:
           #!/bin/bash
           txz="./artifacts/bobbintb.system.dedupe.txz"
           plg="./artifacts/bobbintb.system.dedupe.plg"
+          md5Hash=$(md5sum "$txz" | awk '{print $1}')
+          content=$(<"$plg")
           curdate=$(date +"%Y.%m.%d")
+          
           echo "Current date: ${curdate}"
           pattern='ENTITY MD5\s+"([^"]+)"'
           datepattern='ENTITY version\s+"([^"]+)"'
@@ -55,8 +58,7 @@ jobs:
           curdate+="$next_letter"
           echo "New version: ${curdate}"
           fi
-          md5Hash=$(md5sum "$txz" | awk '{print $1}')
-          content=$(<"$plg")
+
           newContent=$(echo "$content" | sed -E "s/$datepattern/ENTITY version   \"$curdate\"/" | sed -E "s/$pattern/ENTITY MD5       \"$md5Hash\"/")
           echo "$newContent" > "$plg"
       - name: Git Commit 
