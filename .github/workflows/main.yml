@@ -35,10 +35,27 @@ jobs:
           #!/bin/bash
           txz="./artifacts/bobbintb.system.dedupe.txz"
           plg="./artifacts/bobbintb.system.dedupe.plg"
-          md5Hash=$(md5sum "$txz" | awk '{print $1}')
           curdate=$(date +"%Y.%m.%d")
           pattern='ENTITY MD5\s+"([^"]+)"'
           datepattern='ENTITY version\s+"([^"]+)"'
+
+          last_plg=$(wget -O - https://github.com/bobbintb/UnRAID-DeDuper/raw/release/artifacts/bobbintb.system.dedupe.plg)
+          previousVersion=$(echo "$last_plg" | grep -o -m 1 -P "$datepattern" | awk -F '"' '{print $2}')
+
+          if [[ $curdate == $previousVersion ]]; then
+          curdate+="a"
+          fi
+
+          if [[ $curdate == ${previousVersion%?} ]]; then
+          extracted_letter=${previousVersion: -1}
+          ascii_code=$(printf "%d" "'$extracted_letter")
+          next_ascii_code=$((ascii_code + 1))
+          next_letter=$(printf \\$(printf '%03o' "$next_ascii_code"))
+          curdate+=next_letter
+          fi
+
+          md5Hash=$(md5sum "$txz" | awk '{print $1}')
+
           content=$(<"$plg")
           newContent=$(echo "$content" | sed -E "s/$datepattern/ENTITY version   \"$curdate\"/" | sed -E "s/$pattern/ENTITY MD5       \"$md5Hash\"/")
           echo "$newContent" > "$plg"
