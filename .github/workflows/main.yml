@@ -52,7 +52,7 @@ jobs:
           ascii_code=$(printf "%d" "'$extracted_letter")
           next_ascii_code=$((ascii_code + 1))
           next_letter=$(printf \\$(printf '%03o' "$next_ascii_code"))
-          curdate+=next_letter
+          curdate+="$next_letter"
           echo "New version: ${curdate}"
           fi
           md5Hash=$(md5sum "$txz" | awk '{print $1}')
