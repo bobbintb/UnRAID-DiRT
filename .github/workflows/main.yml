@@ -43,7 +43,7 @@ jobs:
           if [[ $curdate == $previousVersion ]]; then
           curdate+="a"
           fi
-          if [[ $curdate == ${previousVersion%?} ]]; then
+          if [[ $curdate == ${previousVersion%?} && "$previousVersion" =~ [[:alpha:]]$ ]]; then
           extracted_letter=${previousVersion: -1}
           ascii_code=$(printf "%d" "'$extracted_letter")
           next_ascii_code=$((ascii_code + 1))
