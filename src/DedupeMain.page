@@ -2,12 +2,17 @@ Menu="Dedupe:1"
 Title="Main"
 ---
 <?php
-$db = new SQLite3('plugins/bobbintb.system.dedupe/deduper.db');
 
 $settingsPath = '/boot/config/plugins/bobbintb.system.dedupe/bobbintb.system.dedupe.cfg';
 $settings = parse_ini_file($settingsPath, true);
 $hardlinks = $settings['Settings']['hardlinks'];
+$dbFile = realpath($settings['Settings']['dbfile']).'/deduper.db';
+$db = new SQLite3($dbFile);
 
+if (!file_exists($dbFile)) {
+  echo $settings['Settings']['dbfile'];
+  echo "<p>No database file found at: $dbFile. Check your settings.</p>";
+} else {
 if ($hardlinks == "true") {
     $query = "
 SELECT json_group_array(json_object('fullHash', fullHash, 'st_size', st_size, 'count', count)) AS result
@@ -70,4 +75,5 @@ echo '<tr>
       <script src="/plugins/bobbintb.system.dedupe/javascript/dupeindex.js"></script>
     </revo-grid>
   </tr>';
+}
 ?>

@@ -6,11 +6,11 @@ import common
 
 class JsonDatabase:
     def __init__(self, dbname):
-        self.dbname = dbname
-        self.conn = sqlite3.connect(dbname)
-        self.conn.row_factory = lambda cursor, row: json.loads(row[0])
-        self.cursor = self.conn.cursor()
-        self.create_schema()
+            self.dbname = dbname
+            self.conn = sqlite3.connect(dbname)
+            self.conn.row_factory = lambda cursor, row: json.loads(row[0])
+            self.cursor = self.conn.cursor()
+            self.create_schema()
 
     def create_schema(self):
         self.conn.execute(

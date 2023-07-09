@@ -22,6 +22,50 @@ $(function(){
 function updateInput(id) {
   var selectedFilePath = document.getElementById(id).value;
 }
+
+function checkDaemon() {
+        $.ajax(url,
+            {
+                data: {action: 'getDaemonState'}
+            }).done(function (data) {
+            if (data.running) {
+                $('#daemonStatusText').removeClass('daemonNotRunning');
+                $('#daemonStatusText').addClass('daemonRunning');
+                $('#abLog').animate({
+                    scrollTop: $('#abLog')[0].scrollHeight - $('#abLog')[0].clientHeight
+                }, 100);
+            } else {
+                $('#daemonStatusText').removeClass('daemonRunning');
+                $('#daemonStatusText').addClass('daemonNotRunning');
+            }
+            if (data.log == "") {
+                $("#abLog").html("The log is not existing or empty");
+            } else {
+                $("#abLog").html(data.log);
+            }
+        }).fail(function () {
+            $("#abLog").html("Something went wrong while talking to the backend :(");
+        });
+    }
+
+$(document).ready(function() {
+  $('#myForm').submit(function(e) {
+    btrfsScrub();
+})
+});
+
+
+
+function btrfsScrub() {
+  const eventSource = new EventSource('/plugins/bobbintb.system.dedupe/include/scan.php');
+eventSource.onmessage = function(event) {
+  const data = JSON.parse(event.data);
+  // Handle the received data
+  console.log(data);
+  $('#btrfs-scrub').text(data);
+};
+}
+
 </script>
 <!--JavaScript end-->
 
@@ -34,44 +78,10 @@ $cfg    = parse_cfg($plugin,$index);
 
 function parse_cfg($plugin,$index) {
   global $docroot;
-  $ram = "$docroot/plugins/$plugin/$plugin.cfg.example";
+  $ram = "$docroot/plugins/$plugin/default.cfg";
   $rom = "/boot/config/plugins/$plugin/{$plugin}{$index}.cfg";
   $cfg = file_exists($ram) ? parse_ini_file($ram) : [];
   return file_exists($rom) ? array_replace_recursive($cfg, parse_ini_file($rom)) : $cfg;
-}
-
-function deleteFile($filePath) {
-  if (file_exists($filePath)) {
-    if (unlink($filePath)) {
-      return true; // File deleted successfully
-    } else {
-      return false; // Failed to delete the file
-    }
-  } else {
-    return false; // File does not exist
-  }
-}
-
-function confirmDelete($filePath) {
-  echo "<script>";
-  echo "if (confirm('Are you sure you want to delete the file?')) {";
-  echo "  window.location.href = 'delete_file.php?file_path=" . urlencode($filePath) . "';";
-  echo "}";
-  echo "</script>";
-}
-
-if (isset($_POST['file_path'])) {
-  $filePath = $_POST['file_path'];
-  $deleted = deleteFile($filePath);
-  if ($deleted) {
-    echo 'File deleted successfully.';
-  } else {
-    echo 'Failed to delete the file.';
-  }
-}
-// Call confirmDelete() after the function definition
-if (isset($_GET['file_path'])) {
-  confirmDelete($_GET['file_path']);
 }
 ?>
 <!--PHP end-->
@@ -84,38 +94,12 @@ body{-webkit-overflow-scrolling:touch}
 .errortext{color:#EF3D47;display:none}
 .fileTree{background:<?=$bgcolor?>;width:300px;max-height:150px;overflow-y:scroll;overflow-x:hidden;position:absolute;z-index:100;display:none}
 </style>
-<div>
-<input type="text" required="" class="ftAttach" id="destination" name="destination" value="/mnt/user/AppdataBackup" data-pickfilter="HIDE_FILES_FILTER" data-pickfolders="true" placeholder="Please click to select">
-</div>
-
-_(Database file)_:
-: <input type="text" size="15" class="setting" id="dbDir" value="<?=$cfg['dbfile'] ?? ''?>" data-pickroot="<?=dirname($cfg['dbfile']) ?? '/mnt/cache'?>" data-pickfilter="db" onchange="updateInput(this.id)" required>
 
 
-<form method="POST" action="/plugins/bobbintb.system.dedupe/include/delete.php">
-    <input type="hidden" name="file_path" value="<?=$cfg['dbfile']??''?>">
-    <button type="submit" name="deleteButton">Delete DB</button>
-</form>
-
-daemon must be stopped
-  <blockquote class='inline_help'>
-  <p>The daemon must be stopped before changing the DB file. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.</p>
-</blockquote>
 
 <form markdown="1" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#file" value="<?=$plugin?>/<?=$plugin.$index?>.cfg">
 <input type="hidden" name="#cleanup" value="true">
-
-
-
-_(Scan directory)_:
-: <input type="text" size="15" class="setting" id="scanDir" value="<?=$cfg['dir'] ?? ''?>" data-pickroot="<?=dirname($cfg['dir']) ?? '/mnt/user'?>" data-pickfilter="HIDE_FILES_FILTER" data-pickfolders="true" <?= file_exists($cfg['dbfile']) ? 'disabled' : '' ?> onchange="updateInput(this.id)" required>
-
-daemon must be stopped, no db file
-<blockquote class='inline_help'>
-  <p>The scan directory can only be changed if the database doesn't exists and the daemon is stopped. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.</p>
-</blockquote>
-
 
 
 _(Include hardlinks)_:
@@ -131,17 +115,58 @@ _(Include hardlinks)_:
   <p>Note: If File A and File B are hardlinked they are considered one file, as they share the same inode number. In this case, neither file will show up in the list of duplicates if this setting is set to 'No'. However, if File C has the same hash as files A and B but has a different inode number, then file C will be a duplicate of files A and B, collectively. Essentially, setting this option to 'No' will group the files by inode, with one file representing the group.</p>
 </blockquote>
 
+_(Scan directory)_:
+: <input type="text" size="15" class="setting" id="scanDir" value="<?=$cfg['dir'] ?? ''?>" data-pickroot="<?=dirname($cfg['dir']) ?? '/mnt/user'?>" data-pickfilter="HIDE_FILES_FILTER" data-pickfolders="true" <?= file_exists($cfg['dbfile']) ? 'disabled' : '' ?> onchange="updateInput(this.id)" required>
+
+<blockquote class='inline_help'>
+  <p>The scan directory can only be changed if the database doesn't exists and the daemon is stopped. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.</p>
+</blockquote>
+
+
+
+_(Database location)_:
+: <input type="text" size="15" class="setting" id="dbDir" value="<?=$cfg['dbfile'] ?? ''?>" data-pickroot="<?=dirname($cfg['dbfile']) ?? '/mnt/cache'?>" data-pickfolders="true" data-pickfilter="db" data-pickcloseonfile="true" placeholder="Select folder to store deduper.db" onchange="updateInput(this.id)" required>
+
+
+  <blockquote class='inline_help'>
+  <p>The location to store the database file (deduper.db) The daemon must be stopped before changing the DB file. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.</p>
+</blockquote>
+
+
+
+
 <input type="submit" name="#default" value="_(Default)_">
 : <input type="submit" name="#apply" value="_(Apply)_"><input type="button" value="_(Done)_" onclick="done()">
 </form>
 
-<div id="title"><span class="left"><i class="fa fa-search icon"></i>_(Scan)_</span></div>
-<input type="button" value="_(Delete Database)_" id="deletedb";" disabled="">
-<input type="button" value="_(Scan)_" id="scan";" disabled="">
-<input type='button' value='Abort' id='abort' onclick='abort();' disabled>
-<br>
-<font size='2'>Scan Status: <span id='backupStatus'></span></font>
-<div style='border:1px;border-style:solid;border-color:white;height:300px;overflow:auto' id='backupLines' ></div>
 
-<input type='button' value='Start' id='start' onclick='abort();' disabled>
-<input type='button' value='Stop' id='stop' onclick='abort();' disabled>
+<div id="title"><span class="left"><i class="fa fa-search icon"></i>_(Scan)_</span></div>
+
+
+<button id="btrfs-scrub-button" onclick="btrfsScrub()">Run Scrub</button>
+
+
+
+<br>
+
+<style>
+    .daemonRunning {
+        color: green;
+    }
+
+    .daemonRunning:after {
+        content: 'running';
+    }
+
+    .daemonNotRunning {
+        color: red;
+    }
+
+    .daemonNotRunning:after {
+        content: 'not running';
+    }
+</style>
+
+<font size='2'>Scan Status: <span id='daemonStatus'></span></font>
+<div style='border:1px;border-style:solid;border-color:white;height:300px;overflow:auto' id='daemonLines' ></div>
+<?="<pre id='btrfs-scrub'>test</pre>"?>

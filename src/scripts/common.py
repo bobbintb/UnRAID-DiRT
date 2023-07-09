@@ -28,8 +28,8 @@ class CustomFormatter(logging.Formatter):
 
 def loadConfig():
     config = configparser.ConfigParser()
-    config.read('config.ini')
-    return {sect: dict(config.items(sect)) for sect in config.sections()}
+    config.read('/boot/config/plugins/bobbintb.system.dedupe/bobbintb.system.dedupe.cfg')
+    return {sect: {key.strip('"'): value.strip('"') for key, value in config.items(sect)} for sect in config.sections()}
 
 
 def getFileStats(folder, file):

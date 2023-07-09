@@ -113,7 +113,8 @@ def main():
 
     # Add files to DB
     json_list = prep_for_sql(allFiles)
-    db = sqlinstance.JsonDatabase("deduper.db")
+    dbFile = os.path.join(settings["Settings"]["dbfile"].strip('"'), "deduper.db")
+    db = sqlinstance.JsonDatabase(dbFile)
     db.insert_data(json_list,logging)
     db.close()
 
