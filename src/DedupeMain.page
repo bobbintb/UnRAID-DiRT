@@ -1,18 +1,19 @@
 Menu="Dedupe:1"
 Title="Main"
 ---
+
 <?php
 
 $settingsPath = '/boot/config/plugins/bobbintb.system.dedupe/bobbintb.system.dedupe.cfg';
 $settings = parse_ini_file($settingsPath, true);
-$hardlinks = $settings['Settings']['hardlinks'];
-$dbFile = realpath($settings['Settings']['dbfile']).'/deduper.db';
-$db = new SQLite3($dbFile);
+$hardlinks = $settings['hardlinks'];
+$dbFile = realpath($settings['dbfile']).'/deduper.db';
 
+file_exists($dbFile) ? 'true' : 'false';
 if (!file_exists($dbFile)) {
-  echo $settings['Settings']['dbfile'];
   echo "<p>No database file found at: $dbFile. Check your settings.</p>";
 } else {
+$db = new SQLite3($dbFile);
 if ($hardlinks == "true") {
     $query = "
 SELECT json_group_array(json_object('fullHash', fullHash, 'st_size', st_size, 'count', count)) AS result
@@ -42,7 +43,7 @@ FROM (
   WHERE json_extract(data, '$.fullHash') IN (
     SELECT json_extract(data, '$.fullHash')
     FROM files
-    GROUP BY json_extract(data, '$.fullHash'), json_extract(data, '$.st_size'), json_extract(data, '$.st_ino') -- Include st_ino in the grouping condition
+    GROUP BY json_extract(data, '$.fullHash'), json_extract(data, '$.st_size'), json_extract(data, '$.st_ino')
     HAVING COUNT(*) > 1
   )
   GROUP BY fullHash, st_size

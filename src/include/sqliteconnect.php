@@ -1,29 +1,9 @@
 <?php
-$db = new SQLite3('plugins/bobbintb.system.dedupe/deduper.db');
-
-function popLeftGrid() {
-  $query = "
-SELECT json_group_array(json_object('fullHash', fullHash, 'st_size', st_size, 'count', count)) AS result
-FROM (
-  SELECT json_extract(data, '$.fullHash') AS fullHash,
-         json_extract(data, '$.st_size') AS st_size,
-         COUNT(*) AS count
-  FROM files
-  WHERE json_extract(data, '$.fullHash') IN (
-    SELECT json_extract(data, '$.fullHash')
-    FROM files
-    GROUP BY json_extract(data, '$.fullHash')
-    HAVING COUNT(*) > 1
-  )
-  GROUP BY fullHash, st_size
-) AS subquery
-GROUP BY '';
-";
-$results = $db->query($query);
-return json_encode($results->fetchArray(SQLITE3_ASSOC));
-}
-
-function popBottomGrid(t1fullHash) {
+function popBottomGrid($t1fullHash) {
+$settingsPath = '/boot/config/plugins/bobbintb.system.dedupe/bobbintb.system.dedupe.cfg';
+$settings = parse_ini_file($settingsPath, true);
+$dbFile = realpath($settings['dbfile']).'/deduper.db';
+$db = new SQLite3($dbFile);
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['t1fullHash'])) {
   $query = $db->prepare('SELECT * FROM files WHERE json_extract(data, \'$.fullHash\') = :t1fullHash');
   $query->bindValue(':t1fullHash', $t1fullHash, SQLITE3_TEXT);

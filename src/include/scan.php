@@ -6,7 +6,7 @@ ob_implicit_flush(true);
 ob_end_flush();
 
 // Execute the Python script and continuously read its output
-$command = "/usr/local/emhttp/plugins/bobbintb.system.dedupe/scripts/venv/bin/python3 /usr/local/emhttp/plugins/bobbintb.system.dedupe/scripts/main.py";
+$command = "/usr/local/emhttp/plugins/bobbintb.system.dedupe/scripts/venv/bin/python3 /usr/local/emhttp/plugins/bobbintb.system.dedupe/scripts/main.py 2>&1";
 $descriptorSpec = [
     0 => ['pipe', 'r'], // stdin
     1 => ['pipe', 'w'], // stdout
@@ -28,8 +28,7 @@ if (is_resource($process)) {
         echo "data: " . json_encode($error) . "\n\n";
         flush();
     }
-
-    echo "data: " . json_encode('Process completed.') . "\n\n";
+    echo "data: " . json_encode('completed') . "\n\n";
     flush();
 }
 ?>

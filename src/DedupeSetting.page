@@ -8,6 +8,7 @@ Title="Settings"
 
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/jquery.filetree.css")?>">
 <script src="<?autov("/webGui/javascript/jquery.filetree.js")?>"></script>
+<script src="https://cdn.jsdelivr.net/npm/ansi_up@5.2.1/ansi_up.min.js"></script>
 
 <!--JavaScript begin-->
 <script>
@@ -48,24 +49,21 @@ function checkDaemon() {
         });
     }
 
-$(document).ready(function() {
-  $('#myForm').submit(function(e) {
-    btrfsScrub();
-})
-});
-
-
-
-function btrfsScrub() {
+function scan() {
+  $('#scan-button').prop('disabled', true);
+  var ansi_up = new AnsiUp;
   const eventSource = new EventSource('/plugins/bobbintb.system.dedupe/include/scan.php');
-eventSource.onmessage = function(event) {
-  const data = JSON.parse(event.data);
-  // Handle the received data
-  console.log(data);
-  $('#btrfs-scrub').text(data);
+  eventSource.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    if (event.data.includes("completed")) {
+        eventSource.close();
+        return;
+    }
+    var html = ansi_up.ansi_to_html(data);
+    $('#daemonLines').html($('#daemonLines').html() + html).scrollTop($('#daemonLines')[0].scrollHeight);
+
 };
 }
-
 </script>
 <!--JavaScript end-->
 
@@ -73,8 +71,8 @@ eventSource.onmessage = function(event) {
 <?
 $bgcolor = strstr('white,azure',$display['theme']) ? '#f2f2f2' : '#1c1c1c';
 $plugin = "bobbintb.system.dedupe";
-$index  = $_POST['index']?:'';
-$cfg    = parse_cfg($plugin,$index);
+$index = $_POST['index']?:'';
+$cfg = parse_cfg($plugin,$index);
 
 function parse_cfg($plugin,$index) {
   global $docroot;
@@ -95,12 +93,9 @@ body{-webkit-overflow-scrolling:touch}
 .fileTree{background:<?=$bgcolor?>;width:300px;max-height:150px;overflow-y:scroll;overflow-x:hidden;position:absolute;z-index:100;display:none}
 </style>
 
-
-
 <form markdown="1" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#file" value="<?=$plugin?>/<?=$plugin.$index?>.cfg">
 <input type="hidden" name="#cleanup" value="true">
-
 
 _(Include hardlinks)_:
 : <select name="hardlinks">
@@ -116,57 +111,40 @@ _(Include hardlinks)_:
 </blockquote>
 
 _(Scan directory)_:
-: <input type="text" size="15" class="setting" id="scanDir" value="<?=$cfg['dir'] ?? ''?>" data-pickroot="<?=dirname($cfg['dir']) ?? '/mnt/user'?>" data-pickfilter="HIDE_FILES_FILTER" data-pickfolders="true" <?= file_exists($cfg['dbfile']) ? 'disabled' : '' ?> onchange="updateInput(this.id)" required>
-
+: <input type="text" size="15" class="setting" id="scanDir" value="<?=$cfg['dir'] ?? ''?>" data-pickroot="<?=dirname($cfg['dir']) ?? '/mnt/user'?>" data-pickfilter="HIDE_FILES_FILTER" data-pickfolders="true" <?= file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onchange="updateInput(this.id)" required>
 <blockquote class='inline_help'>
   <p>The scan directory can only be changed if the database doesn't exists and the daemon is stopped. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.</p>
 </blockquote>
 
-
-
 _(Database location)_:
 : <input type="text" size="15" class="setting" id="dbDir" value="<?=$cfg['dbfile'] ?? ''?>" data-pickroot="<?=dirname($cfg['dbfile']) ?? '/mnt/cache'?>" data-pickfolders="true" data-pickfilter="db" data-pickcloseonfile="true" placeholder="Select folder to store deduper.db" onchange="updateInput(this.id)" required>
-
-
   <blockquote class='inline_help'>
   <p>The location to store the database file (deduper.db) The daemon must be stopped before changing the DB file. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.</p>
 </blockquote>
-
-
-
 
 <input type="submit" name="#default" value="_(Default)_">
 : <input type="submit" name="#apply" value="_(Apply)_"><input type="button" value="_(Done)_" onclick="done()">
 </form>
 
-
 <div id="title"><span class="left"><i class="fa fa-search icon"></i>_(Scan)_</span></div>
 
-
-<button id="btrfs-scrub-button" onclick="btrfsScrub()">Run Scrub</button>
-
-
+<button id="scan-button" <?= file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onclick="scan()">Begin scan</button>
 
 <br>
-
 <style>
     .daemonRunning {
         color: green;
     }
-
     .daemonRunning:after {
         content: 'running';
     }
-
     .daemonNotRunning {
         color: red;
     }
-
     .daemonNotRunning:after {
         content: 'not running';
     }
 </style>
 
 <font size='2'>Scan Status: <span id='daemonStatus'></span></font>
-<div style='border:1px;border-style:solid;border-color:white;height:300px;overflow:auto' id='daemonLines' ></div>
-<?="<pre id='btrfs-scrub'>test</pre>"?>
+<div style="border: 1px solid white; height: 300px; overflow: auto; white-space: pre-wrap;" id="daemonLines"></div>

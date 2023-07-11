@@ -8,7 +8,7 @@ leftGrid.style.border = '1px solid white';
 // populates the button grid when a row on the left grid is clicked.
 leftGrid.addEventListener("beforecellfocus", (event) => {
     const t1fullHash = event.detail.model.fullHash;
-    fetch(`/plugins/bobbintb.system.dedupe/include/bottomGrid.php?function=popBottomGrid&t1fullHash=${t1fullHash}`)
+    fetch(`/plugins/bobbintb.system.dedupe/include/sqliteconnect.php?function=popBottomGrid&t1fullHash=${t1fullHash}`)
         .then(response => response.json())
         .then(data => {
             checkOriginals(t1fullHash, data);
