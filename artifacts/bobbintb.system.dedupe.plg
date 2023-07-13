@@ -14,6 +14,10 @@
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.1.9">
 
 <CHANGES>
+##&name;
+
+###&version;
+- Sample changelog update
 </CHANGES>
 
 <!--
