@@ -10,6 +10,23 @@ Title="Settings"
 <script src="<?autov("/webGui/javascript/jquery.filetree.js")?>"></script>
 <script src="https://cdn.jsdelivr.net/npm/ansi_up@5.2.1/ansi_up.min.js"></script>
 
+<!--PHP begin-->
+<?
+$bgcolor = strstr('white,azure',$display['theme']) ? '#f2f2f2' : '#1c1c1c';
+$plugin = "bobbintb.system.dedupe";
+$index = $_POST['index']?:'';
+$cfg = parse_cfg($plugin,$index);
+
+function parse_cfg($plugin,$index) {
+  global $docroot;
+  $ram = "$docroot/plugins/$plugin/default.cfg";
+  $rom = "/boot/config/plugins/$plugin/{$plugin}{$index}.cfg";
+  $cfg = file_exists($ram) ? parse_ini_file($ram) : [];
+  return file_exists($rom) ? array_replace_recursive($cfg, parse_ini_file($rom)) : $cfg;
+}
+?>
+<!--PHP end-->
+
 <!--JavaScript begin-->
 <script>
 $(function(){
@@ -51,38 +68,55 @@ function checkDaemon() {
 
 function scan() {
   $('#scan-button').prop('disabled', true);
+  $('#scanDir').prop('disabled', true);
+  $('#dbDir').prop('disabled', true);
   var ansi_up = new AnsiUp;
   const eventSource = new EventSource('/plugins/bobbintb.system.dedupe/include/scan.php');
   eventSource.onmessage = function(event) {
     const data = JSON.parse(event.data);
     if (event.data.includes("completed")) {
         eventSource.close();
+        localStorage.setItem('daemonLinesContent', $('#daemonLines').html());
+        refresh();
         return;
     }
     var html = ansi_up.ansi_to_html(data);
     $('#daemonLines').html($('#daemonLines').html() + html).scrollTop($('#daemonLines')[0].scrollHeight);
-
 };
 }
+
+function deleteDB() {
+  var confirmed = confirm('Are you sure you want to delete the database? This action cannot be undone.');
+  if (confirmed) {
+    $('#delete-db').prop('disabled', false);
+    $.ajax({
+      url: '/plugins/bobbintb.system.dedupe/include/delete.php',
+      method: 'GET',
+      data: { filePath: '<?= realpath($cfg['dbfile']) ?>/deduper.db' },
+      success: function(response) {
+        console.log(response);
+        console.log('<?= realpath($cfg['dbfile']) ?>/deduper.db');
+      },
+      error: function(xhr, status, error) {
+        console.error(error);
+      }
+    });
+  }
+  refresh();
+}
+
+$(document).ready(function() {
+  var storedContent = localStorage.getItem('daemonLinesContent');
+  if (storedContent) {
+    $('#daemonLines').html(storedContent).scrollTop($('#daemonLines')[0].scrollHeight);
+    localStorage.removeItem('daemonLinesContent');
+  }
+});
+
 </script>
 <!--JavaScript end-->
 
-<!--PHP begin-->
-<?
-$bgcolor = strstr('white,azure',$display['theme']) ? '#f2f2f2' : '#1c1c1c';
-$plugin = "bobbintb.system.dedupe";
-$index = $_POST['index']?:'';
-$cfg = parse_cfg($plugin,$index);
 
-function parse_cfg($plugin,$index) {
-  global $docroot;
-  $ram = "$docroot/plugins/$plugin/default.cfg";
-  $rom = "/boot/config/plugins/$plugin/{$plugin}{$index}.cfg";
-  $cfg = file_exists($ram) ? parse_ini_file($ram) : [];
-  return file_exists($rom) ? array_replace_recursive($cfg, parse_ini_file($rom)) : $cfg;
-}
-?>
-<!--PHP end-->
 
 <style>
   dt {
@@ -117,7 +151,7 @@ _(Scan directory)_:
 </blockquote>
 
 _(Database location)_:
-: <input type="text" size="15" class="setting" id="dbDir" value="<?=$cfg['dbfile'] ?? ''?>" data-pickroot="<?=dirname($cfg['dbfile']) ?? '/mnt/cache'?>" data-pickfolders="true" data-pickfilter="db" data-pickcloseonfile="true" placeholder="Select folder to store deduper.db" onchange="updateInput(this.id)" required>
+: <input type="text" size="15" class="setting" id="dbDir" value="<?=$cfg['dbfile'] ?? ''?>" data-pickroot="<?=dirname($cfg['dbfile']) ?? '/mnt/cache'?>" data-pickfolders="true" data-pickfilter="db" data-pickcloseonfile="true" placeholder="Select folder to store deduper.db" <?= file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onchange="updateInput(this.id)" required>
   <blockquote class='inline_help'>
   <p>The location to store the database file (deduper.db) The daemon must be stopped before changing the DB file. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.</p>
 </blockquote>
@@ -129,7 +163,7 @@ _(Database location)_:
 <div id="title"><span class="left"><i class="fa fa-search icon"></i>_(Scan)_</span></div>
 
 <button id="scan-button" <?= file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onclick="scan()">Begin scan</button>
-
+<button id="delete-db" <?= !file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onclick="deleteDB()">Delete database</button>
 <br>
 <style>
     .daemonRunning {
@@ -148,3 +182,4 @@ _(Database location)_:
 
 <font size='2'>Scan Status: <span id='daemonStatus'></span></font>
 <div style="border: 1px solid white; height: 300px; overflow: auto; white-space: pre-wrap;" id="daemonLines"></div>
+<button id="delete-db" <?= !file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onclick="deleteDB()">Stop daemon</button>

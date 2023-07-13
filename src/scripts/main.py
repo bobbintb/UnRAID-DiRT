@@ -92,7 +92,7 @@ def main():
     settings = common.loadConfig()
 
     # Scan
-    logging.info("Scanning for files...")
+    logging.info(f"Scanning for files in \"{settings['Settings']['dir']}\"...")
     allFiles = _scan(settings["Settings"]["dir"])
     logging.info("done.")
 

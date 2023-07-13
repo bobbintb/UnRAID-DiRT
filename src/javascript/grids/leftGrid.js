@@ -15,8 +15,9 @@ leftGrid.addEventListener("beforecellfocus", (event) => {
             popBottomGrid(data);
         });
 });
-const stats = JSON.parse(Object.values(results))[0];
-const leftrowsArray = JSON.parse(Object.values(results)).splice(1);
+//const stats = JSON.parse(Object.values(results))[0];
+//const leftrowsArray = JSON.parse(Object.values(results)).splice(1);
+const leftrowsArray = JSON.parse(Object.values(results));
 const leftrows = leftrowsArray.map(item => {
     return {
         fullHash: item.fullHash,

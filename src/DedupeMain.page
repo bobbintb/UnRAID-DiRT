@@ -62,7 +62,7 @@ echo '<tr>
     <script type="text/javascript">
       var results = ' . $jsonResults . ';
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/@revolist/revogrid@latest/dist/revo-grid/revo-grid.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@revolist/revogrid@3.0.8/dist/revo-grid/revo-grid.js"></script>
     <script src="/plugins/bobbintb.system.dedupe/javascript/utils.js"></script>
     <script src="/plugins/bobbintb.system.dedupe/javascript/templates.js"></script>
     <script src="/plugins/bobbintb.system.dedupe/javascript/grids/leftColumns.js"></script>

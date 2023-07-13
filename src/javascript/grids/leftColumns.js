@@ -31,7 +31,7 @@ const leftcolumns = [
         resize: true,
         sortable: true,
         cellTemplate: recoverableSize,
-        compare: numericCompare,
+        //compare: numericCompare,
         filter: 'number'
     }
 ];

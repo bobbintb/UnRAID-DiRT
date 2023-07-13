@@ -104,30 +104,17 @@ const fa_trash = (createElement, props) => {
 };
 
 const fa_trash_queue = (createElement, props) => {
-  fqfn = props.model.dir + props.model.file
-  if (originals[props.model.fullHash] == fqfn) {
-    state = true;
-  } else {
-    state = false;
-  }
   return createElement('button', {
     class: 'fa fa-trash',
-    disabled: state,
     style: {
       minWidth: 'initial',
       margin: 'initial',
       color: '#f2f2f2'
     },
     onClick: () => {
-      //props.model.action = 'delete';
-      //checkQueue(props.model, 'queue');
-      console.log(props);
-
-      console.log(typeof props);
-      console.log(props.model.file.trim());
-      console.log(localStorage.queue);
-      //removeFromLocalStorage('queue');
-      localStorage.removeItem('queue', JSON.stringify(window[props]));
+      fqfn = props.model.file
+      delete queue[fqfn];
+      localStorage.setItem('queue', JSON.stringify(queue));
       popRightGrid();
     },
   });

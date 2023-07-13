@@ -20,17 +20,28 @@ clearOriginals.style.padding = '10px';
 clearOriginals.style.height = 'fit-content';
 
 processQueue.addEventListener('click', () => {
-  const fileNames = [];
-  Object.keys(queue).forEach((key) => {
-    if (queue[key].action === 'delete') {
-      fileNames.push(key);
+  var queueString = localStorage.getItem('queue');
+  var queue = JSON.parse(queueString);
+  var originalsString = localStorage.getItem('originals');
+  var originals = JSON.parse(originalsString);
+  var queueCommands = [];
+  for (var key in queue) {
+    if (queue.hasOwnProperty(key)) {
+      var item = queue[key];
+      var file = item.dir + item.file;
+      if (item.action === "delete") {
+        var command = "rm -f " + file;
+      }
+      if (item.action === "link") {
+        var target = originals[item.fullHash];
+        // ln [OPTION] TARGET LINK_NAME
+        var command = "ln -f " + target + file;
+      }
+      queueCommands.push(command);
     }
-  });
-  const encodedString = fileNames.map(fileName => encodeURIComponent(fileName)).join("\r");
-  console.log(encodedString);
+  }
+  console.log(queueCommands);
 });
-
-
 
 linkButton.addEventListener('click', () => {
   fetch('/plugins/bobbintb.system.dedupe/include/fileOperations.php')

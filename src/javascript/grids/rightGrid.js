@@ -5,6 +5,7 @@ rightGrid.style.border = '1px solid white';
 rightGrid.style.width = 'auto';
 function popRightGrid() {
     const rightrowsArray = Object.values(queue);
+    //console.log(rightrowsArray);
     const rightrows = rightrowsArray.map(item => {
         return {
             action: item.action,
