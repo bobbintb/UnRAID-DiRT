@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', function () {
   rightButtonContainer.appendChild(clearQueue);
   rightButtonContainer.appendChild(clearOriginals);
   rightButtonContainer.appendChild(processQueue);
-  rightButtonContainer.appendChild(linkButton);
   // solid green
   const rightContainer = document.createElement('div');
   rightContainer.style.display = 'flex';

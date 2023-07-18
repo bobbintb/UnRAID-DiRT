@@ -2,7 +2,7 @@ Menu="Dedupe:2"
 Title="Settings"
 ---
 <?PHP
-/* Copyright 2012-2023, Bergware International.
+/* 
  */
 ?>
 
@@ -131,7 +131,7 @@ body{-webkit-overflow-scrolling:touch}
 <input type="hidden" name="#file" value="<?=$plugin?>/<?=$plugin.$index?>.cfg">
 <input type="hidden" name="#cleanup" value="true">
 
-_(Include hardlinks)_:
+_(Hardlinks are duplicates)_:
 : <select name="hardlinks">
   <?=mk_option($cfg['hardlinks']??'', "false", _("No"))?>
   <?=mk_option($cfg['hardlinks']??'', "true", _("Yes"))?>

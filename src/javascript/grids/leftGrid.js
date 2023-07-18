@@ -18,6 +18,7 @@ leftGrid.addEventListener("beforecellfocus", (event) => {
 //const stats = JSON.parse(Object.values(results))[0];
 //const leftrowsArray = JSON.parse(Object.values(results)).splice(1);
 const leftrowsArray = JSON.parse(Object.values(results));
+console.log(leftrowsArray);
 const leftrows = leftrowsArray.map(item => {
     return {
         fullHash: item.fullHash,

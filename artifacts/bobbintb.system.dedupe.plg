@@ -70,6 +70,10 @@ cfg="/boot/config/plugins/&name;/&name;.cfg"
 if [[ ! -e $cfg ]]; then
   cp /usr/local/emhttp/plugins/&name;/&name;.cfg.example $cfg
 fi
+mkdir -p /usr/local/emhttp/plugins/&name;/scripts/venv
+source /usr/local/emhttp/plugins/&name;/scripts/venv/bin/activate
+pip3 install -r /usr/local/emhttp/plugins/&name;/scripts/requirements.txt
+deactivate
 
 # Start service
 #enable=$(grep -Po '^service="\K[^"]+' $cfg)
@@ -81,8 +85,6 @@ fi
 echo ""
 echo "-----------------------------------------------------------"
 echo " Plugin &name; is installed."
-echo " This plugin requires Dynamix webGui to operate"
-echo " Copyright 2020, Bergware International"
 echo " Version: &version;"
 echo "-----------------------------------------------------------"
 echo ""

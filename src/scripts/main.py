@@ -33,26 +33,27 @@ def hasher(allFiles, hashtype):
     for i, item in enumerate(allFiles.items()):
         size_key, group = item
         for inode, file_attr in group.items():
+            print(inode)
             file_attr[hashtype] = common.hashFiles(file_attr["files"][0], size_key, size)
         print(f"\r     {format(i + 1, ',')}/{format(num_of_groups, ',')}", end="")
     print("")
-
 
 def filter_unique_sizes(allFiles):
     allFiles_filtered = {}
     summed_value = 0
     file_count = 0
-    for k, v in allFiles.items():
-        if len(v) > 1:
-            allFiles_filtered[k] = v
-            summed_value += len(v)
-            for item in v:
-                file_count += len(v[item]["files"])
-    logging.debug(f"Sizes remaining after removing unique sizes: {format(len(allFiles_filtered), ',')}")
-    logging.debug(f"Inodes remaining after removing unique sizes: {format(summed_value, ',')}")
-    logging.debug(f"Files remaining after removing unique sizes: {format(file_count, ',')}")
+    # key is size, v is inodes of files with that size
+    for size in allFiles:
+        if len(allFiles[size]) > 1:
+            logging.debug(f'There are {len(allFiles[size])} inode(s) of length {size}')
+            allFiles_filtered[size] = allFiles[size]
+            continue
+        for inode in allFiles[size]:
+            if len(allFiles[size][inode]['files']) > 1:
+                logging.debug(f'There are {len(allFiles[size])} inode(s) of length {size}')
+                logging.debug(f'There are {len(allFiles[size][inode]["files"])} files with inode {inode}')
+                allFiles_filtered[size] = allFiles[size]
     return allFiles_filtered
-
 
 def filter_unique_hashes(allFiles, hashtype):
     hashCount = {}
