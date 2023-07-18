@@ -71,6 +71,7 @@ if [[ ! -e $cfg ]]; then
   cp /usr/local/emhttp/plugins/&name;/&name;.cfg.example $cfg
 fi
 mkdir -p /usr/local/emhttp/plugins/&name;/scripts/venv
+python3 -m venv /usr/local/emhttp/plugins/&name;/scripts/venv
 source /usr/local/emhttp/plugins/&name;/scripts/venv/bin/activate
 pip3 install -r /usr/local/emhttp/plugins/&name;/scripts/requirements.txt
 deactivate
