@@ -36,13 +36,13 @@ jobs:
           txz="./artifacts/bobbintb.system.dedupe.txz"
           #plg="./artifacts/bobbintb.system.dedupe.plg"
           # get previous plg. This might not work.
-          plg=$(wget -O - https://github.com/bobbintb/UnRAID-DeDuper/raw/release/artifacts/bobbintb.system.dedupe.plg)
+          wget https://github.com/bobbintb/UnRAID-DeDuper/raw/release/artifacts/bobbintb.system.dedupe.plg
 
           # get hash of new txz file
           md5Hash=$(md5sum "$txz" | awk '{print $1}')
 
           # update MD5 hash in plg file
-          sed -i 's/<!ENTITY MD5       \s*"[^"]*"/<!ENTITY MD5 "'"$md5Hash"'"/' $plg
+          sed -i 's/<!ENTITY MD5       \s*"[^"]*"/<!ENTITY MD5 "'"$md5Hash"'"/' bobbintb.system.dedupe.plg
 
           # get current date and previous version
           curdate=$(date +"%Y.%m.%d")
@@ -66,7 +66,7 @@ jobs:
           fi
 
           # update version in plg file
-          sed -i 's/<!ENTITY version   \s*"[^"]*"/<!ENTITY version   "'"$curdate"'"/' $plg
+          sed -i 's/<!ENTITY version   \s*"[^"]*"/<!ENTITY version   "'"$curdate"'"/' bobbintb.system.dedupe.plg
 
       - name: Git Commit 
         run: |
