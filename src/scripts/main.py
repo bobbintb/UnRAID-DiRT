@@ -33,25 +33,21 @@ def hasher(allFiles, hashtype):
     for i, item in enumerate(allFiles.items()):
         size_key, group = item
         for inode, file_attr in group.items():
-            print(inode)
             file_attr[hashtype] = common.hashFiles(file_attr["files"][0], size_key, size)
         print(f"\r     {format(i + 1, ',')}/{format(num_of_groups, ',')}", end="")
     print("")
 
 def filter_unique_sizes(allFiles):
     allFiles_filtered = {}
-    summed_value = 0
-    file_count = 0
-    # key is size, v is inodes of files with that size
     for size in allFiles:
         if len(allFiles[size]) > 1:
-            logging.debug(f'There are {len(allFiles[size])} inode(s) of length {size}')
+            #logging.debug(f'There are {len(allFiles[size])} inode(s) of length {size}')
             allFiles_filtered[size] = allFiles[size]
             continue
         for inode in allFiles[size]:
             if len(allFiles[size][inode]['files']) > 1:
-                logging.debug(f'There are {len(allFiles[size])} inode(s) of length {size}')
-                logging.debug(f'There are {len(allFiles[size][inode]["files"])} files with inode {inode}')
+                #logging.debug(f'There are {len(allFiles[size])} inode(s) of length {size}')
+                #logging.debug(f'There are {len(allFiles[size][inode]["files"])} files with inode {inode}')
                 allFiles_filtered[size] = allFiles[size]
     return allFiles_filtered
 
@@ -74,9 +70,10 @@ def filter_unique_hashes(allFiles, hashtype):
 
 
 def prep_for_sql(allFiles):
+    # inode is stored as string because JavaScript has issues with numbers over 15 digits. They are converted later.
     return [json.dumps({'dir': os.path.join(os.path.dirname(file), ""),
                         'file': os.path.basename(file),
-                        'st_inode': inode,
+                        'st_inode': str(inode),
                         'st_nlink': allFiles[size][inode]['st_nlink'],
                         'st_size': size,
                         'st_atime': allFiles[size][inode]['st_atime'],

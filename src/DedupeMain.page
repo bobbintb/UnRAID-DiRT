@@ -6,7 +6,6 @@ Title="Main"
 
 $settingsPath = '/boot/config/plugins/bobbintb.system.dedupe/bobbintb.system.dedupe.cfg';
 $settings = parse_ini_file($settingsPath, true);
-$hardlinks = $settings['hardlinks'];
 $dbFile = realpath($settings['dbfile']).'/deduper.db';
 
 file_exists($dbFile) ? 'true' : 'false';
@@ -14,51 +13,10 @@ if (!file_exists($dbFile)) {
   echo "<p>No database file found at: $dbFile. Check your settings.</p>";
 } else {
 $db = new SQLite3($dbFile);
-if ($hardlinks == "true") {
-  echo "<p>true</p>";
-    $query = "
-SELECT json_group_array(json_object('fullHash', fullHash, 'st_size', st_size, 'count', count)) AS result
-FROM (
-  SELECT json_extract(data, '$.fullHash') AS fullHash,
-         json_extract(data, '$.st_size') AS st_size,
-         COUNT(*) AS count
-  FROM files
-  WHERE json_extract(data, '$.fullHash') IN (
-    SELECT json_extract(data, '$.fullHash')
-    FROM files
-    GROUP BY json_extract(data, '$.fullHash')
-    HAVING COUNT(*) > 1
-  )
-  GROUP BY fullHash
-) AS subquery
-GROUP BY '';
-";
-} else {
-  echo "<p>false</p>";
-      $query = "
-      SELECT json_group_array(json_object('fullHash', fullHash, 'st_size', st_size, 'st_inode', st_inode, 'count', count)) AS result
-      FROM (
-        SELECT json_extract(data, '$.fullHash') AS fullHash,
-               json_extract(data, '$.st_size') AS st_size,
-               MIN(json_extract(data, '$.st_inode')) AS st_inode,
-               COUNT(*) AS count
-        FROM files
-        WHERE json_extract(data, '$.fullHash') IN (
-          SELECT json_extract(data, '$.fullHash')
-          FROM files
-          GROUP BY json_extract(data, '$.fullHash')
-          HAVING COUNT(*) > 1
-        )
-        GROUP BY fullHash
-      ) AS subquery
-      GROUP BY '';
-      
-";
-}
-
-
+$query = "SELECT JSON_GROUP_ARRAY(JSON_EXTRACT(data, '$')) AS data_json FROM files;";
 $results = $db->query($query);
-$jsonResults = json_encode($results->fetchArray(SQLITE3_ASSOC));
+$row = $results->fetchArray(SQLITE3_ASSOC);
+$jsonResults = json_encode($row['data_json']);
 
 echo '<tr>
     <meta charset="UTF-8" />

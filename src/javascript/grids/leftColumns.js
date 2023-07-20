@@ -1,7 +1,7 @@
 const leftcolumns = [
     {
-        name: 'Hash Group',
-        prop: 'fullHash',
+        name: 'Files',
+        prop: 'fileName',
         size: 440,
         autoSize: true,
         cellTemplate: leftAlignTemplate,
