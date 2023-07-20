@@ -34,17 +34,23 @@ jobs:
         run: |
           #!/bin/bash
           txz="./artifacts/bobbintb.system.dedupe.txz"
-          plg="./artifacts/bobbintb.system.dedupe.plg"
+          #plg="./artifacts/bobbintb.system.dedupe.plg"
+          # get previous plg. This might not work.
+          plg=$(wget -O - https://github.com/bobbintb/UnRAID-DeDuper/raw/release/artifacts/bobbintb.system.dedupe.plg)
+
+          # get hash of new txz file
           md5Hash=$(md5sum "$txz" | awk '{print $1}')
-          content=$(<"$plg")
+
+          # update MD5 hash in plg file
+          sed -i 's/<!ENTITY MD5       \s*"[^"]*"/<!ENTITY MD5 "'"$md5Hash"'"/' plg
+
+          # get current date and previous version
           curdate=$(date +"%Y.%m.%d")
-          
           echo "Current date: ${curdate}"
-          pattern='ENTITY MD5\s+"([^"]+)"'
-          datepattern='ENTITY version\s+"([^"]+)"'
-          last_plg=$(wget -O - https://github.com/bobbintb/UnRAID-DeDuper/raw/release/artifacts/bobbintb.system.dedupe.plg)
           previousVersion=$(echo "$last_plg" | grep -o -m 1 -P "$datepattern" | awk -F '"' '{print $2}')
           echo "Previous version: ${previousVersion}"
+
+          # determine new version
           if [[ $curdate == $previousVersion ]]; then
           curdate+="a"
           echo "New version: ${curdate}"
@@ -59,8 +65,9 @@ jobs:
           echo "New version: ${curdate}"
           fi
 
-          newContent=$(echo "$content" | sed -E "s/$datepattern/ENTITY version   \"$curdate\"/" | sed -E "s/$pattern/ENTITY MD5       \"$md5Hash\"/")
-          echo "$newContent" > "$plg"
+          # update version in plg file
+          sed -i 's/<!ENTITY version   \s*"[^"]*"/<!ENTITY version   "'"$curdate"'"/' plg
+
       - name: Git Commit 
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
