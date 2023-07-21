@@ -141,7 +141,7 @@ _(Hardlinks are duplicates)_:
   <p>No (Default): Files that are hardlinked (i.e. share the same inode number) are not considered duplicates.</p>
   <p>Yes: Files that are hardlinked are considered duplicates.</p>
   <p></p>
-  <p>Note: If File A and File B are hardlinked they are considered one file, as they share the same inode number. In this case, neither file will show up in the list of duplicates if this setting is set to 'No'. However, if File C has the same hash as files A and B but has a different inode number, then file C will be a duplicate of files A and B, collectively. Essentially, setting this option to 'No' will group the files by inode, with one file representing the group.</p>
+  <p>Note: If File A and File B are hardlinked they are considered one file, as they share the same inode number. In this case, neither file will show up in the list of duplicates if this setting is set to 'No'. However, if File C has the same hash as files A and B but has a different inode number, then file C will be a duplicate of files A and B, collectively. In this scenario, File C and either File A or B (but not both) will be duplicates. Essentially, setting this option to 'No' will group the files by inode, with one file representing the group per inode.</p>
 </blockquote>
 
 _(Scan directory)_:

@@ -25,12 +25,12 @@ processQueue.addEventListener('click', () => {
       var item = queue[key];
       var file = item.dir + item.file;
       if (item.action === "delete") {
-        var command = "rm -f " + file;
+        var command = 'rm -f "' + file + '"';
       }
       if (item.action === "link") {
         var target = originals[item.fullHash];
         // ln [OPTION] TARGET LINK_NAME
-        var command = "ln -f " + target + file;
+        var command = 'ln -f "' + target + '" "' + file + '"';
       }
       queueCommands.push(command);
     }
