@@ -48,7 +48,7 @@ jobs:
           curdate=$(date +"%Y.%m.%d")
           datepattern='ENTITY version\s+"([^"]+)"'
           echo "Current date: ${curdate}"
-          previousVersion=$(grep -oP '<!ENTITY version\s*"\K[^"]*' $)
+          previousVersion=$(grep -oP '<!ENTITY version\s*"\K[^"]*' $plg)
           echo "Previous version: ${previousVersion}"
 
           # determine new version
