@@ -145,13 +145,13 @@ _(Hardlinks are duplicates)_:
 </blockquote>
 
 _(Scan directory)_:
-: <input type="text" size="15" class="setting" id="scanDir" value="<?=$cfg['dir'] ?? ''?>" data-pickroot="<?=dirname($cfg['dir']) ?? '/mnt/user'?>" data-pickfilter="HIDE_FILES_FILTER" data-pickfolders="true" <?= file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onchange="updateInput(this.id)" required>
+: <input name="dir" type="text" size="15" class="setting" id="scanDir" value="<?=$cfg['dir'] ?? ''?>" data-pickroot="<?=dirname($cfg['dir']) ?? '/mnt/user'?>" data-pickfilter="HIDE_FILES_FILTER" data-pickfolders="true" <?= file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onchange="updateInput(this.id)" required>
 <blockquote class='inline_help'>
   <p>The scan directory can only be changed if the database doesn't exists and the daemon is stopped. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.</p>
 </blockquote>
 
 _(Database location)_:
-: <input type="text" size="15" class="setting" id="dbDir" value="<?=$cfg['dbfile'] ?? ''?>" data-pickroot="<?=dirname($cfg['dbfile']) ?? '/mnt/cache'?>" data-pickfolders="true" data-pickfilter="db" data-pickcloseonfile="true" placeholder="Select folder to store deduper.db" <?= file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onchange="updateInput(this.id)" required>
+: <input name="dbfile" type="text" size="15" class="setting" id="dbDir" value="<?=$cfg['dbfile'] ?? ''?>" data-pickroot="<?=dirname($cfg['dbfile']) ?? '/mnt/cache'?>" data-pickfolders="true" data-pickfilter="db" data-pickcloseonfile="true" placeholder="Select folder to store deduper.db" <?= file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onchange="updateInput(this.id)" required>
   <blockquote class='inline_help'>
   <p>The location to store the database file (deduper.db) The daemon must be stopped before changing the DB file. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.</p>
 </blockquote>

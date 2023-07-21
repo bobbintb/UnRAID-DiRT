@@ -54,8 +54,12 @@ const removeDuplicateInode = (jsonArray) => {
   return newJsonArray;
 };
 
-const leftrowsArray = JSON.parse(results);
-// add hardlink conditional
+
+if (hlbool) {
+  leftrowsArray = JSON.parse(results);
+} else {
+  leftrowsArray = removeDuplicateInode(JSON.parse(results));
+}
 const leftrowsArrayFilterHashes = removeUniquefullHash(leftrowsArray);
 const leftrowsGroup = groupByFullHash(leftrowsArrayFilterHashes);
 
