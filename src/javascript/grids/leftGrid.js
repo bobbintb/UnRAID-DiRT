@@ -1,7 +1,7 @@
 const leftGrid = document.createElement('revo-grid');
 leftGrid.readonly = true;
 leftGrid.resize = true;
-//leftGrid.filter = true;
+leftGrid.filter = true;
 leftGrid.style.width = 'initial';
 leftGrid.style.border = '1px solid white';
 

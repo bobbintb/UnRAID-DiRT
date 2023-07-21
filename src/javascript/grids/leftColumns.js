@@ -5,7 +5,7 @@ const leftcolumns = [
         size: 440,
         autoSize: true,
         cellTemplate: leftAlignTemplate,
-        filter: false
+        filter: true
     },
     {
         name: '#',
