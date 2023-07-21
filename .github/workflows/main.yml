@@ -36,7 +36,7 @@ jobs:
           txz="./artifacts/bobbintb.system.dedupe.txz"
           plg="./artifacts/bobbintb.system.dedupe.plg"
           # get previous plg. This might not work.
-          wget -O plg https://github.com/bobbintb/UnRAID-DeDuper/raw/release/artifacts/bobbintb.system.dedupe.plg
+          wget -O $plg https://github.com/bobbintb/UnRAID-DeDuper/raw/release/artifacts/bobbintb.system.dedupe.plg
 
           # get hash of new txz file
           md5Hash=$(md5sum "$txz" | awk '{print $1}')
@@ -48,7 +48,7 @@ jobs:
           curdate=$(date +"%Y.%m.%d")
           datepattern='ENTITY version\s+"([^"]+)"'
           echo "Current date: ${curdate}"
-          previousVersion=$(grep -oP '<!ENTITY version\s*"\K[^"]*' $plg)
+          previousVersion=$(grep -oP '<!ENTITY version\s*"\K[^"]*' $)
           echo "Previous version: ${previousVersion}"
 
           # determine new version
