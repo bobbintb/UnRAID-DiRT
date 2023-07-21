@@ -42,7 +42,7 @@ jobs:
           md5Hash=$(md5sum "$txz" | awk '{print $1}')
 
           # update MD5 hash in plg file
-          sed -i 's/<!ENTITY MD5       \s*"[^"]*"/<!ENTITY MD5 "'"$md5Hash"'"/' $plg
+          sed -i 's/<!ENTITY MD5       \s*"[^"]*"/<!ENTITY MD5       "'"$md5Hash"'"/' $plg
 
           # get current date and previous version
           curdate=$(date +"%Y.%m.%d")
