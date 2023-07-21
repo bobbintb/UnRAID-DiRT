@@ -68,7 +68,7 @@ jobs:
           commit_message_body=$(jq -r '.commits[0].message | split("\n\n")[1]' $GITHUB_EVENT_PATH)
           echo "Commit Message Body: $commit_message_body"
 
-          sed -i '0,/<CHANGES>\n##&name;\n/s/<CHANGES>\n##&name;/<CHANGES>\n##&name;\n\n$curdate\n\n$commit_message_body/' test.plg
+          sed -i '0,/<CHANGES>\n##&name;\n/s/<CHANGES>\n##&name;/<CHANGES>\n##&name;\n\n$curdate\n\n$commit_message_body/' $plg
 
           # update version in plg file
           sed -i 's/<!ENTITY version   \s*"[^"]*"/<!ENTITY version   "'"$curdate"'"/' $plg
