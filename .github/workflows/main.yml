@@ -70,7 +70,7 @@ jobs:
           echo "Commit Message Body: $commit_message_body"
 
           # escape new lines and special characters
-          commit_message_body=$(printf '%q' "$commit_message_body" | sed "s/^\\\$'//")
+          commit_message_body=$(printf '%q' "$commit_message_body" | sed "s/^\\\$'//; s/'\$//")
           sed -i "s/##\&name;/##\&name;\\n\\n###$curdate\\n$commit_message_body/" $plg
 
           # update version in plg file
