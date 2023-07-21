@@ -46,6 +46,7 @@ jobs:
 
           # get current date and previous version
           curdate=$(date +"%Y.%m.%d")
+          datepattern='ENTITY version\s+"([^"]+)"'
           echo "Current date: ${curdate}"
           previousVersion=$(echo "$last_plg" | grep -o -m 1 -P "$datepattern" | awk -F '"' '{print $2}')
           echo "Previous version: ${previousVersion}"
@@ -68,7 +69,7 @@ jobs:
           commit_message_body=$(jq -r '.commits[0].message | split("\n\n")[1]' $GITHUB_EVENT_PATH)
           echo "Commit Message Body: $commit_message_body"
 
-          sed -i "s/##\&name;/##\&name;\\n\\n$curdate\\n$commit_message_body/" $plg
+          sed -i "s/##\&name;/##\&name;\\n\\n###\&version;\\n$commit_message_body/" $plg
 
           # update version in plg file
           sed -i 's/<!ENTITY version   \s*"[^"]*"/<!ENTITY version   "'"$curdate"'"/' $plg
