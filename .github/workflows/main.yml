@@ -67,6 +67,7 @@ jobs:
 
           commit_message=$(jq -r '.commits[0].message' $GITHUB_EVENT_PATH)
           echo "Commit Message: $commit_message"
+          cat $GITHUB_EVENT_PATH
 
           # update version in plg file
           sed -i 's/<!ENTITY version   \s*"[^"]*"/<!ENTITY version   "'"$curdate"'"/' $plg
