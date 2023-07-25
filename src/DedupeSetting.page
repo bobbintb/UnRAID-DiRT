@@ -72,17 +72,48 @@ function scan() {
   $('#dbDir').prop('disabled', true);
   var ansi_up = new AnsiUp;
   const eventSource = new EventSource('/plugins/bobbintb.system.dedupe/include/scan.php');
-  eventSource.onmessage = function(event) {
-    const data = JSON.parse(event.data);
-    if (event.data.includes("completed")) {
-        eventSource.close();
-        localStorage.setItem('daemonLinesContent', $('#daemonLines').html());
-        refresh();
-        return;
+
+}
+const my = {};
+
+var nchan_plugins = new NchanSubscriber('/sub/plugins',{subscriber:'websocket'});
+nchan_plugins.on('message', function(data) {
+  if (!data || openDone(data)) return;
+  var box = $('pre#swaltext');
+  const text = box.html().split('<br>');
+  if (data.slice(-1) == '\r') {
+    text[text.length-1] = data.slice(0,-1);
+  } else {
+    text.push(data.slice(0,-1));
+  }
+  box.html(text.join('<br>')).scrollTop(box[0].scrollHeight);
+});
+
+
+
+// openPlugin1("checkall","Plugin Update Check",":return")
+function openPlugin1(cmd,title,start=0,button=0) {
+  // start  = 0 : run command only when not already running (default)
+  // start  = 1 : run command unconditionally
+  // button = 0 : show CLOSE button (default)
+  // button = 1 : hide CLOSE button
+  nchan_plugins.start();
+  $.post('/webGui/include/StartCommand.php',{cmd:cmd+' nchan',start:start},function(pid) {
+    if (pid==0) {
+      nchan_plugins.stop();
+      $('div.spinner.fixed').hide();
+      $(".upgrade_notice").addClass('alert');
+      return;
     }
-    var html = ansi_up.ansi_to_html(data);
-    $('#daemonLines').html($('#daemonLines').html() + html).scrollTop($('#daemonLines')[0].scrollHeight);
-};
+    swal({title:title,text:"<pre id='swaltext'></pre><hr>",html:true,animation:'none',showConfirmButton:button==0,confirmButtonText:"<?=_('Close')?>"},function(close){
+      nchan_plugins.stop();
+      $('div.spinner.fixed').hide();
+      $('.sweet-alert').hide('fast').removeClass('nchan');
+      setTimeout(function(){bannerAlert("<?=_('Attention - operation continues in background')?> ["+pid.toString().padStart(8,'0')+"]<i class='fa fa-bomb fa-fw abortOps' title=\"<?=_('Abort background process')?>\" onclick='abortOperation("+pid+")'></i>",cmd,start);});
+    });
+    $('.sweet-alert').addClass('nchan');
+    $('button.confirm').prop('disabled',button!=0);
+  });
 }
 
 function deleteDB() {
@@ -120,7 +151,7 @@ $(document).ready(function() {
 
 <style>
   dt {
-    width: 150px;
+    width: 200px;
   }
 body{-webkit-overflow-scrolling:touch}
 .errortext{color:#EF3D47;display:none}
@@ -162,7 +193,7 @@ _(Database location)_:
 
 <div id="title"><span class="left"><i class="fa fa-search icon"></i>_(Scan)_</span></div>
 
-<button id="scan-button" <?= file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onclick="scan()">Begin scan</button>
+<button id="scan-button" <?= file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onclick='openPlugin1("/plugins/bosbbintb.system.dedupe/scripts/bobbintb","Scanning...",":return")'>Begin scan</button>
 <button id="delete-db" <?= !file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onclick="deleteDB()">Delete database</button>
 <br>
 <style>
@@ -181,5 +212,5 @@ _(Database location)_:
 </style>
 
 <font size='2'>Scan Status: <span id='daemonStatus'></span></font>
-<div style="border: 1px solid white; height: 300px; overflow: auto; white-space: pre-wrap;" id="daemonLines"></div>
+<div style="border: 1px solid white; height: 300px; width: 25vw; overflow: auto; white-space: pre-wrap;" id="daemonLines"></div>
 <button id="delete-db" <?= !file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onclick="deleteDB()">Stop daemon</button>

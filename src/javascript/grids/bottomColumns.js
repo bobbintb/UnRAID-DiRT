@@ -62,6 +62,8 @@ const bottomcolumns = [
     compare: numericCompare
   },
   {
+    name: 'α',
+    //name: 'Ω',
     prop: 'og-radio',
     autoSize: true,
     size: 30,

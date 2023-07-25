@@ -35,6 +35,7 @@ processQueue.addEventListener('click', () => {
       queueCommands.push(command);
     }
   }
+  rescan();
   console.log(queueCommands);
 });
 
@@ -59,3 +60,29 @@ clearOriginals.addEventListener('click', () => {
 //mode=file&action=1&title=Delete&source=%252Fmnt%252Fuser%252FJonny%252FPride!!!!!!%2520-%2520Hardlink.gif&target=&hdlink=&zfs=&csrf_token=A25840EDD4D056B6
 //mode=read&csrf_token=A25840EDD4D056B6
 //mode=start&csrf_token=A25840EDD4D056B6
+
+function myAlert(description,textdescription,textimage,imagesize, outsideClick, showCancel, showConfirm, alertType) {
+  if ( !outsideClick ) outsideClick = false;
+  if ( !showCancel )   showCancel = false;
+  if ( !showConfirm )  showConfirm = false;
+  if ( imagesize == "" ) { imagesize = "80x80"; }
+   
+  swal({
+    title: description,
+    text: textdescription,
+    imageUrl: textimage,
+    imageSize: imagesize,
+    allowOutsideClick: outsideClick,
+    showConfirmButton: showConfirm,
+    showCancelButton: showCancel,
+    type: alertType,
+    html: true
+  });
+}
+
+function rescan() {
+  $("#extendedStatus").html("Scanning...");
+  myAlert("Scanning","Now Scanning your system for common problems.  This may take a minute.<br><br><span id='currentTest'></span>","","",false,false,false,"warning");
+  //$.post(caURL,{action:'scan'});
+	//fixScan.start();
+}
