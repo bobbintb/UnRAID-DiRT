@@ -12,6 +12,15 @@ Title="Settings"
 
 <!--PHP begin-->
 <?
+echo '
+<style>
+.scan_alert{position:fixed;top:24px;left:50%;margin-left:-480px;width:100px;height:38px;line-height:38px;color:#e68a00;background-color:#feefb3;border:#e68a00 1px solid;border-radius:38px;text-align:center;font-size:1.4rem;z-index:999}
+.scan_alert.done{color:#4f8a10;background-color:#dff2bf;border-color:#4f8a10}
+.scan_alert.alert{color:#f0000c;background-color:#ff9e9e;border-color:#f0000c}
+.scan_alert i{float:right;cursor:pointer}
+</style>
+';
+
 $bgcolor = strstr('white,azure',$display['theme']) ? '#f2f2f2' : '#1c1c1c';
 $plugin = "bobbintb.system.dedupe";
 $index = $_POST['index']?:'';
@@ -66,55 +75,34 @@ function checkDaemon() {
         });
     }
 
-function scan() {
-  $('#scan-button').prop('disabled', true);
-  $('#scanDir').prop('disabled', true);
-  $('#dbDir').prop('disabled', true);
-  var ansi_up = new AnsiUp;
-  const eventSource = new EventSource('/plugins/bobbintb.system.dedupe/include/scan.php');
-
-}
-const my = {};
-
-var nchan_plugins = new NchanSubscriber('/sub/plugins',{subscriber:'websocket'});
-nchan_plugins.on('message', function(data) {
-  if (!data || openDone(data)) return;
-  var box = $('pre#swaltext');
-  const text = box.html().split('<br>');
-  if (data.slice(-1) == '\r') {
-    text[text.length-1] = data.slice(0,-1);
-  } else {
-    text.push(data.slice(0,-1));
-  }
-  box.html(text.join('<br>')).scrollTop(box[0].scrollHeight);
-});
-
-
-
-// openPlugin1("checkall","Plugin Update Check",":return")
-function openPlugin1(cmd,title,start=0,button=0) {
+function scan(cmd,title,plg,func,start=0,button=0) {
   // start  = 0 : run command only when not already running (default)
   // start  = 1 : run command unconditionally
   // button = 0 : show CLOSE button (default)
   // button = 1 : hide CLOSE button
+  $('#scan-button').prop('disabled', true);
+  $('#scanDir').prop('disabled', true);
+  $('#dbDir').prop('disabled', true);
   nchan_plugins.start();
   $.post('/webGui/include/StartCommand.php',{cmd:cmd+' nchan',start:start},function(pid) {
     if (pid==0) {
       nchan_plugins.stop();
       $('div.spinner.fixed').hide();
-      $(".upgrade_notice").addClass('alert');
+      $(".scan_alert").addClass('alert');
       return;
     }
     swal({title:title,text:"<pre id='swaltext'></pre><hr>",html:true,animation:'none',showConfirmButton:button==0,confirmButtonText:"<?=_('Close')?>"},function(close){
       nchan_plugins.stop();
       $('div.spinner.fixed').hide();
       $('.sweet-alert').hide('fast').removeClass('nchan');
-      setTimeout(function(){bannerAlert("<?=_('Attention - operation continues in background')?> ["+pid.toString().padStart(8,'0')+"]<i class='fa fa-bomb fa-fw abortOps' title=\"<?=_('Abort background process')?>\" onclick='abortOperation("+pid+")'></i>",cmd,start);});
+      setTimeout(function(){bannerAlert("<?=_('Attention - scanning continues in background')?> ["+pid.toString().padStart(8,'0')+"]<i class='fa fa-bomb fa-fw abortOps' title=\"<?=_('Abort background process')?>\" onclick='abortOperation("+pid+")'></i>",cmd,plg,func,start);});
     });
     $('.sweet-alert').addClass('nchan');
     $('button.confirm').prop('disabled',button!=0);
   });
 }
+
+
 
 function deleteDB() {
   var confirmed = confirm('Are you sure you want to delete the database? This action cannot be undone.');
@@ -193,7 +181,7 @@ _(Database location)_:
 
 <div id="title"><span class="left"><i class="fa fa-search icon"></i>_(Scan)_</span></div>
 
-<button id="scan-button" <?= file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onclick='openPlugin1("/plugins/bosbbintb.system.dedupe/scripts/bobbintb","Scanning...",":return")'>Begin scan</button>
+<button id="scan-button" <?= file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onclick='scan("checkit","Scanning...",":return")'>Begin scan</button>
 <button id="delete-db" <?= !file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onclick="deleteDB()">Delete database</button>
 <br>
 <style>

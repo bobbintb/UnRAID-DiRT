@@ -24,8 +24,9 @@ def _scan(path):
 
 
 def hasher(allFiles, hashtype):
-    logging.info('Hashing files...')
+    logging.info('Hashing files... ')
     num_of_groups = len(allFiles)
+    print(" ")
     if hashtype == "partialHash":
         size = 1024
     else:
@@ -34,8 +35,8 @@ def hasher(allFiles, hashtype):
         size_key, group = item
         for inode, file_attr in group.items():
             file_attr[hashtype] = common.hashFiles(file_attr["files"][0], size_key, size)
-        print(f"\r     {format(i + 1, ',')}/{format(num_of_groups, ',')}", end="")
-    print("")
+        print(f"\r     {format(i + 1, ',')}/{format(num_of_groups, ',')}\r")
+    print(" ")
 
 def filter_unique_sizes(allFiles):
     allFiles_filtered = {}
@@ -88,16 +89,17 @@ def main():
     logstuff.log('deduper.log')
     start_time = time.time()
     settings = common.loadConfig()
+    
 
     # Scan
-    logging.info(f"Scanning for files in \"{settings['Settings']['dir']}\"...")
+    logging.info(f"\rScanning for files in \"{settings['Settings']['dir']}\"... ")
     allFiles = _scan(settings["Settings"]["dir"])
-    logging.info("done.")
+    logging.info(f"Scanning for files in \"{settings['Settings']['dir']}\"... done.\r")
 
     # Filter sizes
     logging.info("Filtering unique sizes... ")
     allFiles_no_unique_sizes = filter_unique_sizes(allFiles)
-    logging.info("done.")
+    logging.info("Filtering unique sizes... done.\r")
 
     # Filter hashes
     hasher(allFiles_no_unique_sizes, "partialHash")
