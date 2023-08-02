@@ -1,6 +1,6 @@
 const processQueue = document.createElement('button');
 processQueue.textContent = 'Process Queue';
-processQueue.style.marginLeft = '10px';
+//processQueue.style.marginLeft = '10px';
 processQueue.style.padding = '10px';
 processQueue.style.width = 'fit-content';
 
@@ -8,11 +8,13 @@ const clearQueue = document.createElement('button');
 clearQueue.textContent = 'Clear Queue';
 clearQueue.style.padding = '10px';
 clearQueue.style.height = 'fit-content';
+clearQueue.style.float = 'right';
 
 const clearOriginals = document.createElement('button');
-clearOriginals.textContent = 'Clear Originals';
+clearOriginals.textContent = 'Clear Alphas';
 clearOriginals.style.padding = '10px';
 clearOriginals.style.height = 'fit-content';
+clearOriginals.style.float = 'right';
 
 processQueue.addEventListener('click', () => {
   var queueString = localStorage.getItem('queue');
@@ -35,8 +37,7 @@ processQueue.addEventListener('click', () => {
       queueCommands.push(command);
     }
   }
-  rescan();
-  console.log(queueCommands);
+  doQueue(queueCommands);
 });
 
 clearQueue.addEventListener('click', () => {
@@ -80,9 +81,17 @@ function myAlert(description,textdescription,textimage,imagesize, outsideClick, 
   });
 }
 
-function rescan() {
-  $("#extendedStatus").html("Scanning...");
-  myAlert("Scanning","Now Scanning your system for common problems.  This may take a minute.<br><br><span id='currentTest'></span>","","",false,false,false,"warning");
+function doQueue(queueCommands) {
+  $("#extendedStatus").html("Queue script created");
+  myAlert("Queue script created","The delete/link script has been created as `/tmp/queue.sh`. This is a safeguard until this plug-in is out of beta.<br><br><span id='currentTest'></span>","","",false,false,false,"warning");
+  $.ajax({
+    type: "POST",
+    url: "/plugins/bobbintb.system.dedupe/include/queue.php",
+    data: { jsArray: queueCommands },
+    error: function (xhr, status, error) {
+      console.error(error); // Log any errors
+    },
+  });
   //$.post(caURL,{action:'scan'});
 	//fixScan.start();
 }

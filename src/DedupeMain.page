@@ -9,7 +9,10 @@ $settings = parse_ini_file($settingsPath, true);
 $dbFile = realpath($settings['dbfile']).'/deduper.db';
 file_exists($dbFile) ? 'true' : 'false';
 if (!file_exists($dbFile)) {
-  echo "<p>No database file found at: $dbFile. Check your settings.</p>";
+  echo "No database file found at: <b>$dbFile</b>";
+  echo "<br>";
+  echo "You may need to create one or refresh the page if one has already been created.";
+
 } else {
 $db = new SQLite3($dbFile);
 $query = "SELECT JSON_GROUP_ARRAY(JSON_EXTRACT(data, '$')) AS data_json FROM files;";

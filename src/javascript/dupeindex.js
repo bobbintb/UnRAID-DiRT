@@ -21,9 +21,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // solid gold
   const rightButtonContainer = document.createElement('div');
+  rightButtonContainer.appendChild(processQueue);
   rightButtonContainer.appendChild(clearQueue);
   rightButtonContainer.appendChild(clearOriginals);
-  rightButtonContainer.appendChild(processQueue);
   // solid green
   const rightContainer = document.createElement('div');
   rightContainer.style.display = 'flex';
