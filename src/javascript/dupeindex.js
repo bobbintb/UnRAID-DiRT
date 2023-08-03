@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
   //parent.style.overflowX = 'hidden';
 
   const style = document.createElement('style');
-  style.innerHTML = "revo-grid[theme=default] revogr-header .header-rgRow, revo-grid[theme=default] revogr-header .group-rgRow { text-transform: none; }";
+  style.innerHTML = "revo-grid[theme=default] revogr-header .header-rgRow, revo-grid[theme=default] revogr-header .group-rgRow { text-transform: none; } .rgHeaderCell .rv-filter { min-width: 0; }";
   document.head.appendChild(style);
 
   // solid gold

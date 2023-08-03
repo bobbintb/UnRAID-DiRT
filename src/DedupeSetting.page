@@ -128,13 +128,16 @@ function deleteDB() {
   }
 }
 
-//$(document).ready(function() {
-//  var storedContent = localStorage.getItem('daemonLinesContent');
-//  if (storedContent) {
-//    $('#daemonLines').html(storedContent).scrollTop($('#daemonLines')[0].scrollHeight);
-//    localStorage.removeItem('daemonLinesContent');
-//  }
-//});
+function changeButtonText() {
+  var button = document.getElementById('daemon');
+  if (button.innerHTML === 'Stop daemon ') {
+    button.innerHTML = 'Start daemon';
+    // You can perform any other actions here when the button is clicked.
+  } else {
+    button.innerHTML = 'Stop daemon ';
+  }
+}
+
 
 </script>
 <!--JavaScript end-->
@@ -207,4 +210,4 @@ _(Database location)_:
 <div style="border: 1px solid white; height: 300px; width: 25vw; overflow: auto; white-space: pre-wrap;" id="daemonLines"></div>
 -->
 <br>
-<button id="delete-db" <?= !file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onclick="window.alert('This button doesn\'t do anything yet.')">Stop daemon</button>
+<button id="daemon" <?= !file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onclick="changeButtonText()">Stop daemon </button>

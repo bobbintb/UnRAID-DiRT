@@ -6,7 +6,7 @@ const rightcolumns = [
         cellTemplate: queue_link
     },
     {
-        name: 'File(s)',
+        name: 'Files',
         prop: 'file',
         size: 700,
         //size: rightcolumns.action.size,

@@ -12,6 +12,14 @@ const leftAlignTemplate = (createElement, props) => {
   return cell;
 };
 
+const leftAlignTemplate_header = (createElement) => {
+  return createElement('div', {
+    style: {
+      textAlign: 'left'
+    }
+  });
+};
+
 const prettySize = (createElement, props) => {
   const formattedSize = convertFileSize(props.model.size);
   return createElement('span', {}, formattedSize);
