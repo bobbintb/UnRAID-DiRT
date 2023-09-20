@@ -1,125 +1,80 @@
-import asyncio
-import sys
-from hachiko.hachiko import AIOWatchdog, AIOEventHandler
 import logging
+import sys
+import watchdog.events
+import watchdog.observers
+import time
 import common
 import logstuff
 import sqlinstance
-import signal
 
-EVENT_TYPE_MOVED = "moved"
-EVENT_TYPE_DELETED = "deleted"
-EVENT_TYPE_CREATED = "created"
-EVENT_TYPE_MODIFIED = "modified"
-EVENT_TYPE_CLOSED = "closed"
-EVENT_TYPE_OPENED = "opened"
-WATCH_DIRECTORY = common.loadConfig()["Settings"]["dir"]
 
-class MyEventHandler(AIOEventHandler):
-    """Subclass of asyncio-compatible event handler."""
-    def __init__(self, q, loop=None):
-        self.q = q
-        self._loop = loop or asyncio.get_event_loop()
-        # prefer asyncio.create_task starting from Python 3.7
-        if hasattr(asyncio, "create_task"):
-            self._ensure_future = asyncio.create_task
-        else:
-            self._ensure_future = asyncio.ensure_future
-        self._method_map = {
-            EVENT_TYPE_MODIFIED: self.on_modified,
-            EVENT_TYPE_MOVED: self.on_moved,
-            EVENT_TYPE_CREATED: self.on_created,
-            EVENT_TYPE_DELETED: self.on_deleted,
-            EVENT_TYPE_CLOSED: self.on_closed,
-            EVENT_TYPE_OPENED: self.on_opened,
-        }
-        self.file_created = False
-
-    async def on_created(self, event):
+class Handler(watchdog.events.FileSystemEventHandler):
+    '''def on_created(self, event):
+        # moved from outside a wd to inside a wd counts as created
         if not event.is_directory:
             try:
-                await self.q.put(event)
-                self.file_created = True
-                action = "Created:"
                 directory, file = common.splitFileName(event.src_path)
                 stats = common.getFileStats(directory, file)
-                dbinstance.addOrModify(stats, True, logging)
-                logging.info(f'{action} {event.src_path}')
+                dbinstance.addOrModify(stats, True)
+                daemon_logger.debug(f'Created: {event.src_path}')
             except Exception as e:
-                print(f"Error handling event: {e}")
+                daemon_logger.error(f"Error handling event: {e}")'''
 
-    async def on_deleted(self, event):
+    def on_deleted(self, event):
+        # a move from inside a watched directory to outside a watched directory counts as delete
         if not event.is_directory:
             try:
-                await self.q.put(event)
                 directory, file = common.splitFileName(event.src_path)
-                dbinstance.delete(directory, file, logging)
-                logging.info(f'Deleted: {event.src_path}')
+                dbinstance.delete(directory, file)
+                daemon_logger.debug(f'Deleted: {event.src_path}')
             except Exception as e:
-                logging.error(f"Error handling event: {e}")
+                daemon_logger.error(f"Error handling event: {e}")
 
-    async def on_moved(self, event):
+    #def on_modified(self, event):
+    #    print("Watchdog received modified event - % s." % event.src_path)
+
+    def on_moved(self, event):
         if not event.is_directory:
             try:
-                await self.q.put(event)
                 if common.splitFileName(event.src_path)[0] == common.splitFileName(event.dest_path)[0]:
                     action = ' Renamed:'
                 else:
                     action = '  Moved:'
-                dbinstance.moveOrRename(event.src_path, event.dest_path, logging)
-                logging.info(f'{action} {event.src_path}')
-                logging.info(f'     to: {event.dest_path}')
+                dbinstance.moveOrRename(event.src_path, event.dest_path)
+                daemon_logger.debug(f'{action} {event.src_path}')
+                daemon_logger.debug(f'     to: {event.dest_path}')
             except Exception as e:
-                logging.error(f"Error handling event: {e}")
+                daemon_logger.error(f"Error handling event: {e}")
 
-    async def on_closed(self, event):
+    def on_closed(self, event):
+        # check for closed event, then compare modified time stamps. not sure if this is necessary though.
         if not event.is_directory:
             try:
-                await self.q.put(event)
-                if not self.file_created:
-                    action = "Modified:"
-                    directory, file = common.splitFileName(event.src_path)
-                    stats = common.getFileStats(directory, file)
-                    dbinstance.addOrModify(stats, False, logging)
-                    logging.info(f'{action} {event.src_path}')
+                directory, file = common.splitFileName(event.src_path)
+                stats = common.getFileStats(directory, file)
+                dbinstance.addOrModify(stats)
+                daemon_logger.debug(f'Modified: {event.src_path}')
             except Exception as e:
-                logging.error(f"Error handling event: {e}")
-
-    async def on_opened(self, event):
-        pass
+                daemon_logger.error(f"Error handling event: {e}")
 
 
-class GracefulKiller:
-    kill_now = False
-
-    def __init__(self):
-        signal.signal(signal.SIGINT, self.exit_gracefully)
-        signal.signal(signal.SIGTERM, self.exit_gracefully)
-
-    def exit_gracefully(self, *args):
-        self.kill_now = True
-
-async def watch_fs(watch_dir):
-    q = asyncio.Queue()
-    evh = MyEventHandler(q)
-    watch = AIOWatchdog(watch_dir, event_handler=evh)
-    watch.start()
-    killer = GracefulKiller()
-    while not killer.kill_now:
-        await q.get()
-        await asyncio.sleep(1)
-        q.task_done()
-    print("DeDuper daemon has been gracefully shut down.")
-
-
-
-# Create DB instance
-settings = common.loadConfig()
-logstuff.log('daemon.log')
-try:
-    dbinstance = sqlinstance.JsonDatabase(settings['sqlite']['dbfile'])
-except Exception as e:
-    print(e)
-    sys.exit()
-logging.info("Starting DeDuper daemon...")
-asyncio.run(watch_fs(WATCH_DIRECTORY))
+if __name__ == "__main__":
+    settings = common.loadConfig()
+    src_path = settings["Settings"]["dir"]
+    daemon_logger = logstuff.daemon()
+    try:
+        dbinstance = sqlinstance.JsonDatabase(settings['sqlite']['dbfile'])
+    except Exception as e:
+        print(e)
+        sys.exit()
+    daemon_logger.info("Starting DeDuper daemon...")
+    event_handler = Handler()
+    observer = watchdog.observers.Observer()
+    observer.schedule(event_handler, path=src_path, recursive=True)
+    observer.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
