@@ -1,0 +1,62 @@
+name: Compile kernel
+on:
+  workflow_dispatch:
+jobs:
+  pull_and_edit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        shell: bash
+        run: |
+          #!/bin/bash
+          KERNEL_VERSION="6.1.49"
+          major_version="6"
+          UNRAID_VERSION="6.12.4"
+          echo "----------------------------------------Kernel version: $KERNEL_VERSION----------------------------------------"
+          echo "----------------------------------------Kernel major version: $major_version----------------------------------------"
+          echo "----------------------------------------unRAID version: $UNRAID_VERSION----------------------------------------"
+          sudo apt -y install make gcc bison libelf-dev
+          mkdir -p unraid
+          cd unraid
+          echo "----------------------------------------Downloading kernel...----------------------------------------"
+          wget -nvc https://mirrors.edge.kernel.org/pub/linux/kernel/v$major_version.x/linux-$KERNEL_VERSION.tar.xz
+          echo "----------------------------------------Downloading unRAID...----------------------------------------"
+          wget -nvc https://unraid-dl.sfo2.cdn.digitaloceanspaces.com/stable/unRAIDServer-$UNRAID_VERSION-x86_64.zip
+          mkdir -p linux
+          echo "----------------------------------------Extracting kernel...----------------------------------------"
+          tar -xf linux-$KERNEL_VERSION.tar.xz -C linux --strip-components 1
+          unzip unRAIDServer-$UNRAID_VERSION-x86_64.zip -d unRAIDServer
+          echo "----------------------------------------Extracting unRAID...----------------------------------------"
+          cd unRAIDServer
+          echo "----------------------------------------Unsquashing file system...----------------------------------------"
+          unsquashfs -d patches bzfirmware src
+          cd ..
+          cp -r unRAIDServer/patches/src/linux-*-Unraid/. linux/
+          cd linux
+          echo "----------------------------------------Patching...----------------------------------------"
+          find . -type f -iname '*.patch' -print0 | xargs -n1 -0 patch -p1 -i
+          sed -i 's/# CONFIG_AUDIT is not set/CONFIG_AUDIT=y/' .config
+          echo "----------------------------------------make oldconfig----------------------------------------"
+          make olddefconfig
+          echo "----------------------------------------make -j$(nproc) bzImage----------------------------------------"
+          make -j$(nproc) -s bzImage
+          echo "----------------------------------------make -j$(nproc) ----------------------------------------"
+          make -j$(nproc) -s
+          cd ..
+          mkdir -p release
+          cp linux/arch/x86_64/boot/bzImage release/bzimage
+          cd release
+          sha256sum bzimage | cut -d " " -f 1 > bzimage.sha256
+      - name: Git Commit 
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -a -m "Updated kernel"
+          git add ./bzimage
+          git add ./bzimage.sha256
+      - name: Git Push
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.PAT }}
+          branch: master
+          force: true
