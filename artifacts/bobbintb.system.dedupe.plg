@@ -64,6 +64,13 @@ echo ""
 <!-- POST-INSTALL SCRIPT -->
 <FILE Run="/bin/bash">
 <INLINE>
+echo "Installing dependencies..."
+wget https://slackers.it/repository/slackware64-current/audit/audit-3.1.2-x86_64-1cf.txz
+wget https://slackware.uk/slackware/slackware64-current/slackware64/l/libnsl-2.0.1-x86_64-1.txz
+installpkg audit-3.1.2-x86_64-1cf.txz
+rm audit-3.1.2-x86_64-1cf.txz
+installpkg libnsl-2.0.1-x86_64-1.txz
+rm libnsl-2.0.1-x86_64-1.txz
 cfg="/boot/config/plugins/&name;/&name;.cfg"
 if [[ ! -e $cfg ]]; then
   cp /usr/local/emhttp/plugins/&name;/&name;.cfg.example $cfg
