@@ -1,7 +1,7 @@
 <?php
 function popBottomGrid($t1fullHash) {
-$settingsPath = '/boot/config/plugins/bobbintb.system.dedupe/bobbintb.system.dedupe.cfg';
-$settings = parse_ini_file($settingsPath, true);
+$settingsPath = '/boot/config/plugins/bobbintb.system.dedupe/bobbintb.system.dedupe.json';
+$settings = json_decode(file_get_contents($settingsPath), true);
 $dbFile = realpath($settings['dbfile']).'/deduper.db';
 $db = new SQLite3($dbFile);
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['t1fullHash'])) {

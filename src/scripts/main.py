@@ -3,25 +3,29 @@ from tqdm import tqdm
 
 import common
 import json
-import logging
 import logstuff
 import os
 import time
 import sqlinstance
 
-def _scan(path):
+def _scan(paths):
     allFiles = {}
-    for dirpath, dirnames, filenames in os.walk(path, followlinks=True):
-        for file in filenames:
-            filepath = os.path.join(dirpath, file)
-            statinfo = os.stat(filepath)
-            size = statinfo.st_size
-            inode = statinfo.st_ino
-            allFiles.setdefault(size, {}).setdefault(inode, {}).setdefault('files', []).append(filepath)
-            allFiles[size][inode]["st_nlink"] = statinfo.st_nlink
-            allFiles[size][inode]["st_atime"] = statinfo.st_atime
-            allFiles[size][inode]["st_mtime"] = statinfo.st_mtime
-            allFiles[size][inode]["st_ctime"] = statinfo.st_ctime
+    # Needed to handle one scan directory or multiple (list vs dict)
+    if isinstance(paths, dict):
+        paths = paths.values()
+    for path in paths:
+        scan_logger.debug(f"Scanning root folder: {path}")
+        for dirpath, dirnames, filenames in os.walk(path, followlinks=True):
+            for file in filenames:
+                filepath = os.path.join(dirpath, file)
+                statinfo = os.stat(filepath)
+                size = statinfo.st_size
+                inode = statinfo.st_ino
+                allFiles.setdefault(size, {}).setdefault(inode, {}).setdefault('files', []).append(filepath)
+                allFiles[size][inode]["st_nlink"] = statinfo.st_nlink
+                allFiles[size][inode]["st_atime"] = statinfo.st_atime
+                allFiles[size][inode]["st_mtime"] = statinfo.st_mtime
+                allFiles[size][inode]["st_ctime"] = statinfo.st_ctime
     return allFiles
 
 
@@ -142,7 +146,7 @@ def main():
 
     # Scan
     scan_logger.info("Scanning for files...")
-    allFiles = _scan(settings["Settings"]["dir"])
+    allFiles = _scan(settings["include"])
     scan_logger.info("done.")
 
     # Filter sizes
@@ -165,7 +169,7 @@ def main():
 
     # Add files to DB
     json_list = prep_for_sql(allFiles)
-    db = sqlinstance.JsonDatabase("deduper.db")
+    db = sqlinstance.JsonDatabase(os.path.join(settings["dbfile"], "deduper.db"))
     db.insert_data(json_list)
     db.close()
 

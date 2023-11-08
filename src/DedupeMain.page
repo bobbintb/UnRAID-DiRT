@@ -4,14 +4,17 @@ Title="Main"
 
 <?php
 
-$settingsPath = '/boot/config/plugins/bobbintb.system.dedupe/bobbintb.system.dedupe.cfg';
-$settings = parse_ini_file($settingsPath, true);
+$settingsPath = '/boot/config/plugins/bobbintb.system.dedupe/bobbintb.system.dedupe.json';
+$settings = json_decode(file_get_contents($settingsPath), true);
 $dbFile = realpath($settings['dbfile']).'/deduper.db';
 file_exists($dbFile) ? 'true' : 'false';
+//echo "<pre>";
+//print_r($settings);
+//echo "</pre>";
 if (!file_exists($dbFile)) {
   echo "No database file found at: <b>$dbFile</b>";
   echo "<br>";
-  echo "You may need to create one or refresh the page if one has already been created.";
+  echo "Check the settings page. You may need to create one by starting a scan or refresh the page if one has already been created.";
 
 } else {
 $db = new SQLite3($dbFile);

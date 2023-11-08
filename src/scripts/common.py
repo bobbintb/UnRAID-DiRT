@@ -1,4 +1,4 @@
-import configparser
+import json
 import logging
 import os
 from blake3 import blake3
@@ -27,21 +27,10 @@ class CustomFormatter(logging.Formatter):
 
 
 def loadConfig():
-    config_path = '/boot/config/plugins/bobbintb.system.dedupe/bobbintb.system.dedupe.cfg'
-
-    # Read the config file as text
-    with open(config_path, 'r') as config_file:
-        config_content = config_file.read()
-
-    # Modify the config content to add a unique name to unnamed sections
-    modified_content = str('[Settings]') + '\n' + config_content
-
-    # Load the modified content into the config object
-    config = configparser.ConfigParser()
-    config.optionxform = str  # Preserve case sensitivity of keys
-    config.read_string(modified_content)
-    return {sect: {key.strip('"'): value.strip('"') for key, value in config.items(sect)} for sect in config.sections()}
-
+    config_path = '/boot/config/plugins/bobbintb.system.dedupe/bobbintb.system.dedupe.json'
+    with open(config_path, 'r') as json_file:
+        data = json.load(json_file)
+    return data
 
 
 def getFileStats(folder, file):

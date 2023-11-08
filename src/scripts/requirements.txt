@@ -1,5 +1,5 @@
 blake3~=0.3.3
 configparser~=5.3.0
-watchdog~=3.0.0
 bidict~=0.22.1
 tqdm~=4.66.1
+auditd_tools~=0.0.3

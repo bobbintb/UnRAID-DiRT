@@ -1,213 +1,373 @@
 Menu="Dedupe:2"
 Title="Settings"
 ---
-<?PHP
-/* 
- */
-?>
-
-<link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/jquery.filetree.css")?>">
-<script src="<?autov("/webGui/javascript/jquery.filetree.js")?>"></script>
-<script src="https://cdn.jsdelivr.net/npm/ansi_up@5.2.1/ansi_up.min.js"></script>
-
 <!--PHP begin-->
-<?
-
-$bgcolor = strstr('white,azure',$display['theme']) ? '#f2f2f2' : '#1c1c1c';
-$plugin = "bobbintb.system.dedupe";
-$index = $_POST['index']?:'';
-$cfg = parse_cfg($plugin,$index);
-
-function parse_cfg($plugin,$index) {
-  global $docroot;
-  $ram = "$docroot/plugins/$plugin/default.cfg";
-  $rom = "/boot/config/plugins/$plugin/{$plugin}{$index}.cfg";
-  $cfg = file_exists($ram) ? parse_ini_file($ram) : [];
-  return file_exists($rom) ? array_replace_recursive($cfg, parse_ini_file($rom)) : $cfg;
+<?PHP
+$docroot = $docroot??$_SERVER['DOCUMENT_ROOT'] ? : '/usr/local/emhttp';
+require_once "$docroot/webGui/include/Helpers.php";
+require_once "$docroot/plugins/dynamix.vm.manager/include/libvirt_helpers.php";
+switch ($display['theme']) {
+    case 'gray':
+        $bgcolor = '#121510';
+        $border = '#606e7f';
+        $top = - 44;
+    break;
+    case 'azure':
+        $bgcolor = '#edeaef';
+        $border = '#606e7f';
+        $top = - 44;
+    break;
+    case 'black':
+        $bgcolor = '#212121';
+        $border = '#2b2b2b';
+        $top = - 58;
+    break;
+    default:
+        $bgcolor = '#ededed';
+        $border = '#e3e3e3';
+        $top = - 58;
+    break;
 }
+
+$plugin = "bobbintb.system.dedupe";
+$settings = parse_json_cfg($plugin);
+
+function parse_json_cfg($plugin) {
+  global $docroot;
+  $ram = "$docroot/plugins/$plugin/default.json";
+  $rom = "/boot/config/plugins/$plugin/{$plugin}.json";
+  if (!file_exists($rom)) {
+      copy($ram, $rom);
+  }
+  return json_decode(file_get_contents($rom), true);
+}
+
+// Merge in any default values from the VM template
+// echo "<pre>";
+// print_r($settings);
+// echo "</pre>";
 ?>
 <!--PHP end-->
 
 <!--JavaScript begin-->
-<script>
-$(function(){
-  $("#scanDir").fileTreeAttach();
-});
-
-$(function(){
-  $("#dbDir").fileTreeAttach();
-});
-
-function updateInput(id) {
-  var selectedFilePath = document.getElementById(id).value;
+<script type="text/javascript">
+function enableApply() {
+	$('input[name="#apply"]').prop('disabled', false);
 }
+const observerConfig = {childList:true, subtree:true};
+const observer = new MutationObserver(function (mutationsList) {
+	for (let mutation of mutationsList) {
+		if (mutation.addedNodes.length > 0) {
+			enableApply();
+		}
+	}
+});
+
+$(document).ready(function () {observer.observe(document.getElementById('form_content'), observerConfig);});
 
 function checkDaemon() {
-        $.ajax(url,
-            {
-                data: {action: 'getDaemonState'}
-            }).done(function (data) {
-            if (data.running) {
-                $('#daemonStatusText').removeClass('daemonNotRunning');
-                $('#daemonStatusText').addClass('daemonRunning');
-                $('#abLog').animate({
-                    scrollTop: $('#abLog')[0].scrollHeight - $('#abLog')[0].clientHeight
-                }, 100);
-            } else {
-                $('#daemonStatusText').removeClass('daemonRunning');
-                $('#daemonStatusText').addClass('daemonNotRunning');
-            }
-            if (data.log == "") {
-                $("#abLog").html("The log is not existing or empty");
-            } else {
-                $("#abLog").html(data.log);
-            }
-        }).fail(function () {
-            $("#abLog").html("Something went wrong while talking to the backend :(");
-        });
-    }
+	$.ajax(url, {
+		data: {
+			action: 'getDaemonState'
+		}
+	}).done(function (data) {
+		if (data.running) {
+			$('#daemonStatusText').removeClass('daemonNotRunning');
+			$('#daemonStatusText').addClass('daemonRunning');
+			$('#abLog').animate({
+				scrollTop: $('#abLog')[0].scrollHeight - $('#abLog')[0].clientHeight
+			}, 100);
+		} else {
+			$('#daemonStatusText').removeClass('daemonRunning');
+			$('#daemonStatusText').addClass('daemonNotRunning');
+		}
+		if (data.log == "") {
+			$("#abLog").html("The log does not exist or is empty");
+		} else {
+			$("#abLog").html(data.log);
+		}
+	}).fail(function () {
+		$("#abLog").html("Something went wrong while talking to the backend:(");
+	});
+}
 
-function scan(cmd,title,plg,func,start=0,button=0) {
-  // start  = 0 : run command only when not already running (default)
-  // start  = 1 : run command unconditionally
-  // button = 0 : show CLOSE button (default)
-  // button = 1 : hide CLOSE button
-  $('#scan-button').prop('disabled', true);
-  $('#scanDir').prop('disabled', true);
-  $('#dbDir').prop('disabled', true);
-  nchan_plugins.start();
-  $.post('/webGui/include/StartCommand.php',{cmd:cmd+' nchan',start:start},function(pid) {
-    if (pid==0) {
-      nchan_plugins.stop();
-      $('div.spinner.fixed').hide();
-      $(".sweet-alert").addClass('alert');
-      return;
+function scan() {
+  var height = 800;
+  var width = 700;
+  
+  $.post("/plugins/bobbintb.system.dedupe/include/checkit.php",function(data) {
+    if (data) {
+      testBox("/plugins/bobbintb.system.dedupe/include/show_ttyd.php","Scanning...",height,width,true);
     }
-    swal({title:title,text:"<pre id='swaltext'></pre><hr>",html:true,animation:'none',showConfirmButton:button==0,confirmButtonText:"<?=_('Close')?>"},function(close){
-      nchan_plugins.stop();
-      $('div.spinner.fixed').hide();
-      $('.sweet-alert').hide('fast');
-      setTimeout(function(){bannerAlert("<?=_('Attention - scanning continues in background')?> ["+pid.toString().padStart(8,'0')+"]<i class='fa fa-bomb fa-fw abortOps' title=\"<?=_('Abort background process')?>\" onclick='abortScan("+pid+")'></i>",cmd,plg,func,start);});
-    });
-    $('button.confirm').prop('disabled',button!=0);
-  });
+  })
+}
+
+function testBox(cmd,title,height,width,load,func,id) {
+  // open shadowbox window (run in foreground)
+  // included for legacy purposes, replaced by openPlugin
+  var uri = cmd.split('?');
+  var run = uri[0].substr(-4)=='.php' ? cmd+(uri[1]?'&':'?')+'done=<?=urlencode(_("Done"))?>' : '/logging.htm?cmd='+cmd+'&csrf_token='+csrf_token+'&done=<?=urlencode(_("Done"))?>';
+  var options = load ? (func ? {modal:true,onClose:function(){setTimeout(func+'('+'"'+(id||'')+'")');}} : {modal:true,onClose:function(){location.reload();}}) : {modal:false};
+  Shadowbox.open({content:run, player:'iframe', title:"testbox", height:Math.min(screen.availHeight,800), width:Math.min(screen.availWidth,1200), options:options});
+}
+
+
+function scanold(cmd, title, plg, func, start = 0, button = 0) {
+	// start  = 0 : run command only when not already running (default)
+	// start  = 1 : run command unconditionally
+	// button = 0 : show CLOSE button (default)
+	// button = 1 : hide CLOSE button
+	$('#scan-button').prop('disabled', true);
+	$('#dbDir').prop('disabled', true);
+	nchan_plugins.start();
+	$.post('/plugins/bobbintb.system.dedupe/include/checkit.php',
+  function (pid) {
+		if (pid == 0) {
+			nchan_plugins.stop();
+			$('div.spinner.fixed').hide();
+			$(".sweet-alert").addClass('alert');
+			return;
+		}
+		swal({
+			title: title,
+			text: "<pre id='swaltext'></pre><hr>",
+			html: true,
+			animation: 'none',
+			showConfirmButton: button == 0,
+			confirmButtonText: "<?=_('Close')?>"
+		}, function (close) {
+			nchan_plugins.stop();
+			$('div.spinner.fixed').hide();
+			$('.sweet-alert').hide('fast');
+			setTimeout(function () {
+				bannerAlert("<?=_('Attention - scanning continues in background')?> [" + pid.toString().padStart(8, '0') + "]<i class='fa fa-bomb fa-fw abortOps' title=\"<?=_('Abort background process')?>\" onclick='abortScan(" + pid + ")'></i>", cmd, plg, func, start);
+			});
+		});
+		$('button.confirm').prop('disabled', button != 0);
+	});
 }
 
 function abortScan(pid) {
-  swal({title:"<?=_('Abort scan')?>",text:"<?=_('This may leave an unknown state')?>",html:true,animation:'none',type:'warning',showCancelButton:true,confirmButtonText:"<?=_('Proceed')?>",cancelButtonText:"<?=_('Cancel')?>"},function(){
-    $.post('/webGui/include/StartCommand.php',{kill:pid},function() {
-      clearTimeout(timers.bannerAlert);
-      timers.bannerAlert = null;
-      timers.callback = null;
-      forcedBanner = false;
-      removeBannerWarning($.cookie('addAlert'));
-      $.removeCookie('addAlert');
-      $(".upgrade_notice").removeClass('alert done').hide();
-      $('#scan-button').prop('disabled', false);
-    });
-  });
+	swal({
+		title: "<?=_('Abort scan')?>",
+		text: "<?=_('This may leave an unknown state')?>",
+		html: true,
+		animation: 'none',
+		type: 'warning',
+		showCancelButton: true,
+		confirmButtonText: "<?=_('Proceed')?>",
+		cancelButtonText: "<?=_('Cancel')?>"
+	}, function () {
+		$.post('/webGui/include/StartCommand.php', {
+			kill: pid
+		}, function () {
+			clearTimeout(timers.bannerAlert);
+			timers.bannerAlert = null;
+			timers.callback = null;
+			forcedBanner = false;
+			removeBannerWarning($.cookie('addAlert'));
+			$.removeCookie('addAlert');
+			$(".upgrade_notice").removeClass('alert done').hide();
+			$('#scan-button').prop('disabled', false);
+		});
+	});
 }
 
 function deleteDB() {
-  var confirmed = confirm('Are you sure you want to delete the database? This action cannot be undone.');
-  if (confirmed) {
-    $('#delete-db').prop('disabled', false);
-    $.ajax({
-      url: '/plugins/bobbintb.system.dedupe/include/delete.php',
-      method: 'GET',
-      data: { filePath: '<?= realpath($cfg['dbfile']) ?>/deduper.db' },
-      success: function(response) {
-        console.log(response);
-        console.log('<?= realpath($cfg['dbfile']) ?>/deduper.db');
-      },
-      error: function(xhr, status, error) {
-        console.error(error);
-      }
-    });
-   refresh();
-  }
+	var confirmed = confirm('Are you sure you want to delete the database? This action cannot be undone.');
+	if (confirmed) {
+		$('#delete-db').prop('disabled', false);
+		$.ajax({
+			url: '/plugins/bobbintb.system.dedupe/include/delete.php',
+			method: 'GET',
+			data: {
+				filePath: '<?= realpath($settings['dbfile'])?>/deduper.db'
+			},
+			success: function (response) {
+				console.log(response);
+				console.log('<?= realpath($settings['dbfile'])?>/deduper.db');
+			},
+			error: function (xhr, status, error) {
+				console.error(error);
+			}
+		});
+		refresh();
+	}
 }
 
 function changeButtonText() {
-  var button = document.getElementById('daemon');
-  if (button.innerHTML === 'Stop daemon ') {
-    button.innerHTML = 'Start daemon';
-    // You can perform any other actions here when the button is clicked.
-  } else {
-    button.innerHTML = 'Stop daemon ';
-  }
+	var button = document.getElementById('daemon');
+	if (button.innerHTML === 'Stop daemon ') {
+		button.innerHTML = 'Start daemon';
+	} else {
+		button.innerHTML = 'Stop daemon ';
+	}
 }
 
+function isVMAdvancedMode() {
+	return true;
+}
 
+$(function () {
+	$("#vmform table[data-category]").each(function () {
+		var category = $(this).data('category');
+		updatePrefixLabels(category);
+		bindSectionEvents(category);
+	});
+	$("#vmform input[data-pickroot]").fileTreeAttach();
+	$("#vmform #btnCancel").click(function () {
+		done();
+	});
+	$('#form_content').fadeIn('fast');
+});
 </script>
 <!--JavaScript end-->
 
-
+<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>">
+<script src="<?autov('/webGui/javascript/jquery.filedrop.js')?>"></script>
+<script src="<?autov('/webGui/javascript/jquery.filetree.js')?>" charset="utf-8"></script>
+<script src="<?autov('/plugins/dynamix.vm.manager/javascript/dynamix.vm.manager.js')?>"></script>
 
 <style>
-  dt {
-    width: 200px;
-  }
+dt {width: 200px;}
 body{-webkit-overflow-scrolling:touch}
-.errortext{color:#EF3D47;display:none}
-.fileTree{background:<?=$bgcolor?>;width:300px;max-height:150px;overflow-y:scroll;overflow-x:hidden;position:absolute;z-index:100;display:none}
+.fileTree{background:<?=$bgcolor?>;width:300px;max-height:150px;overflow-y:scroll;overflow-x:hidden;position:relative;z-index:100;display:none}
+#sb-wrapper {width: 500px !important;position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important;}
+#sb-wrapper-inner {height: 400px !important}
+html > body > div > div > div.xterm-viewport {overflow: auto !important;}
+#vmform table{margin-top:0;width:875px}
+#vmform table tr{vertical-align:top;line-height:40px}
+#vmform table tr td:nth-child(odd){width:10px;text-align:left;padding-left:15px}
+#vmform table tr td:nth-child(even){width:110px}
+#vmform table tr td:first-child{padding-right:30px}
+#vmform .multiple{position:relative}
+#vmform .sectionbutton{position:absolute;left:2px;cursor:pointer;opacity:0.4;font-size:1.4rem;line-height:17px;z-index:10;transition-property:opacity,left;transition-duration:0.1s;transition-timing-function:linear}
+#vmform .sectionbutton.remove{top:0;opacity:0.3}
+#vmform .sectionbutton.add{bottom:0}
+#vmform .sectionbutton:hover{opacity:1.0}
+#vmform .sectiontab{position:absolute;top:2px;bottom:2px;left:0;width:6px;border-radius:3px;background-color:#DDDDDD;transition-property:background,width;transition-duration:0.1s;transition-timing-function:linear}
+#vmform .multiple:hover .sectionbutton{opacity:0.7;left:4px}
+#vmform .multiple:hover .sectionbutton.remove{opacity:0.6}
+i.fa-plus-circle,i.fa-minus-circle{margin-left:8px}
 </style>
-
-<form markdown="1" method="POST" action="/update.php" target="progressFrame">
-<input type="hidden" name="#file" value="<?=$plugin?>/<?=$plugin.$index?>.cfg">
-<input type="hidden" name="#cleanup" value="true">
-
-_(Hardlinks are duplicates)_:
-: <select name="hardlinks">
-  <?=mk_option($cfg['hardlinks']??'', "false", _("No"))?>
-  <?=mk_option($cfg['hardlinks']??'', "true", _("Yes"))?>
-  </select>
-
-<blockquote class='inline_help'>
-  <p>No (Default): Files that are hardlinked (i.e. share the same inode number) are not considered duplicates.</p>
-  <p>Yes: Files that are hardlinked are considered duplicates.</p>
-  <p></p>
-  <p>Note: If File A and File B are hardlinked they are considered one file, as they share the same inode number. In this case, neither file will show up in the list of duplicates if this setting is set to 'No'. However, if File C has the same hash as files A and B but has a different inode number, then file C will be a duplicate of files A and B, collectively. In this scenario, File C and either File A or B (but not both) will be duplicates. Essentially, setting this option to 'No' will group the files by inode, with one file representing the group per inode.</p>
-</blockquote>
-
-_(Scan directory)_:
-: <input name="dir" type="text" size="15" class="setting" id="scanDir" value="<?=$cfg['dir'] ?? ''?>" data-pickroot="<?=dirname($cfg['dir']) ?? '/mnt/user'?>" data-pickfilter="HIDE_FILES_FILTER" data-pickfolders="true" <?= file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onchange="updateInput(this.id)" required>
-<blockquote class='inline_help'>
-  <p>The scan directory can only be changed if the database doesn't exists and the daemon is stopped. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.</p>
-</blockquote>
-
-_(Database location)_:
-: <input name="dbfile" type="text" size="15" class="setting" id="dbDir" value="<?=$cfg['dbfile'] ?? ''?>" data-pickroot="<?=dirname($cfg['dbfile']) ?? '/mnt/cache'?>" data-pickfolders="true" data-pickfilter="db" data-pickcloseonfile="true" placeholder="Select folder to store deduper.db" <?= file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onchange="updateInput(this.id)" required>
-  <blockquote class='inline_help'>
-  <p>The location to store the database file (deduper.db) The daemon must be stopped before changing the DB file. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.</p>
-</blockquote>
-
-<input type="submit" name="#default" value="_(Default)_">
-: <input type="submit" name="#apply" value="_(Apply)_"><input type="button" value="_(Done)_" onclick="done()">
-</form>
-
-<button id="delete-db" <?= !file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onclick="deleteDB()">Delete database</button>
-
-<div id="title"><span class="left"><i class="fa fa-search icon"></i>_(Scan)_</span></div>
-<button id="scan-button" <?= file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onclick='scan("checkit","Scanning...",":return")'>Begin scan</button>
-<style>
-    .daemonRunning {
-        color: green;
-    }
-    .daemonRunning:after {
-        content: 'running';
-    }
-    .daemonNotRunning {
-        color: red;
-    }
-    .daemonNotRunning:after {
-        content: 'not running';
-    }
-</style>
-
-<font size='2'>Daemon status: <span id='daemonStatus'></span></font>
-<!--
-<div style="border: 1px solid white; height: 300px; width: 25vw; overflow: auto; white-space: pre-wrap;" id="daemonLines"></div>
--->
-<br>
-<button id="daemon" <?= !file_exists(realpath($cfg['dbfile']).'/deduper.db') ? 'disabled' : '' ?> onclick="changeButtonText()">Stop daemon </button>
+<div>
+  <form markdown="1" id="vmform" method="POST" action="/plugins/bobbintb.system.dedupe/include/update.php" target="progressFrame">
+    <input type="hidden" name="#file" value="/boot/config/plugins/<?=$plugin?>/<?=$plugin?>.json">
+    <div id="form_content">
+      <div class="formview">
+        <?
+        foreach ($settings['include'] as $i => $arrShare) {
+          $strLabel = ($i > 0) ? appendOrdinalSuffix($i + 1) : '';
+        ?>
+        <table data-category="Share" data-multiple="true" data-minimum="1" data-index="<?=$i?>" data-prefix="<?=$strLabel?>">
+          <td>
+            <text id="include[<?=$i?>]sourcetext"> _(Scan Directory)_: </text>
+          </td>
+          <td>
+            <input type="text" 
+                   id="include[<?=$i?>]" 
+                   name="include[<?=$i?>]" 
+                   autocomplete="off" 
+                   data-pickfolders="true" <?=file_exists(realpath($settings['dbfile']) . '/deduper.db') ? 'disabled' : '' ?> 
+                   data-pickfilter="NO_FILES_FILTER" 
+                   data-pickroot="/mnt/" 
+                   value="<?=htmlspecialchars($arrShare)?>" 
+                   placeholder="_(e.g.)_ /mnt/user/..." 
+                   onchange="enableApply();" 
+                   title="_(path to scan)_" 
+                   required />
+          </td>
+        </table>
+        <?}?>
+        <script type="text/html" id="tmplShare">
+          <table>
+            <td>_(Scan Directory)_:</td>
+            <td>
+              <input type="text" 
+                     name="include[{{INDEX}}]" 
+                     id="include[{{INDEX}}]" 
+                     autocomplete="off" 
+                     spellcheck="false" 
+                     data-pickfolders="true" <?=file_exists(realpath($settings['dbfile']) . '/deduper.db') ? 'disabled' : '' ?> 
+                     data-pickfilter="NO_FILES_FILTER" 
+                     data-pickroot="/mnt/" 
+                     value="" 
+                     placeholder="_(e.g.)_ /mnt/user/..." 
+                     onchange="enableApply();" 
+                     title="_(path to scan)_" 
+                     required />
+            </td>
+          </table>
+        </script>
+      </div>
+    </div>
+    <blockquote class="inline_help">
+      <p>
+        <b>Scan Directories</b>
+        <br> These can only be changed if the database doesn't exists and the daemon is stopped. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.
+      </p>
+    </blockquote>
+    <br>
+    <dl>
+      <dt>_(Hardlinks are duplicates)_:</dt>
+      <dd>
+        <select name="hardlinks" <?=file_exists(realpath($settings['dbfile']) . '/deduper.db') ? 'disabled' : '' ?>>
+          <?=mk_option($settings['hardlinks']??'', "false", _("No")) ?>
+          <?=mk_option($settings['hardlinks']??'', "true", _("Yes")) ?>
+        </select>
+      </dd>
+      <blockquote class='inline_help'>
+        <p>No (Default): Files that are hardlinked (i.e. share the same inode number) are not considered duplicates.</p>
+        <p>Yes: Files that are hardlinked are considered duplicates.</p>
+        <p></p>
+        <p>Note: If File A and File B are hardlinked they are considered one file, as they share the same inode number. In this case, neither file will show up in the list of duplicates if this setting is set to 'No'. However, if File C has the same hash as files A and B but has a different inode number, then file C will be a duplicate of files A and B, collectively. In this scenario, File C and either File A or B (but not both) will be duplicates. Essentially, setting this option to 'No' will group the files by inode, with one file representing the group per inode.</p>
+      </blockquote>
+      <dt>_(Database location)_:</dt>
+      <dd>
+        <input name="dbfile" 
+               type="text" 
+               size="15" 
+               class="setting" 
+               id="dbDir" 
+               value="<?=$settings['dbfile'] ?? '' ?>" 
+               data-pickroot="<?=dirname($settings['dbfile']) ??'/mnt/cache'?>" 
+               data-pickfolders="true" 
+               data-pickfilter="db" 
+               data-pickcloseonfile="true" 
+               placeholder="Select folder to store deduper.db" <?=file_exists(realpath($settings['dbfile']) . '/deduper.db') ? 'disabled' : '' ?> 
+               onchange="enableApply()" 
+               required>
+      </dd>
+      <blockquote class='inline_help'>
+        <p>The location to store the database file (deduper.db) The daemon must be stopped before changing the DB file. Essentially, you need to start over to change this setting as doing so would invalidate any existing data.</p>
+      </blockquote>
+      <dt>
+        <input type="submit" name="#default" value="_(Default)_">
+      <dd>
+        <input type="submit" name="#apply" value="_(Apply)_">
+        <input type="button" value="_(Done)_" onclick="done()">
+    </dl>
+  </form>
+  <dl>
+    <button id="delete-db" <?=!file_exists(realpath($settings['dbfile']) . '/deduper.db') ? 'disabled' : '' ?> onclick="deleteDB()">Delete database </button>
+    <div class="title">
+      <span class="left">
+        <i class="fa fa-search icon"></i>_(Scan)_</span>
+    </div>
+    <div style='border: 1px solid red; height:200px; width:300px; overflow:auto;' id='abLog'>Loading...</div>
+    <button id="scan-button" <?=file_exists(realpath($settings['dbfile']) . '/deduper.db') ? 'disabled' : '' ?> onclick="scan()">Begin scan </button>
+  </dl>
+  <style>
+    .daemonRunning {color: green;}
+    .daemonRunning:after {content: 'running';}
+    .daemonNotRunning {color: red;}
+    .daemonNotRunning:after {content: 'not running';}
+  </style>
+  <font size='2'>Daemon status: <span id='daemonStatus'></span>
+  </font>
+  <!--
+  <div style="border: 1px solid white; height: 300px; width: 25vw; overflow: auto; white-space: pre-wrap;" id="daemonLines"></div>
+  -->
+  <br>
+  <button id="daemon" <?=!file_exists(realpath($settings['dbfile']) . '/deduper.db') ? 'disabled' : '' ?> onclick="changeButtonText()">Stop daemon </button>
+</div>
