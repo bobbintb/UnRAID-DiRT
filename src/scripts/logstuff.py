@@ -50,7 +50,8 @@ def sql(log_file='sql.log'):
     sql_logger.addHandler(sql_file_handler)
     sql_logger.addHandler(sql_console_handler)
     return sql_logger
-def daemon(log_file='daemon.log'):
+
+def daemon(log_file='/tmp/daemon.log'):
     daemon_logger = logging.getLogger('daemon')
     daemon_logger.setLevel(logging.DEBUG)
     daemon_file_handler = logging.FileHandler(log_file)
