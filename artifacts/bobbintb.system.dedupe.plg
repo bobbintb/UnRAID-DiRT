@@ -4,17 +4,20 @@
 <!ENTITY name      "bobbintb.system.dedupe">
 <!ENTITY author    "bobbintb">
 <!ENTITY repo      "UnRAID-DeDuper">
-<!ENTITY version   "2023.11.15f">
+<!ENTITY version   "2023.11.15g">
 <!ENTITY launch    "Settings/Dedupe">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&author;/&repo;/release/artifacts/&name;.plg">
 <!ENTITY source    "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5       "11592d96d3e963e6d241e8064b2a92fb">
+<!ENTITY MD5       "224d8c7fa04fc03cd3006637545702a3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="fa-search-minus" min="6.1.9">
 
 <CHANGES>
 ##&name;
+
+###2023.11.15g
+null
 
 ###2023.11.15f
 null
