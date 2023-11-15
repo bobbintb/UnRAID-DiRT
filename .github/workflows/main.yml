@@ -86,6 +86,6 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.PAT }}
-          branch: master
+          branch: release
           force: true
 
