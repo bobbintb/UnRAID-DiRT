@@ -4,6 +4,7 @@ Title="Settings"
 <!--PHP begin-->
 <?PHP
 $docroot = $docroot??$_SERVER['DOCUMENT_ROOT'] ? : '/usr/local/emhttp';
+$daemonStopped = str_contains(shell_exec("/etc/rc.d/rc.auditd status"), "auditd is stopped") ? true : false;
 require_once "$docroot/webGui/include/Helpers.php";
 require_once "$docroot/plugins/dynamix.vm.manager/include/libvirt_helpers.php";
 switch ($display['theme']) {
@@ -65,32 +66,6 @@ const observer = new MutationObserver(function (mutationsList) {
 
 $(document).ready(function () {observer.observe(document.getElementById('form_content'), observerConfig);});
 
-function checkDaemon() {
-	$.ajax(url, {
-		data: {
-			action: 'getDaemonState'
-		}
-	}).done(function (data) {
-		if (data.running) {
-			$('#daemonStatusText').removeClass('daemonNotRunning');
-			$('#daemonStatusText').addClass('daemonRunning');
-			$('#abLog').animate({
-				scrollTop: $('#abLog')[0].scrollHeight - $('#abLog')[0].clientHeight
-			}, 100);
-		} else {
-			$('#daemonStatusText').removeClass('daemonRunning');
-			$('#daemonStatusText').addClass('daemonNotRunning');
-		}
-		if (data.log == "") {
-			$("#abLog").html("The log does not exist or is empty");
-		} else {
-			$("#abLog").html(data.log);
-		}
-	}).fail(function () {
-		$("#abLog").html("Something went wrong while talking to the backend:(");
-	});
-}
-
 function scan() {
   var height = 800;
   var width = 700;
@@ -109,68 +84,6 @@ function testBox(cmd,title,height,width,load,func,id) {
   var run = uri[0].substr(-4)=='.php' ? cmd+(uri[1]?'&':'?')+'done=<?=urlencode(_("Done"))?>' : '/logging.htm?cmd='+cmd+'&csrf_token='+csrf_token+'&done=<?=urlencode(_("Done"))?>';
   var options = load ? (func ? {modal:true,onClose:function(){setTimeout(func+'('+'"'+(id||'')+'")');}} : {modal:true,onClose:function(){location.reload();}}) : {modal:false};
   Shadowbox.open({content:run, player:'iframe', title:"testbox", height:Math.min(screen.availHeight,800), width:Math.min(screen.availWidth,1200), options:options});
-}
-
-
-function scanold(cmd, title, plg, func, start = 0, button = 0) {
-	// start  = 0 : run command only when not already running (default)
-	// start  = 1 : run command unconditionally
-	// button = 0 : show CLOSE button (default)
-	// button = 1 : hide CLOSE button
-	$('#scan-button').prop('disabled', true);
-	$('#dbDir').prop('disabled', true);
-	nchan_plugins.start();
-	$.post('/plugins/bobbintb.system.dedupe/include/checkit.php',
-  function (pid) {
-		if (pid == 0) {
-			nchan_plugins.stop();
-			$('div.spinner.fixed').hide();
-			$(".sweet-alert").addClass('alert');
-			return;
-		}
-		swal({
-			title: title,
-			text: "<pre id='swaltext'></pre><hr>",
-			html: true,
-			animation: 'none',
-			showConfirmButton: button == 0,
-			confirmButtonText: "<?=_('Close')?>"
-		}, function (close) {
-			nchan_plugins.stop();
-			$('div.spinner.fixed').hide();
-			$('.sweet-alert').hide('fast');
-			setTimeout(function () {
-				bannerAlert("<?=_('Attention - scanning continues in background')?> [" + pid.toString().padStart(8, '0') + "]<i class='fa fa-bomb fa-fw abortOps' title=\"<?=_('Abort background process')?>\" onclick='abortScan(" + pid + ")'></i>", cmd, plg, func, start);
-			});
-		});
-		$('button.confirm').prop('disabled', button != 0);
-	});
-}
-
-function abortScan(pid) {
-	swal({
-		title: "<?=_('Abort scan')?>",
-		text: "<?=_('This may leave an unknown state')?>",
-		html: true,
-		animation: 'none',
-		type: 'warning',
-		showCancelButton: true,
-		confirmButtonText: "<?=_('Proceed')?>",
-		cancelButtonText: "<?=_('Cancel')?>"
-	}, function () {
-		$.post('/webGui/include/StartCommand.php', {
-			kill: pid
-		}, function () {
-			clearTimeout(timers.bannerAlert);
-			timers.bannerAlert = null;
-			timers.callback = null;
-			forcedBanner = false;
-			removeBannerWarning($.cookie('addAlert'));
-			$.removeCookie('addAlert');
-			$(".upgrade_notice").removeClass('alert done').hide();
-			$('#scan-button').prop('disabled', false);
-		});
-	});
 }
 
 function deleteDB() {
@@ -195,13 +108,47 @@ function deleteDB() {
 	}
 }
 
-function changeButtonText() {
-	var button = document.getElementById('daemon');
-	if (button.innerHTML === 'Stop daemon ') {
-		button.innerHTML = 'Start daemon';
-	} else {
-		button.innerHTML = 'Stop daemon ';
-	}
+function daemon() {
+  $.ajax({
+        type: 'POST',
+        url: '/plugins/bobbintb.system.dedupe/include/daemon.php',
+        data: { action: 'status' },
+        success: function(response) {
+          if (response.includes('auditd is stopped')) {
+            $.ajax({
+                type: 'POST',
+                url: '/plugins/bobbintb.system.dedupe/include/daemon.php',
+                data: { action: 'start' },
+                success: function(response) {
+                    document.getElementById('daemonStatus').innerText = 'Daemon status: Running';
+                    document.getElementById('daemon').innerText = 'Stop daemon';
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+            console.error("AJAX error:", textStatus, errorThrown);
+        }
+            });
+              
+          } else {
+            $.ajax({
+                type: 'POST',
+                url: '/plugins/bobbintb.system.dedupe/include/daemon.php',
+                data: { action: 'stop' },
+                success: function(response) {
+                    document.getElementById('daemonStatus').innerText = 'Daemon status: Stopped';
+                    document.getElementById('daemon').innerText = 'Start daemon';
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+            console.error("AJAX error:", textStatus, errorThrown);
+        }
+            });
+          }
+          
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+    console.error("AJAX error:", textStatus, errorThrown);
+}
+    });
+    
 }
 
 function isVMAdvancedMode() {
@@ -357,17 +304,13 @@ i.fa-plus-circle,i.fa-minus-circle{margin-left:8px}
     <div style='border: 1px solid red; height:200px; width:300px; overflow:auto;' id='abLog'>Loading...</div>
     <button id="scan-button" <?=file_exists(realpath($settings['dbfile']) . '/deduper.db') ? 'disabled' : '' ?> onclick="scan()">Begin scan </button>
   </dl>
-  <style>
-    .daemonRunning {color: green;}
-    .daemonRunning:after {content: 'running';}
-    .daemonNotRunning {color: red;}
-    .daemonNotRunning:after {content: 'not running';}
-  </style>
-  <font size='2'>Daemon status: <span id='daemonStatus'></span>
+  <dl>
+  <font size='2'><span id='daemonStatus'>Daemon status: <?= $daemonStopped ? 'Stopped' : 'Running'?></span>
   </font>
   <!--
   <div style="border: 1px solid white; height: 300px; width: 25vw; overflow: auto; white-space: pre-wrap;" id="daemonLines"></div>
   -->
   <br>
-  <button id="daemon" <?=!file_exists(realpath($settings['dbfile']) . '/deduper.db') ? 'disabled' : '' ?> onclick="changeButtonText()">Stop daemon </button>
+  <button id="daemon" <?=!file_exists(realpath($settings['dbfile']) . '/deduper.db') ? 'disabled' : '' ?> onclick="daemon()"><?= $daemonStopped ? 'Start daemon' : 'Stop daemon'?></button>
+  </dl>
 </div>

@@ -89,8 +89,8 @@ ln -s /usr/lib64/python3.9/site-packages/auparse.so /usr/local/emhttp/plugins/bo
 echo "-----------------------------------------------------------"
 echo "Adding audisp plugin..."
 echo "-----------------------------------------------------------"
-# needs 640 permissions
 cp audisp-deduper.conf /etc/audit/plugins.d/
+chmod 640 /etc/audit/plugins.d/audisp-deduper.conf
 cfg="/boot/config/plugins/&name;/&name;.json"
 if [[ ! -e $cfg ]]; then
   cp /usr/local/emhttp/plugins/&name;/default.json $cfg
