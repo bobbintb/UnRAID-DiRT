@@ -1,5 +1,6 @@
 name: Package TXZ and update PLG
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
