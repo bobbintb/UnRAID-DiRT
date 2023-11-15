@@ -1,6 +1,5 @@
 name: Package TXZ and update PLG
 on:
-  workflow_dispatch:
   push:
     branches:
       - master
@@ -37,7 +36,7 @@ jobs:
           txz="./artifacts/bobbintb.system.dedupe.txz"
           plg="./artifacts/bobbintb.system.dedupe.plg"
           # get previous plg. This might not work.
-          # wget -O $plg https://github.com/bobbintb/UnRAID-DeDuper/raw/release/artifacts/bobbintb.system.dedupe.plg
+          wget -O $plg https://github.com/bobbintb/UnRAID-DeDuper/raw/release/artifacts/bobbintb.system.dedupe.plg
 
           # get hash of new txz file
           md5Hash=$(md5sum "$txz" | awk '{print $1}')

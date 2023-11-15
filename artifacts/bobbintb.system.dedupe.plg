@@ -4,53 +4,17 @@
 <!ENTITY name      "bobbintb.system.dedupe">
 <!ENTITY author    "bobbintb">
 <!ENTITY repo      "UnRAID-DeDuper">
-<!ENTITY version   "2023.11.15k">
+<!ENTITY version   "2023.07.21e">
 <!ENTITY launch    "Settings/Dedupe">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&author;/&repo;/release/artifacts/&name;.plg">
 <!ENTITY source    "/boot/config/plugins/&name;/&name;">
-<!ENTITY MD5       "571129e59458e9ffbd3de95d9e0dd900">
+<!ENTITY MD5       "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="fa-search-minus" min="6.1.9">
 
 <CHANGES>
 ##&name;
-
-###2023.11.15k
-null
-
-###2023.11.15j
-null
-
-###2023.11.15i
-null
-
-###2023.11.15h
-null
-
-###2023.11.15g
-null
-
-###2023.11.15f
-null
-
-###2023.11.15e
-null
-
-###2023.11.15d
-null
-
-###2023.11.15c
-null
-
-###2023.11.15b
-null
-
-###2023.11.15a
-null
-
-###2023.11.15
-null
 
 </CHANGES>
 
@@ -113,6 +77,14 @@ rm audit-3.1.2-x86_64-1cf.txz
 rm libnsl-2.0.1-x86_64-1.txz
 rm sysvinit-functions-8.53-x86_64-6.txz
 echo "-----------------------------------------------------------"
+echo "Installing Python environment..."
+echo "-----------------------------------------------------------"
+mkdir -p /usr/local/emhttp/plugins/&name;/scripts/venv
+python3 -m venv /usr/local/emhttp/plugins/&name;/scripts/venv
+source /usr/local/emhttp/plugins/&name;/scripts/venv/bin/activate
+pip3 install -r /usr/local/emhttp/plugins/&name;/scripts/requirements.txt
+deactivate
+echo "-----------------------------------------------------------"
 echo "Linking audit Python bindings..."
 echo "-----------------------------------------------------------"
 ln -s /usr/lib64/python3.9/site-packages/__pycache__/audit.cpython-39.opt-1.pyc /usr/local/emhttp/plugins/bobbintb.system.dedupe/scripts/venv/lib/python3.9/site-packages/__pycache__/audit.cpython-39.opt-1.pyc
@@ -131,11 +103,7 @@ cfg="/boot/config/plugins/&name;/&name;.json"
 if [[ ! -e $cfg ]]; then
   cp /usr/local/emhttp/plugins/&name;/default.json $cfg
 fi
-mkdir -p /usr/local/emhttp/plugins/&name;/scripts/venv
-python3 -m venv /usr/local/emhttp/plugins/&name;/scripts/venv
-source /usr/local/emhttp/plugins/&name;/scripts/venv/bin/activate
-pip3 install -r /usr/local/emhttp/plugins/&name;/scripts/requirements.txt
-deactivate
+
 
 # Start service
 #enable=$(grep -Po '^service="\K[^"]+' $cfg)
