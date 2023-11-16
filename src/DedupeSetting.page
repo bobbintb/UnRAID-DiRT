@@ -65,17 +65,45 @@ const observer = new MutationObserver(function (mutationsList) {
 });
 
 $(document).ready(function () {observer.observe(document.getElementById('form_content'), observerConfig);});
+var ttydConnection;
+
 
 function scan() {
-  var height = 800;
-  var width = 700;
-  
-  $.post("/plugins/bobbintb.system.dedupe/include/checkit.php",function(data) {
-    if (data) {
-      testBox("/plugins/bobbintb.system.dedupe/include/show_ttyd.php","Scanning...",height,width,true);
-    }
-  })
+  // Check if ttydConnection exists and is not alive
+  if (!ttydConnection || !ttydConnection.isAlive()) {
+    document.getElementById('ttydContainer').style.height = '200px';
+    $.post("/plugins/bobbintb.system.dedupe/include/checkit.php", function(data) {
+      if (data) {
+        $.post("/plugins/bobbintb.system.dedupe/include/show_ttyd.php", function(ttydContent) {
+          $("#ttydContainer").html(ttydContent);
+
+          // Store the ttyd connection instance in the global variable
+          ttydConnection = $("#ttydContainer iframe")[0].contentWindow.ttyd;
+
+          // Apply styles after the iframe has loaded
+          $("#ttydContainer iframe").on("load", function() {
+            var iframeDocument = this.contentDocument || this.contentWindow.document;
+            $("<style>.xterm .xterm-viewport { overflow-y: hidden !important; }</style>").appendTo(iframeDocument.head);
+          });
+        });
+      }
+    });
+  }
 }
+
+function attachBeforeUnloadEvent() {
+  // Attach the beforeunload event to warn users about unsaved changes
+  window.addEventListener("beforeunload", function(event) {
+    if (ttydConnection && ttydConnection.isAlive()) {
+      // Display a custom message
+      var confirmationMessage = "You have an active ttyd session. Are you sure you want to leave?";
+      event.returnValue = confirmationMessage; // Standard for most browsers
+      return confirmationMessage;
+    }
+  });
+}
+
+attachBeforeUnloadEvent();
 
 function testBox(cmd,title,height,width,load,func,id) {
   // open shadowbox window (run in foreground)
@@ -301,7 +329,8 @@ i.fa-plus-circle,i.fa-minus-circle{margin-left:8px}
       <span class="left">
         <i class="fa fa-search icon"></i>_(Scan)_</span>
     </div>
-    <div style='border: 1px solid red; height:200px; width:300px; overflow:auto;' id='abLog'>Loading...</div>
+    <div style='height:10px; width:600px;' id='ttydContainer'>Scan not running.</div>
+    <br>
     <button id="scan-button" <?=file_exists(realpath($settings['dbfile']) . '/deduper.db') ? 'disabled' : '' ?> onclick="scan()">Begin scan </button>
   </dl>
   <dl>

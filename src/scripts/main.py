@@ -147,25 +147,25 @@ def main():
     # Scan
     scan_logger.info("Scanning for files...")
     allFiles = _scan(settings["include"])
-    scan_logger.info("done.")
+    #scan_logger.info("done.")
 
     # Filter sizes
     scan_logger.info("Filtering unique sizes... ")
     allFiles_no_unique_sizes = filter_unique_sizes(allFiles)
-    scan_logger.info("done.")
+    #scan_logger.info("done.")
 
     # Filter hashes
     scan_logger.info('Hashing files...')
     hasher(allFiles_no_unique_sizes, "partialHash")
     allFiles_no_unique_partHashes = filter_unique_hashes(allFiles_no_unique_sizes, "partialHash")
-    scan_logger.info("done.")
+    #scan_logger.info("done.")
 
 
     # Filter hashes #2
     scan_logger.info('Hashing files...')
     hasher(allFiles_no_unique_partHashes, "fullHash")
     allFiles_no_unique_Hashes = filter_unique_hashes(allFiles_no_unique_partHashes, "fullHash")
-    scan_logger.info("done.")
+    #scan_logger.info("done.")
 
     # Add files to DB
     json_list = prep_for_sql(allFiles)
