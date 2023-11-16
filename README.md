@@ -1,3 +1,5 @@
+This is nearly ready for release. However, it depends on the the Linux Auditing System which is currently not enabled in unRAID but I am told it will be in v6.13. My goal is to have this ready by then. Until then, if you would like to alpha or beta test, please contact me.
+
 # UnRAID-DeDuper
 This is a plugin for UnRAID that scans and monitors for duplicate files in real-time. This program is very fast at finding duplicates because of the approach it uses. Most programs hash files and compare those hashes to determine duplicates. This program uses several steps to increase efficiency.
 
