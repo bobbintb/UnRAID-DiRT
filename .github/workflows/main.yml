@@ -15,6 +15,8 @@ jobs:
         run: wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh && chmod +x plugin.sh
       - name: Run UnRAID-Plugin-Generator
         run: ./plugin.sh && rm plugin.sh
+      - name: ls
+        run: ls -ls
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:
