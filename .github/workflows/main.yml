@@ -12,19 +12,18 @@ jobs:
         with:
           token: ${{ secrets.PAT }}
       - name: Package plugin as txz
-        shell: bash
         run: |
-          #!/bin/bash
           echo "Downloading UnRAID-Plugin-Generator:"
           wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
           chmod +x plugin.sh
           echo "Running UnRAID-Plugin-Generator:"
           ./plugin.sh
-          rm plugin.sh
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:
           author_name: Armando
           author_email: bobbintb#gmail.com
           message: ${{ github.event.head_commit.message }}
-          add: '*.plg;*.txz'
+          add: |
+            - '*.plg'
+            - '*.txz'
