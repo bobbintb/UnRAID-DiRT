@@ -18,5 +18,4 @@ jobs:
         with:
           author_name: Armando
           author_email: bobbintb#gmail.com
-          message: 'Your commit message'
-          add: '*.sh'
+          add: '*.plg'
