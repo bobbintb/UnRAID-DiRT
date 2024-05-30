@@ -21,14 +21,10 @@ jobs:
           echo "Running UnRAID-Plugin-Generator:"
           ./plugin.sh
           rm plugin.sh
-          pwd
-          echo ${CONFIG_FILE}
-          echo ${OUTPUT_FILE}
-          ls -ls
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:
           author_name: Armando
           author_email: bobbintb#gmail.com
           message: ${{ github.event.head_commit.message }}
-          add: '*.plg'
+          add: '*.plg;*.txz'
