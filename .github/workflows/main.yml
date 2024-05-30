@@ -12,9 +12,9 @@ jobs:
         with:
           token: ${{ secrets.PAT }}
       - name: Download UnRAID-Plugin-Generator
-        run: wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
+        run: wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh && chmod +x plugin.sh
       - name: Run UnRAID-Plugin-Generator
-        run: ./plugin.sh
+        run: ./plugin.sh && rm plugin.sh
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:
