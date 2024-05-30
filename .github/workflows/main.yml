@@ -18,5 +18,5 @@ jobs:
         with:
           author_name: Armando
           author_email: bobbintb#gmail.com
-          message: ${{ github.event.workflow_run.head_commit.message }}
+          message: ${{ github.event.head_commit.message }}
           add: '*.sh'
