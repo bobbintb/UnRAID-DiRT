@@ -1,0 +1,59 @@
+Menu="Dedupe:1"
+Title="Main"
+---
+hello
+<style>
+#main_container {
+  display: flex;
+  border:1px solid black;
+  flex-direction:column;
+  height:70vh;
+}  
+.container {
+  display: flex;
+  height: -webkit-fill-available;
+  border:1px solid black;
+}
+
+#left {
+  border:1px solid red;
+  width:50%;
+  min-height: 50px;
+  max-height: 100%;
+  resize: both;
+  overflow: scroll;
+}
+
+#right {
+  border:1px solid blue;
+  overflow-y: scroll;
+  max-width:100%;
+  flex-grow:1;
+}
+
+#bottom {
+  border:1px solid green;
+  overflow-y: scroll;
+  max-width:100%;
+  flex-grow:1;
+  height: -webkit-fill-available;
+}
+</style>
+
+<div id="main_container">
+<div class="container">
+  <div id="left">
+  <?php include './plugins/bobbintb.system.dedupe/php/left.php'; ?>
+  </div>
+  <div id="right">
+<!--#include virtual="/path/to/otherfile.html" -->
+</div>
+</div>
+<div id="bottom">
+<!--# echo var="DATE_LOCAL" -->
+  </div>
+</div>
+
+<script>
+
+</script>

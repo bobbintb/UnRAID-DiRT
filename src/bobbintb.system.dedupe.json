@@ -1,0 +1,12 @@
+{
+  "dbfile": "/mnt/cache",
+  "hardlinks": false,
+  "include": [
+    "/mnt/user/downloads",
+    "/mnt/user/server"
+  ],
+  "exclude": [
+    "/mnt/user/downloads",
+    "/mnt/user/server"
+  ]
+}
