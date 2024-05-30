@@ -19,4 +19,4 @@ jobs:
           author_name: Armando
           author_email: bobbintb#gmail.com
           message: ${{ github.event.workflow_run.head_commit.message }}
-          add: '*.plg, *.sh'
+          add: '*.sh'
