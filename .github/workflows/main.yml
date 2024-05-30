@@ -4,7 +4,7 @@ on:
     branches:
       - dev
 jobs:
-  pull_and_edit:
+  package_and_update:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
