@@ -24,4 +24,3 @@ jobs:
           author_email: bobbintb#gmail.com
           message: ${{ github.event.head_commit.message }}
           add: '*.plg'
-          
