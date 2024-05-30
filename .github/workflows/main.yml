@@ -28,7 +28,7 @@ jobs:
             exit 1
           fi
           
-          OUTPUT_FILE="${config['name']:1:-1}.plg"
+          OUTPUT_FILE="${config['name']}.plg"
           rm plugin.sh
           pwd
           echo ${CONFIG_FILE}
