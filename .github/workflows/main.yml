@@ -1,4 +1,4 @@
-name: Package TXZ and update PLG
+name: Package PLG
 on:
   push:
     branches:
@@ -88,4 +88,3 @@ jobs:
           github_token: ${{ secrets.PAT }}
           branch: release
           force: true
-
