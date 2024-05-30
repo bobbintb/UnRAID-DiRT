@@ -7,10 +7,6 @@ jobs:
   pull_and_edit:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4.1.6
-        with:
-          token: ${{ secrets.PAT }}
       - name: Update MD5 and date in plg file
         shell: bash
         run: |
