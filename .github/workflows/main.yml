@@ -15,4 +15,4 @@ jobs:
         shell: bash
         run: |
           #!/bin/bash
-          wget -O https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
+          wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
