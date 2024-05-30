@@ -19,16 +19,7 @@ jobs:
           wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
           chmod +x plugin.sh
           echo "Running UnRAID-Plugin-Generator:"
-          # ./plugin.sh
-          CONFIG_FILE="./plugin.cfg"
-          if [[ -f "$CONFIG_FILE" ]]; then
-            . $CONFIG_FILE
-          else
-            echo "Config file not found: $CONFIG_FILE"
-            exit 1
-          fi
-          
-          OUTPUT_FILE="${config['name']}.plg"
+          ./plugin.sh
           rm plugin.sh
           pwd
           echo ${CONFIG_FILE}
