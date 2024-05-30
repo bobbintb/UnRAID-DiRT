@@ -2,7 +2,7 @@ name: Package PLG
 on:
   push:
     branches:
-      - master
+      - dev
 jobs:
   pull_and_edit:
     runs-on: ubuntu-latest
@@ -11,80 +11,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.PAT }}
-      - name: Package plugin as txz
-        shell: bash
-        run: |
-          #!/bin/bash
-          echo "Current working directory:"
-          pwd
-          ls -l
-          echo "Creating folder structure..."
-          dest="../src/usr/local/emhttp/plugins/bobbintb.system.dedupe"
-          mkdir -p "$dest"
-          echo "Copying files to temporary folder to archive..."
-          ls -l
-          cp -r ./src/* $dest
-          echo "Archiving..."
-          ls -l ../src
-          7z a -ttar -so -an ../src/usr | 7z a -txz -si bobbintb.system.dedupe.txz
-          mv bobbintb.system.dedupe.txz ./artifacts
-          #rm -rf $dest
       - name: Update MD5 and date in plg file
         shell: bash
         run: |
           #!/bin/bash
-          txz="./artifacts/bobbintb.system.dedupe.txz"
-          plg="./artifacts/bobbintb.system.dedupe.plg"
-          # get previous plg. This might not work.
-          wget -O $plg https://github.com/bobbintb/UnRAID-DeDuper/raw/release/artifacts/bobbintb.system.dedupe.plg
-
-          # get hash of new txz file
-          md5Hash=$(md5sum "$txz" | awk '{print $1}')
-
-          # update MD5 hash in plg file
-          sed -i 's/<!ENTITY MD5       \s*"[^"]*"/<!ENTITY MD5       "'"$md5Hash"'"/' $plg
-
-          # get current date and previous version
-          curdate=$(date +"%Y.%m.%d")
-          datepattern='ENTITY version\s+"([^"]+)"'
-          echo "Current date: ${curdate}"
-          previousVersion=$(grep -oP '<!ENTITY version\s*"\K[^"]*' $plg)
-          echo "Previous version: ${previousVersion}"
-
-          # determine new version
-          if [[ $curdate == $previousVersion ]]; then
-          curdate+="a"
-          echo "New version: ${curdate}"
-          fi
-          if [[ $curdate == ${previousVersion%?} && "$previousVersion" =~ [[:alpha:]]$ ]]; then
-          extracted_letter=${previousVersion: -1}
-          echo "Previous sub-version: ${extracted_letter}"
-          ascii_code=$(printf "%d" "'$extracted_letter")
-          next_ascii_code=$((ascii_code + 1))
-          next_letter=$(printf \\$(printf '%03o' "$next_ascii_code"))
-          curdate+="$next_letter"
-          echo "New version: ${curdate}"
-          fi
-
-          commit_message_body=$(jq -r '.commits[0].message | split("\n\n")[1]' $GITHUB_EVENT_PATH)
-          echo "Commit Message Body: $commit_message_body"
-
-          # escape new lines and special characters
-          commit_message_body=$(printf '%q' "$commit_message_body" | sed "s/^\\\$'//; s/'\$//")
-          sed -i "s/##\&name;/##\&name;\\n\\n###$curdate\\n$commit_message_body/" $plg
-
-          # update version in plg file
-          sed -i 's/<!ENTITY version   \s*"[^"]*"/<!ENTITY version   "'"$curdate"'"/' $plg
-
-      - name: Git Commit 
-        run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git commit -a -m "Updated plg and txz files"
-          git add ./artifacts/bobbintb.system.dedupe.txz
-      - name: Git Push
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.PAT }}
-          branch: release
-          force: true
+          wget -O https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
