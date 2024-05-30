@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4.1.6
         with:
           token: ${{ secrets.PAT }}
       - name: Update MD5 and date in plg file
@@ -16,3 +16,46 @@ jobs:
         run: |
           #!/bin/bash
           wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
+      - name: Add & Commit
+        # You may pin to the exact commit or the version.
+        # uses: EndBug/add-and-commit@a94899bca583c204427a224a7af87c02f9b325d5
+        uses: EndBug/add-and-commit@v9.1.4
+        with:
+          # Arguments for the git add command
+          add: # optional, default is .
+          # The name of the user that will be displayed as the author of the commit
+          author_name: # optional
+          # The email of the user that will be displayed as the author of the commit
+          author_email: # optional
+          # Additional arguments for the git commit command
+          commit: # optional
+          # The name of the custom committer you want to use
+          committer_name: # optional
+          # The email of the custom committer you want to use
+          committer_email: # optional
+          # The directory where your repository is located. You should use actions/checkout first to set it up
+          cwd: # optional, default is .
+          # How the action should fill missing author name or email.
+          default_author: # optional, default is github_actor
+          # Arguments for the git fetch command (if 'false', the action won't fetch the repo)
+          fetch: # optional, default is --tags --force
+          # The message for the commit
+          message: # optional
+          # The name of the branch to create.
+          new_branch: # optional
+          # The way the action should handle pathspec errors from the add and remove commands.
+          pathspec_error_handling: # optional, default is ignore
+          # Arguments for the git pull command. By default, the action does not pull.
+          pull: # optional
+          # Whether to push the commit and, if any, its tags to the repo. It can also be used to set the git push arguments (more info in the README)
+          push: # optional, default is true
+          # Arguments for the git rm command
+          remove: # optional
+          # Arguments for the git tag command (the tag name always needs to be the first word not preceded by a hyphen)
+          tag: # optional
+          # Arguments for the git push --tags command (any additional argument will be added after --tags)
+          tag_push: # optional
+          # The token used to make requests to the GitHub API. It's NOT used to make commits and should not be changed.
+          github_token: # optional, default is ${{ github.token }}
+                
+      
