@@ -1,6 +1,5 @@
 import express from 'express';
 const app = express();
-import fsp from 'fs/promises';
 import fs from 'fs';
 import * as util from 'util';
 import * as functions from './javascript/scan.js';
