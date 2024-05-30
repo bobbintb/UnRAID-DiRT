@@ -7,11 +7,16 @@ jobs:
   pull_and_edit:
     runs-on: ubuntu-latest
     steps:
-      - name: Update MD5 and date in plg file
-        shell: bash
-        run: |
-          #!/bin/bash
-          pwd
-          wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
-          ls -ls
-          
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.6
+        with:
+          token: ${{ secrets.PAT }}
+      - name: Download UnRAID-Plugin-Generator
+        run: wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: Armando
+          author_email: bobbintb#gmail.com
+          message: 'Your commit message'
+          add: '*.sh'
