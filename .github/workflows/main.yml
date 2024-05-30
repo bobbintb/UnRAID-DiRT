@@ -11,12 +11,18 @@ jobs:
         uses: actions/checkout@v4.1.6
         with:
           token: ${{ secrets.PAT }}
-      - name: Download UnRAID-Plugin-Generator
-        run: wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh && chmod +x plugin.sh
-      - name: Run UnRAID-Plugin-Generator
-        run: ./plugin.sh && rm plugin.sh
-      - name: ls
-        run: ls -ls
+      - name: Package plugin as txz
+        shell: bash
+        run: |
+          #!/bin/bash
+          echo "Downloading UnRAID-Plugin-Generator:"
+          wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
+          chmod +x plugin.sh
+          echo "Running UnRAID-Plugin-Generator:"
+          ./plugin.sh
+          rm plugin.sh
+          pwd
+          ls -ls
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:
