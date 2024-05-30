@@ -1,15 +1,5 @@
-<?xml version='1.0' standalone='yes'?>
-
-<!DOCTYPE PLUGIN [
-<!ENTITY name         bobbintb.system.dedupe>
-<!ENTITY author       bobbintb>
-<!ENTITY repo         UnRAID-DeDuper>
-<!ENTITY version      2023.07.21e>
-<!ENTITY launch       Settings/Dedupe>
-<!ENTITY pluginURL    https://raw.githubusercontent.com/&author;/&repo;/release/artifacts/&name;.plg>
-<!ENTITY source       /boot/config/plugins/&name;/&name;>
-<!ENTITY MD5          xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx>
-<!ENTITY plugin_src   ./src/>
+${PLUGIN}
+<!ENTITY ${new_key}"${!key}">
 ]>
 
 <!-- PRE-INSTALL SCRIPT -->
