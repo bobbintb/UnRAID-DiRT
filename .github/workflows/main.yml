@@ -19,7 +19,7 @@ jobs:
           wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
           chmod +x plugin.sh
           echo "Running UnRAID-Plugin-Generator:"
-          ./plugin.sh
+          # ./plugin.sh
           rm plugin.sh
           pwd
           ls -ls
