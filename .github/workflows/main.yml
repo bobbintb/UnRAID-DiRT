@@ -9,8 +9,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.1.6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download UnRAID-Plugin-Generator
         run: |
           echo "Downloading UnRAID-Plugin-Generator:"
