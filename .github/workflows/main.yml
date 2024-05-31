@@ -5,13 +5,12 @@ on:
       - dev
 jobs:
   package_and_update:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow != 'Package PLG' || github.event.workflow_run.event != 'workflow_dispatch' || github.event.workflow_run.id != github.run_id }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.1.6
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ GITHUB_TOKEN }}
       - name: Download UnRAID-Plugin-Generator
         run: |
           echo "Downloading UnRAID-Plugin-Generator:"
