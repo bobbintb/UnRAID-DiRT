@@ -23,6 +23,7 @@ jobs:
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:
+          token: ${{ github.token }}
           author_name: Armando
           author_email: bobbintb@gmail.com
           message: ${{ github.event.head_commit.message }}
