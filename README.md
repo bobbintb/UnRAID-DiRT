@@ -13,7 +13,6 @@ This is a plugin for UnRAID that scans and monitors for duplicate files in real-
 
 This process greatly reduces the amount of hashing needed, especially for large files. This is a work in progress but here are a few anecdotal test scans I did with real data in my UnRAID server.
 
-
 ```
 Files found: 53,647
 3.80 TB (4,181,981,773,439 bytes)
