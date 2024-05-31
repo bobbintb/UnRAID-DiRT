@@ -5,6 +5,7 @@ on:
       - dev
 jobs:
   package_and_update:
+    if: github.event.head_commit.author.name != 'github-actions'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -26,7 +27,6 @@ jobs:
           author_name: Armando
           author_email: bobbintb#gmail.com
           message: ${{ github.event.head_commit.message }}
-          if: github.event.head_commit.author.name != 'github-actions'
           add: |
             - '*.plg'
             - '*.txz'
