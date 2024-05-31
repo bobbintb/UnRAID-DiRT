@@ -10,7 +10,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4.1.6
         with:
-          token: ${{ GITHUB_TOKEN }}
+          token: ${{ secrets.PAT }}
       - name: Download UnRAID-Plugin-Generator
         run: |
           echo "Downloading UnRAID-Plugin-Generator:"
