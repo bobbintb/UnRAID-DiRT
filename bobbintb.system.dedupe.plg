@@ -15,21 +15,7 @@
 <!-- PRE-INSTALL SCRIPT -->
 <FILE Run=/bin/bash Method=install>
 <INLINE>
-# This bash script is ran before the plugin is installed. You can use it for installing dependencies, checks, etc.
-# This example installs some needed dependencies:
 
-echo "-----------------------------------------------------------"
-echo "Installing dependencies..."
-echo "-----------------------------------------------------------"
-wget https://slackers.it/repository/slackware64-current/audit/audit-3.1.2-x86_64-1cf.txz
-wget https://slackware.uk/slackware/slackware64-current/slackware64/l/libnsl-2.0.1-x86_64-1.txz
-wget https://slackware.uk/slackware/slackware64-current/slackware64/a/sysvinit-functions-8.53-x86_64-6.txz
-installpkg audit-3.1.2-x86_64-1cf.txz
-installpkg libnsl-2.0.1-x86_64-1.txz
-installpkg sysvinit-functions-8.53-x86_64-6.txz
-rm audit-3.1.2-x86_64-1cf.txz
-rm libnsl-2.0.1-x86_64-1.txz
-rm sysvinit-functions-8.53-x86_64-6.txz
 </INLINE>
 </FILE>
 
@@ -43,8 +29,6 @@ rm sysvinit-functions-8.53-x86_64-6.txz
 <!-- POST-INSTALL SCRIPT -->
 <FILE Run=/bin/bash Method=install>
 <INLINE>
-# This bash script is ran after the install task for the plugin is installed. This example displays a simple status message:
-
 echo ""
 echo "-----------------------------------------------------------"
 echo " Plugin &name; is installed."
@@ -57,8 +41,6 @@ echo ""
 <!-- REMOVE SCRIPT -->
 <FILE Run=/bin/bash Method=remove>
 <INLINE>
-# This bash script is ran when removing/uninstalling a plugin. Here are some common tasks:
-
 # Remove plugin related files
 rm -rf /boot/config/plugins/&name;
 
@@ -68,50 +50,27 @@ removepkg &name;
 </FILE>
 
 <!-- SOURCE FILES -->
-# This file specifies all the files used in your plugin. At a minimum, you will want to include your plugin package like below.
-# The file will be downloaded from the given URL and saved to where the `Name` field specifies. The `Run` field specifies the
-# command that will be ran in the command line for this package. The MD5 is a variable that is defined in the ENTITIES section
-# of the plugin file. For the source package, this creator automatically handles that since it changes with every plugin release.
-# You can include an MD5 for other files as well. Hard coding the MD5 hash is fine for files that don't change.
-
 <!-- SOURCE PACKAGE -->
 <FILE Name="&source;.txz" Run="upgradepkg --install-new --reinstall">
 <URL>https://raw.githubusercontent.com/&author;/&repo;/release/artifacts/&name;.txz</URL>
 <MD5>&MD5;</MD5>
 </FILE>
 
-# You may also want to include a default config file such as the one below. The `Mode` specifies the permissions. This does not
-# download a file like the previous example but instead creates one from the text between the `CDATA` tags. There is no `Run`
-# because this file is only created. There is nothing to extract or run.
-
-<FILE Name="/boot/config/plugins/&name;/&name;.cfg" Mode="0770">
+<FILE Name="/boot/config/plugins/&name;/&name;.json" Mode="0770">
 <INLINE>
 <![CDATA[
-[general]
-refresh_interval="30"
-lazy_load="0"
-destructive_mode="0"
-exclusion=""
-directory_listing=""
-snap_max_days_alert="30"
-snap_pattern="Y-m-d-His"
-snap_prefix=""
-]]>
-</INLINE>
-</FILE>
-
-# You could however, create a bash script and run it. Essentially, including the `Name` field saves the file to the specified location.
-# The `Run` field specifies the command to run that will use the file/text as a parameter.
-
-<FILE Name="/tmp/SnapInstall.sh" Run="/bin/bash">
-<INLINE>
-<![CDATA[
-#!/bin/bash
-echo "Starting Snap..."
-at -f/tmp/start_snap.sh now
-
-echo "Snap installation complete..."
-rm /tmp/SnapInstall.sh
+{
+  "dbfile": "/mnt/cache",
+  "hardlinks": false,
+  "include": [
+    "/mnt/user/downloads",
+    "/mnt/user/server"
+  ],
+  "exclude": [
+    "/mnt/user/downloads",
+    "/mnt/user/server"
+  ]
+}
 ]]>
 </INLINE>
 </FILE>
