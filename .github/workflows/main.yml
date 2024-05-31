@@ -10,7 +10,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4.1.6
         with:
-          token: ${{ github.token }}
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download UnRAID-Plugin-Generator
         run: |
           echo "Downloading UnRAID-Plugin-Generator:"
@@ -23,7 +23,6 @@ jobs:
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:
-          token: ${{ github.token }}
           author_name: Armando
           author_email: bobbintb@gmail.com
           message: ${{ github.event.head_commit.message }}
