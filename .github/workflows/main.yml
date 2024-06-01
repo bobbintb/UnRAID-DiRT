@@ -19,7 +19,9 @@ jobs:
           echo "Running UnRAID-Plugin-Generator:"
           ./plugin.sh
       - name: Run UnRAID-Plugin-Generator
-        run: ./plugin.sh
+        run: |
+          ./plugin.sh
+          rm plugin.sh
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:
