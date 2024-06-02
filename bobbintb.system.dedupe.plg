@@ -1,0 +1,64 @@
+<?xml version='1.0' standalone='yes'?>
+
+<!DOCTYPE PLUGIN [
+<!ENTITY name        "bobbintb.system.dedupe">
+<!ENTITY author      "bobbintb">
+<!ENTITY repo        "UnRAID-DeDuper">
+<!ENTITY launch      "Settings/Dedupe">
+<!ENTITY pluginURL   "https://raw.githubusercontent.com/&author;/&repo;/release/artifacts/&name;.plg">
+<!ENTITY source      "/boot/config/plugins/&name;/&name;">
+<!ENTITY icon        "fa-search-minus">
+<!ENTITY min         "6.1.9">
+<!ENTITY version   "">
+<!ENTITY MD5         "6a02c2250bcec5451c452c44f56b72a9">
+]>
+<PLUGIN name="&name;" author="&author;" repo="&repo;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;" version="&version;" MD5="&MD5;">
+
+<CHANGES>
+Delete bobbintb.system.dedupe.plg
+
+</CHANGES>
+<!-- SOURCE FILES -->
+<!-- SOURCE PACKAGE -->
+<FILE Name="&source;.txz" Run="upgradepkg --install-new --reinstall">
+<URL>https://raw.githubusercontent.com/&author;/&repo;/release/artifacts/&name;.txz</URL>
+<MD5>&MD5;</MD5>
+</FILE>
+
+<FILE Name="/boot/config/plugins/&name;/&name;.json" Mode="0770">
+<INLINE>
+<![CDATA[
+{
+  "dbfile": "/mnt/cache",
+  "hardlinks": false,
+  "include": [
+    "/mnt/user/downloads",
+    "/mnt/user/server"
+  ],
+  "exclude": [
+    "/mnt/user/downloads",
+    "/mnt/user/server"
+  ]
+}
+]]>
+</INLINE>
+</FILE>
+<!-- PRE-INSTALL SCRIPT -->
+<FILE Run=/bin/bash Method=install>
+<INLINE>
+
+</INLINE>
+</FILE>
+
+<!-- REMOVE SCRIPT -->
+<FILE Run=/bin/bash Method=remove>
+<INLINE>
+# Remove plugin related files
+rm -rf /boot/config/plugins/&name;
+
+# Uninstall the 'source' package
+removepkg &name;
+</INLINE>
+</FILE>
+
+</PLUGIN>
