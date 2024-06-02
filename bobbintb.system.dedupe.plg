@@ -9,12 +9,13 @@
 <!ENTITY source      "/boot/config/plugins/&name;/&name;">
 <!ENTITY icon        "fa-search-minus">
 <!ENTITY min         "6.1.9">
-<!ENTITY version     "">
-<!ENTITY MD5         "ff0de11fc395da6b69e83d5bee5fd8ce">
+<!ENTITY version   "">
+<!ENTITY MD5         "0535ff82b2404284e4b763f4c79cfbb6">
 ]>
 <PLUGIN name="&name;" author="&author;" repo="&repo;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;" version="&version;" MD5="&MD5;">
 
 <CHANGES>
+Update bobbintb.system.dedupe.plg
 Update main.yml
 Update plugin.cfg
 Update main.yml
