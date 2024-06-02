@@ -11,13 +11,11 @@
 <!ENTITY icon        "fa-search-minus">
 <!ENTITY min         "6.1.9">
 <!ENTITY version     "2023.07.21e">
-<!ENTITY MD5         "924de0dcd018037f58425c7f0d121fc1">
+<!ENTITY MD5         "faea0ffa018b5e2366a1688d672fc062">
 ]>
 <PLUGIN name="&name;" author="&author;" repo="&repo;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;" version="&version;" MD5="&MD5;">
 
-<CHANGES>
 fsdgsdfjkgh
-</CHANGES>
 <!-- SOURCE FILES -->
 <!-- SOURCE PACKAGE -->
 <FILE Name="&source;.txz" Run="upgradepkg --install-new --reinstall">
