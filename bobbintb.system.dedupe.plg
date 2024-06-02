@@ -9,14 +9,14 @@
 <!ENTITY source      "/boot/config/plugins/&name;/&name;">
 <!ENTITY icon        "fa-search-minus">
 <!ENTITY min         "6.1.9">
-<!ENTITY version   "">
-<!ENTITY MD5         "6a02c2250bcec5451c452c44f56b72a9">
+<!ENTITY version     "2024.06.02">
+<!ENTITY MD5         "d5579bb197a0c28931950df8f46b1b77">
 ]>
 <PLUGIN name="&name;" author="&author;" repo="&repo;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;" version="&version;" MD5="&MD5;">
 
 <CHANGES>
+Update main.yml
 Delete bobbintb.system.dedupe.plg
-
 </CHANGES>
 <!-- SOURCE FILES -->
 <!-- SOURCE PACKAGE -->
