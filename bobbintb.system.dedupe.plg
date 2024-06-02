@@ -9,15 +9,28 @@
 <!ENTITY source      "/boot/config/plugins/&name;/&name;">
 <!ENTITY icon        "fa-search-minus">
 <!ENTITY min         "6.1.9">
-<!ENTITY version     "2024.06.02">
-<!ENTITY MD5         "d5579bb197a0c28931950df8f46b1b77">
+<!ENTITY version     "2024.06.02a">
+<!ENTITY MD5         "1b895be0834bd71b291a963eda041eb4">
 ]>
 <PLUGIN name="&name;" author="&author;" repo="&repo;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;" version="&version;" MD5="&MD5;">
 
 <CHANGES>
+2024.06.02a
+Update main.yml
+
+2024.06.02
+Update bobbintb.system.dedupe.plg
+Update main.yml
+Update main.yml
+Update main.yml
+Update main.yml
+Update main.yml
+Update main.yml
+test
 Update main.yml
 Delete bobbintb.system.dedupe.plg
 </CHANGES>
+
 <!-- SOURCE FILES -->
 <!-- SOURCE PACKAGE -->
 <FILE Name="&source;.txz" Run="upgradepkg --install-new --reinstall">
