@@ -15,7 +15,9 @@
 ]>
 <PLUGIN name="&name;" author="&author;" repo="&repo;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;" version="&version;" MD5="&MD5;">
 
-<CHANGES/>
+<CHANGES>
+fsdgsdfjkgh
+</CHANGES>
 <!-- SOURCE FILES -->
 <!-- SOURCE PACKAGE -->
 <FILE Name="&source;.txz" Run="upgradepkg --install-new --reinstall">
