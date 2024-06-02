@@ -10,11 +10,12 @@
 <!ENTITY icon        "fa-search-minus">
 <!ENTITY min         "6.1.9">
 <!ENTITY version     "2024.06.02">
-<!ENTITY MD5         "67f28e6218c30b3efd3e5c7ec8ffa04b">
+<!ENTITY MD5         "ab99a2d8f33aae5308650319df8d3d05">
 ]>
 <PLUGIN name="&name;" author="&author;" repo="&repo;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;" version="&version;" MD5="&MD5;">
 
 <CHANGES>
+Update main.yml
 Update main.yml
 Update main.yml
 Update main.yml
