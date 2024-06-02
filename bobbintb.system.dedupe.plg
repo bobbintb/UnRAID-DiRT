@@ -10,27 +10,11 @@
 <!ENTITY source      "/boot/config/plugins/&name;/&name;">
 <!ENTITY MD5         "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
 <!ENTITY icon        "fa-search-minus">
+<!ENTITY version     ""
+<!ENTITY MD5         ""
 ]>
 <PLUGIN name="&name;" author="&author;" repo="&repo;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" MD5="&MD5;" icon="&icon;"></PLUGIN>
-
-<!-- PRE-INSTALL SCRIPT -->
-<FILE Run=/bin/bash Method=install>
-<INLINE>
-
-</INLINE>
-</FILE>
-
-<!-- REMOVE SCRIPT -->
-<FILE Run=/bin/bash Method=remove>
-<INLINE>
-# Remove plugin related files
-rm -rf /boot/config/plugins/&name;
-
-# Uninstall the 'source' package
-removepkg &name;
-</INLINE>
-</FILE>
-
+<CHANGES/>
 <!-- SOURCE FILES -->
 <!-- SOURCE PACKAGE -->
 <FILE Name="&source;.txz" Run="upgradepkg --install-new --reinstall">
@@ -56,5 +40,20 @@ removepkg &name;
 ]]>
 </INLINE>
 </FILE>
+<!-- PRE-INSTALL SCRIPT -->
+<FILE Run=/bin/bash Method=install>
+<INLINE>
 
+</INLINE>
+</FILE>
+<!-- REMOVE SCRIPT -->
+<FILE Run=/bin/bash Method=remove>
+<INLINE>
+# Remove plugin related files
+rm -rf /boot/config/plugins/&name;
+
+# Uninstall the 'source' package
+removepkg &name;
+</INLINE>
+</FILE>
 </PLUGIN>
