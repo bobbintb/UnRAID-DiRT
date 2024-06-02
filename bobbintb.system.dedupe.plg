@@ -47,6 +47,7 @@
 
 </INLINE>
 </FILE>
+
 <!-- REMOVE SCRIPT -->
 <FILE Run=/bin/bash Method=remove>
 <INLINE>
@@ -57,4 +58,5 @@ rm -rf /boot/config/plugins/&name;
 removepkg &name;
 </INLINE>
 </FILE>
+
 </PLUGIN>
