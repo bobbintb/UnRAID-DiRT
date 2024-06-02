@@ -10,10 +10,11 @@
 <!ENTITY source      "/boot/config/plugins/&name;/&name;">
 <!ENTITY icon        "fa-search-minus">
 <!ENTITY min         "6.1.9">
-<!ENTITY version     ""
-<!ENTITY MD5         ""
+<!ENTITY version     "">
+<!ENTITY MD5         "">
 ]>
-<PLUGIN name="&name;" author="&author;" repo="&repo;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;"></PLUGIN>
+<PLUGIN name="&name;" author="&author;" repo="&repo;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;">
+
 <CHANGES/>
 <!-- SOURCE FILES -->
 <!-- SOURCE PACKAGE -->
