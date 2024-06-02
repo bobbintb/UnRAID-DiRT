@@ -10,14 +10,16 @@
 <!ENTITY icon        "fa-search-minus">
 <!ENTITY min         "6.1.9">
 <!ENTITY version     "2024.06.02">
-<!ENTITY MD5         "d5579bb197a0c28931950df8f46b1b77">
+<!ENTITY MD5         "b759367dcb63c429816d7906930c725f">
 ]>
 <PLUGIN name="&name;" author="&author;" repo="&repo;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;" version="&version;" MD5="&MD5;">
 
 <CHANGES>
+test
 Update main.yml
 Delete bobbintb.system.dedupe.plg
 </CHANGES>
+
 <!-- SOURCE FILES -->
 <!-- SOURCE PACKAGE -->
 <FILE Name="&source;.txz" Run="upgradepkg --install-new --reinstall">
