@@ -2,6 +2,7 @@ Menu="Dedupe:2"
 Title="Settings"
 ---
 <!--PHP begin-->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <?PHP
 $docroot = $docroot??$_SERVER['DOCUMENT_ROOT'] ? : '/usr/local/emhttp';
 $daemonStopped = str_contains(shell_exec("/etc/rc.d/rc.auditd status"), "auditd is stopped") ? true : false;
@@ -52,6 +53,7 @@ function parse_json_cfg($plugin) {
 
 <!--JavaScript begin-->
 <script type="text/javascript">
+  
 function enableApply() {
 	$('input[name="#apply"]').prop('disabled', false);
 }
@@ -68,28 +70,17 @@ $(document).ready(function () {observer.observe(document.getElementById('form_co
 var ttydConnection;
 
 
+
+
 function scan() {
-  // Check if ttydConnection exists and is not alive
-  if (!ttydConnection || !ttydConnection.isAlive()) {
-    document.getElementById('ttydContainer').style.height = '200px';
-    $.post("/plugins/bobbintb.system.dedupe/include/checkit.php", function(data) {
-      if (data) {
-        $.post("/plugins/bobbintb.system.dedupe/include/show_ttyd.php", function(ttydContent) {
-          $("#ttydContainer").html(ttydContent);
-
-          // Store the ttyd connection instance in the global variable
-          ttydConnection = $("#ttydContainer iframe")[0].contentWindow.ttyd;
-
-          // Apply styles after the iframe has loaded
-          $("#ttydContainer iframe").on("load", function() {
-            var iframeDocument = this.contentDocument || this.contentWindow.document;
-            $("<style>.xterm .xterm-viewport { overflow-y: hidden !important; }</style>").appendTo(iframeDocument.head);
-          });
-        });
-      }
-    });
-  }
-}
+  axios.get(`<?php echo "http://".$_SERVER['SERVER_ADDR'].":3000";?>/scan`)
+                .then(response => {
+                    console.log(response.data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
 
 function attachBeforeUnloadEvent() {
   // Attach the beforeunload event to warn users about unsaved changes

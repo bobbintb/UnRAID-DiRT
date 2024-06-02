@@ -1,0 +1,15 @@
+{
+  "type": "module",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "blake3": "^3.0.0",
+    "express": "^4.19.2",
+    "fs": "^0.0.1-security",
+    "lowdb": "^7.0.1",
+    "multimap": "^1.1.0"
+  },
+  "overrides": {
+    "blake3-wasm": "^3.0.0",
+    "@c4312/blake3-internal": "^3.0.0"
+  }
+}

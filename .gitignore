@@ -3,3 +3,5 @@
 src/deduper.db
 todo.txt
 issues.txt
+/.idea/
+src/package-lock.json
