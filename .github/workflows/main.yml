@@ -16,6 +16,8 @@ jobs:
         run: |
           wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
           chmod +x plugin.sh
+          echo ${{ github.event.commits[0].author.name }}
+          echo ${{ github.event.head_commit.message }}
       - name: Run UnRAID-Plugin-Generator
         env:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
