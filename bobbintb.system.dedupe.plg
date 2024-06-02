@@ -9,12 +9,15 @@
 <!ENTITY source      "/boot/config/plugins/&name;/&name;">
 <!ENTITY icon        "fa-search-minus">
 <!ENTITY min         "6.1.9">
-<!ENTITY version     "2024.06.02b">
-<!ENTITY MD5         "9710164fd188da5a04f40b976e95651c">
+<!ENTITY version     "2024.06.02c">
+<!ENTITY MD5         "bab071c445f3730f9b2659c73a111058">
 ]>
 <PLUGIN name="&name;" author="&author;" repo="&repo;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;" version="&version;" MD5="&MD5;">
 
 <CHANGES>
+2024.06.02c
+Update main.yml
+
 2024.06.02b
 Update main.yml
 
