@@ -13,11 +13,8 @@ jobs:
           token: ${{ secrets.PAT }}
       - name: Download UnRAID-Plugin-Generator
         run: |
-          echo "Downloading UnRAID-Plugin-Generator:"
           wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
           chmod +x plugin.sh
-          echo "Running UnRAID-Plugin-Generator:"
-          ./plugin.sh
       - name: Run UnRAID-Plugin-Generator
         run: |
           ./plugin.sh
@@ -29,6 +26,4 @@ jobs:
           author_name: Armando
           author_email: bobbintb@gmail.com
           message: ${{ github.event.head_commit.message }}
-          add: |
-            - '*.plg'
-            - '*.txz'
+          add: 'bobbintb.system.dedupe.plg bobbintb.system.dedupe.txz'
