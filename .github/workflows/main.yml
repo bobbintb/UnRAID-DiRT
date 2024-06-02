@@ -2,7 +2,7 @@ name: Package PLG
 on:
   push:
     branches:
-      - dev
+      - master
 jobs:
   package_and_update:
     if: github.event.commits[0].author.name == 'bobbintb'
