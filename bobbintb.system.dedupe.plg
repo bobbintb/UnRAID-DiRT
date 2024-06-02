@@ -10,11 +10,13 @@
 <!ENTITY icon        "fa-search-minus">
 <!ENTITY min         "6.1.9">
 <!ENTITY version     "2024.06.02">
-<!ENTITY MD5         "da21fcf867ca11fe0e0f2e5a19485082">
+<!ENTITY MD5         "9368119597a297f481ed5ce067923eef">
 ]>
 <PLUGIN name="&name;" author="&author;" repo="&repo;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;" version="&version;" MD5="&MD5;">
 
 <CHANGES>
+2024.06.02
+Update bobbintb.system.dedupe.plg
 Update main.yml
 Update main.yml
 Update main.yml
