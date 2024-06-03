@@ -9,12 +9,15 @@
 <!ENTITY source      "/boot/config/plugins/&name;/&name;">
 <!ENTITY icon        "fa-search-minus">
 <!ENTITY min         "6.1.9">
-<!ENTITY version     "2024.06.03">
-<!ENTITY MD5         "9624fa5ca4b63161ea26c55959e5d50d">
+<!ENTITY version     "2024.06.03a">
+<!ENTITY MD5         "bce9477273227e97ecbb4666953ac74a">
 ]>
 <PLUGIN name="&name;" author="&author;" repo="&repo;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;" version="&version;" MD5="&MD5;">
 
 <CHANGES>
+2024.06.03a
+Update main.yml
+
 2024.06.03
 Delete sh/install.sh
 
@@ -41,7 +44,7 @@ Delete bobbintb.system.dedupe.plg
 </CHANGES>
 
 <!-- PRE-INSTALL SCRIPT -->
-<FILE Run=/bin/bash Method=install>
+<FILE Run="/bin/bash" Method="install">
 <INLINE>
 echo "-----------------------------------------------------------"
 echo "Installing dependencies..."
@@ -50,7 +53,7 @@ echo "-----------------------------------------------------------"
 </FILE>
 
 <!-- POST-INSTALL SCRIPT -->
-<FILE Run=/bin/bash Method=install>
+<FILE Run="/bin/bash" Method="install">
 <INLINE>
 echo ""
 echo "-----------------------------------------------------------"
@@ -62,7 +65,7 @@ echo ""
 </FILE>
 
 <!-- REMOVE SCRIPT -->
-<FILE Run=/bin/bash Method=remove>
+<FILE Run="/bin/bash" Method="remove">
 <INLINE>
 # Remove plugin related files
 rm -rf /boot/config/plugins/&name;
