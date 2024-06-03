@@ -9,12 +9,15 @@
 <!ENTITY source      "/boot/config/plugins/&name;/&name;">
 <!ENTITY icon        "fa-search-minus">
 <!ENTITY min         "6.1.9">
-<!ENTITY version     "2024.06.02c">
-<!ENTITY MD5         "bab071c445f3730f9b2659c73a111058">
+<!ENTITY version     "2024.06.03">
+<!ENTITY MD5         "9624fa5ca4b63161ea26c55959e5d50d">
 ]>
 <PLUGIN name="&name;" author="&author;" repo="&repo;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;" version="&version;" MD5="&MD5;">
 
 <CHANGES>
+2024.06.03
+Delete sh/install.sh
+
 2024.06.02c
 Update main.yml
 
@@ -43,13 +46,6 @@ Delete bobbintb.system.dedupe.plg
 echo "-----------------------------------------------------------"
 echo "Installing dependencies..."
 echo "-----------------------------------------------------------"
-</INLINE>
-</FILE>
-
-<!-- INSTALL SCRIPT -->
-<FILE Run=/bin/bash Method=install>
-<INLINE>
-
 </INLINE>
 </FILE>
 
