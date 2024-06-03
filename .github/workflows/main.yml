@@ -22,7 +22,6 @@ jobs:
         run: |
           ./plugin.sh
           rm plugin.sh
-          ls -ls
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:
