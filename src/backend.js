@@ -54,7 +54,7 @@ async function hashAndCompareFiles(filePaths) {
     inputs.forEach(input => {
       input.on('end', () => { });
     });
-    Promise.all(inputs.map(input => new Promise((resolve, reject) => {
+    Promise.all(inputs.map(input => new Promise((resolve) => {
       input.on('end', () => resolve());
     })))
         .then(() => {
@@ -75,14 +75,14 @@ async function saveMapToFile(map, filePath) {
   await db.write()
 }
 
-app.get("/scan", async (res) => {
+app.get("/scan", async () => {
   //const files = functions.getAllFiles(settings.include[0])
   //console.log('Enumerating files...');
-  const files = functions.getAllFiles('/tmp');
+  const files = functions.getAllFiles('/mnt/user/downloads');
   //console.log('\x1b[1A' + '\x1b[20G' + 'done.');
   await filterFiles(files); // Wait for filterFiles to complete
   //console.log(files);
-  saveMapToFile(files, "./files.json")
+  await saveMapToFile(files, "./files.json")
 });
 
 // Route to perform addition

@@ -1,7 +1,6 @@
 const plugin = 'bobbintb.system.dedupe';
 import path from 'path';
 import * as util from 'util';
-import fsp from 'fs/promises';
 import fs from 'fs';
 import MultiMap from 'multimap';
 

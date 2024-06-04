@@ -4,55 +4,72 @@ Title="Main"
 <style>
 #main_container {
   display: flex;
-  border:1px solid black;
+  //border:2px solid yellow;
   flex-direction:column;
   height:70vh;
-}  
+    max-height:70vh;
+}
 .container {
   display: flex;
-  height: -webkit-fill-available;
-  border:1px solid black;
+    //border:2px solid purple;
+    max-height: 80%;
 }
 
 #left {
-  border:1px solid red;
+  //border:2px solid red;
   width:50%;
-  min-height: 50px;
+    height: 70%;
+    min-height: 100px;
+
+    min-width: 20%;
   max-height: 100%;
   resize: both;
   overflow: scroll;
 }
 
 #right {
-  border:1px solid blue;
+  //border:2px solid blue;
   overflow-y: scroll;
-  max-width:100%;
-  flex-grow:1;
+    min-width: 20%;
+    min-height: 100px;
+    flex-grow:1;
 }
 
 #bottom {
-  border:1px solid green;
+  //border:2px solid green;
+    min-height: 100px;
   overflow-y: scroll;
   max-width:100%;
   flex-grow:1;
-  height: -webkit-fill-available;
+  height: auto;
 }
 </style>
+<script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.1/dist/js/tabulator.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon/build/global/luxon.min.js"></script>
 
+<script>
+    console.log("test");
+    <?php $db = file_get_contents('./plugins/bobbintb.system.dedupe/files.json');?>
+    const db = <?php echo $db; ?>;
+    const tableData = Object.values(db).reduce((acc, val) => acc.concat(val), []);
+
+</script>
 <div id="main_container">
+    <link href="https://unpkg.com/tabulator-tables@6.2.1/dist/css/tabulator.min.css" rel="stylesheet">
 <div class="container">
   <div id="left">
   <?php include './plugins/bobbintb.system.dedupe/php/left.php'; ?>
   </div>
   <div id="right">
-<!--#include virtual="/path/to/otherfile.html" -->
+      <?php include './plugins/bobbintb.system.dedupe/php/right.php'; ?>
 </div>
 </div>
 <div id="bottom">
+<?php include './plugins/bobbintb.system.dedupe/php/bottom.php'; ?>
 <!--# echo var="DATE_LOCAL" -->
   </div>
 </div>
 
 <script>
-
+    console.log("test");
 </script>
