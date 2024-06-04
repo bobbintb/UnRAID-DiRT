@@ -5,16 +5,19 @@
 <!ENTITY author      "bobbintb">
 <!ENTITY repo        "UnRAID-DeDuper">
 <!ENTITY launch      "Settings/Dedupe">
-<!ENTITY pluginURL   "https://raw.githubusercontent.com/&author;/&repo;/release/artifacts/&name;.plg">
+<!ENTITY pluginURL   "https://raw.githubusercontent.com/&author;/&repo;/dev/&name;.plg">
 <!ENTITY source      "/boot/config/plugins/&name;/&name;">
 <!ENTITY icon        "fa-search-minus">
 <!ENTITY min         "6.1.9">
-<!ENTITY version     "2024.06.03a">
-<!ENTITY MD5         "bce9477273227e97ecbb4666953ac74a">
+<!ENTITY version     "2024.06.04">
+<!ENTITY MD5         "8d3ccf07ef8cc255aceca23f00faece9">
 ]>
 <PLUGIN name="&name;" author="&author;" repo="&repo;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;" version="&version;" MD5="&MD5;">
 
 <CHANGES>
+2024.06.04
+Update main.yml
+
 2024.06.03a
 Update main.yml
 
