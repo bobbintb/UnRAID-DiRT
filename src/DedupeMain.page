@@ -11,16 +11,17 @@ Title="Main"
 }
 .container {
   display: flex;
-    //border:2px solid purple;
+    border:2px solid purple;
+    //height: 80%;
     max-height: 80%;
+    flex-shrink:1;
 }
 
 #left {
-  //border:2px solid red;
+  border:2px solid red;
   width:50%;
-    height: 70%;
-    min-height: 100px;
 
+    min-height: 100px;
     min-width: 20%;
   max-height: 100%;
   resize: both;
@@ -29,9 +30,9 @@ Title="Main"
 
 #right {
   //border:2px solid blue;
-  overflow-y: scroll;
-    min-width: 20%;
-    min-height: 100px;
+    //overflow: scroll;
+    //min-width: 20%;
+    //min-height: 100px;
     flex-grow:1;
 }
 

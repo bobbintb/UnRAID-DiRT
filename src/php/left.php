@@ -98,7 +98,7 @@ const leftTable = new Tabulator("#left", {
 leftTable.on("rowSelected", function(row) {
     const rowData = row.getData("");
     const hashValue = rowData.hash;
-    const matchingItems = findItemsByHash(db, hashValue);
+    const matchingItems = findItemsWithHash(hashValue);
     bottom.setData(matchingItems);
     console.log("Matching items:", matchingItems);
 });
