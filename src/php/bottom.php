@@ -16,7 +16,6 @@
     const bottomData = findItemsWithHash();
 
     const bottom = new Tabulator("#bottom", {
-        height: "100%",
         data: bottomData,
         layout: "fitColumns",
         rowHeader:{formatter:"rowSelection", titleFormatter:"rowSelection", headerSort:false, resizable: false, maxWidth:"10px", frozen:true, headerHozAlign:"center", hozAlign:"center"},

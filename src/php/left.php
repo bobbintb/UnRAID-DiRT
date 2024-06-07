@@ -83,7 +83,6 @@ function convertFileSize(cell) {
 }
 
 const leftTable = new Tabulator("#left", {
-    height: "100%",
     selectableRows: 1,
     data: matchingObjects,
     layout: "fitColumns",

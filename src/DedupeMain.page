@@ -2,48 +2,43 @@ Menu="Dedupe:1"
 Title="Main"
 ---
 <style>
-#main_container {
-  display: flex;
-  //border:2px solid yellow;
-  flex-direction:column;
-  height:70vh;
-    max-height:70vh;
-}
-.container {
-  display: flex;
-    border:2px solid purple;
-    //height: 80%;
-    max-height: 80%;
-    flex-shrink:1;
-}
+    #main_container {
+        --main_container_height: 70vh;
+        border:1px solid black;
+        height: var(--main_container_height);
+        display: flex;
+        flex-direction: column; /* This will make the child elements stack vertically */
+    }
 
-#left {
-  border:2px solid red;
-  width:50%;
+    #top {
+        border:1px solid yellow;
+        display: flex;
+        flex-direction: row;
+        height: auto; /* This will make the top div adjust its height based on its content */
+    }
 
-    min-height: 100px;
-    min-width: 20%;
-  max-height: 100%;
-  resize: both;
-  overflow: scroll;
-}
+    #left {
+        border:1px solid red;
+        min-height: calc(var(--main_container_height) * 0.2); /* This will make the top div initially take up 80% of the parent's height */
+        resize: both;
+        width: 50%;
+        min-width: 20%;
+        max-width: 80%;
+        height: calc(var(--main_container_height) * 0.8);
+        max-height: calc(var(--main_container_height) * 0.8);
+        overflow: auto; /* Adds scrollbars if the content is too large to fit */
+    }
 
-#right {
-  //border:2px solid blue;
-    //overflow: scroll;
-    //min-width: 20%;
-    //min-height: 100px;
-    flex-grow:1;
-}
+    #right {
+        border:1px solid blue;
+        flex: 1;
+    }
 
-#bottom {
-  //border:2px solid green;
-    min-height: 100px;
-  overflow-y: scroll;
-  max-width:100%;
-  flex-grow:1;
-  height: auto;
-}
+    #bottom {
+        border:1px solid green;
+        flex: 2; /* This will make the bottom div take up 20% of the parent's height */
+    }
+
 </style>
 <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.1/dist/js/tabulator.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/luxon/build/global/luxon.min.js"></script>
@@ -56,21 +51,11 @@ Title="Main"
 
 </script>
 <div id="main_container">
-    <link href="https://unpkg.com/tabulator-tables@6.2.1/dist/css/tabulator.min.css" rel="stylesheet">
-<div class="container">
-  <div id="left">
-  <?php include './plugins/bobbintb.system.dedupe/php/left.php'; ?>
-  </div>
-  <div id="right">
-      <?php include './plugins/bobbintb.system.dedupe/php/right.php'; ?>
-</div>
-</div>
-<div id="bottom">
-<?php include './plugins/bobbintb.system.dedupe/php/bottom.php'; ?>
-<!--# echo var="DATE_LOCAL" -->
-  </div>
-</div>
+    <div id="top">
+        <link href="https://unpkg.com/tabulator-tables@6.2.1/dist/css/tabulator.min.css" rel="stylesheet">
 
-<script>
-    console.log("test");
-</script>
+        <div id="left"><?php include './plugins/bobbintb.system.dedupe/php/left.php'; ?></div>
+        <div id="right"><?php include './plugins/bobbintb.system.dedupe/php/right.php'; ?></div>
+    </div>
+    <div id="bottom"><?php include './plugins/bobbintb.system.dedupe/php/bottom.php'; ?></div>
+</div>

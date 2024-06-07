@@ -1,6 +1,5 @@
 <script>
     const right = new Tabulator("#right", {
-        height: "100%",
         data: matchingObjects,
         layout: "fitColumns",
         columns: [
