@@ -4,39 +4,40 @@ Title="Main"
 <style>
     #main_container {
         --main_container_height: 70vh;
-        border:1px solid black;
+        //border:1px solid black;
         height: var(--main_container_height);
         display: flex;
-        flex-direction: column; /* This will make the child elements stack vertically */
+        flex-direction: column;
+        padding: 10px;
     }
 
     #top {
-        border:1px solid yellow;
+        //border:1px solid yellow;
         display: flex;
         flex-direction: row;
-        height: auto; /* This will make the top div adjust its height based on its content */
+        height: auto;
     }
 
     #left {
-        border:1px solid red;
-        min-height: calc(var(--main_container_height) * 0.2); /* This will make the top div initially take up 80% of the parent's height */
+        //border:1px solid red;
+        min-height: calc(var(--main_container_height) * 0.2);
         resize: both;
         width: 50%;
         min-width: 20%;
         max-width: 80%;
         height: calc(var(--main_container_height) * 0.8);
         max-height: calc(var(--main_container_height) * 0.8);
-        overflow: auto; /* Adds scrollbars if the content is too large to fit */
+        overflow: auto;
     }
 
     #right {
-        border:1px solid blue;
+        //border:1px solid blue;
         flex: 1;
     }
 
     #bottom {
-        border:1px solid green;
-        flex: 2; /* This will make the bottom div take up 20% of the parent's height */
+        //border:1px solid green;
+        flex: 2;
     }
 
 </style>
@@ -53,7 +54,6 @@ Title="Main"
 <div id="main_container">
     <div id="top">
         <link href="https://unpkg.com/tabulator-tables@6.2.1/dist/css/tabulator.min.css" rel="stylesheet">
-
         <div id="left"><?php include './plugins/bobbintb.system.dedupe/php/left.php'; ?></div>
         <div id="right"><?php include './plugins/bobbintb.system.dedupe/php/right.php'; ?></div>
     </div>

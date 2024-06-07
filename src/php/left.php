@@ -1,3 +1,5 @@
+
+
 <script>
 function findObjectsWithMatchingHash() {
     console.log("test");
@@ -40,12 +42,15 @@ function findNonUniqueHashes() {
     // Find non-unique hash items and count them
     let size;
     let count;
+    let file;
     for (const hash in hashMap) {
         if (hashMap[hash].length > 1) {
             size = hashMap[hash][0]['size']
+            file = hashMap[hash][0]['path'][0].split('/').pop();
             count = hashMap[hash].length
             nonUniqueHashes.push({
                 hash,
+                file,
                 count,
                 size,
                 freeable: (size * (count - 1))
@@ -81,13 +86,20 @@ function convertFileSize(cell) {
         return null;
     }
 }
+//custom formatter definition
+var printIcon = function(cell, formatterParams, onRendered){ //plain text value
+    return "<i class='fa fa-print'></i>";
+};
+
+//column definition in the columns array
 
 const leftTable = new Tabulator("#left", {
     selectableRows: 1,
     data: matchingObjects,
-    layout: "fitColumns",
+    layout: "-webkit-fill-available",
     columns: [
-        {title: "Files", field: "hash", sorter: "string"},
+        {title: "Hash", field: "hash", sorter: "string", visible: false},
+        {title: "File", field: "file", sorter: "string", width: "-webkit-fill-available"},
         {title: "#", field: "count", sorter: "number"},
         {title: "Size", field: "size", sorter: "number", formatter: convertFileSize},
         {title: "freeable", field: "freeable", sorter: "number", formatter: convertFileSize}
