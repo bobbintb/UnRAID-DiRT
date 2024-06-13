@@ -4,36 +4,48 @@ Title="Main"
 <style>
     #main_container {
         --main_container_height: 70vh;
-        border:1px solid black;
+        //border:1px solid black;
         height: var(--main_container_height);
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
     }
 
-
+    #top {
+        //border:1px solid yellow;
+        display: flex;
+        flex-direction: row;
+        height: auto;
+        //padding: 10px;
+    }
 
     #left {
-        border:1px solid red;
-        resize: horizontal;
+        //border:1px solid red;
+        min-height: calc(var(--main_container_height) * 0.2);
+        resize: both;
         width: 50%;
         min-width: 20%;
         max-width: 80%;
+        height: calc(var(--main_container_height) * 0.8);
+        max-height: calc(var(--main_container_height) * 0.8);
         overflow: auto;
         margin-left: 10px;
         margin-right: 5px;
     }
 
     #right {
-        border:1px solid blue;
+        //border:1px solid blue;
         flex: 1;
         margin-left: 5px;
         margin-right: 10px;
     }
 
+    #bottom {
+        //border:1px solid green;
+        flex: 2;
+        margin: 10px;
+    }
 
 </style>
-
-
 <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.1/dist/js/tabulator.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/luxon/build/global/luxon.min.js"></script>
 
@@ -45,7 +57,10 @@ Title="Main"
 
 </script>
 <div id="main_container">
+    <div id="top">
         <link href="https://unpkg.com/tabulator-tables@6.2.1/dist/css/tabulator.min.css" rel="stylesheet">
         <div id="left"><?php include './plugins/bobbintb.system.dedupe/php/left.php'; ?></div>
         <div id="right"><?php include './plugins/bobbintb.system.dedupe/php/right.php'; ?></div>
+    </div>
+    <div id="bottom"><?php include './plugins/bobbintb.system.dedupe/php/bottom.php'; ?></div>
 </div>

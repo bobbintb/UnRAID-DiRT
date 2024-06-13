@@ -1,73 +1,79 @@
 import express from 'express';
-const app = express();
 import fs from 'fs';
 import * as util from 'util';
 import * as functions from './javascript/scan.js';
-import { load, createHash } from 'blake3';
-import { JSONFilePreset } from 'lowdb/node'
+import {createHash, load} from 'blake3';
+import {JSONFilePreset} from 'lowdb/node'
+import path from "path";
 
-async function filterFiles(files) {
-  for (const [key, value] of files) {
+const app = express();
+
+
+async function processFiles(files) {
+  for (const value of files.values()) {
     if (value.length > 1) {
       const paths = [];
       for (const element of value) {
-        for (const path of element.path) {
-          paths.push(path);
-        }
+        paths.push(element.path[0]);
       }
-      try {
-        const hash = await hashAndCompareFiles(paths);
-        if (hash !== null) {
-          value.forEach(item => {
-            item.hash = hash;
-          });
-        }
-      } catch (err) {
-        console.error('Error:', err.message);
+      const hashes = await hashFilesSequentially(paths);
+      for (const element of value) {
+        element.hash = hashes.get(path.join(...element.path[0]));
       }
     }
   }
 }
 
-async function hashAndCompareFiles(filePaths) {
+async function hashFilesSequentially(filePaths) {
+  filePaths = filePaths.map(filePath => path.join(...filePath));
   await load();
-  return new Promise((resolve, reject) => {
-    const hashes = filePaths.map(() => createHash());
-    const inputs = filePaths.map(filePath => fs.createReadStream(filePath));
-    let chunkCount = 0;
-    let filesMatch = true;
-    inputs.forEach((input, index) => {
-      input.on('data', chunk => {
-        hashes[index].update(chunk);
-        compareHashes();
-      });
-      input.on('error', err => reject(err));
-    });
-    function compareHashes() {
-      if (++chunkCount % 100 === 0) {
-        const currentHashes = hashes.map(hash => hash.digest('hex'));
-        if (!currentHashes.every(hash => hash === currentHashes[0])) {
-          filesMatch = false;
-        }
-      }
-    }
-    inputs.forEach(input => {
-      input.on('end', () => { });
-    });
-    Promise.all(inputs.map(input => new Promise((resolve) => {
-      input.on('end', () => resolve());
-    })))
-        .then(() => {
-          if (filesMatch) {
-            const finalHashes = hashes.map(hash => hash.digest('hex'));
-            resolve(finalHashes[0]);
-          } else {
-            resolve(null); // Resolve with null if files don't match
-          }
-        })
-        .catch(err => reject(err));
+  const streams = filePaths.map(filePath => fs.createReadStream(filePath, { highWaterMark: 1024 * 1024 })); // 1MB chunks
+  const hashes = new Map();
+  filePaths.forEach((filePath, i) => {
+    hashes.set(filePath, createHash());
   });
+  let done = Array(filePaths.length).fill(false);
+  let iteration = 0;
+  let hashFrequency = new Map();
+  while (!done.every(Boolean)) {
+    await Promise.all(streams.map((stream, i) => new Promise(resolve => {
+      let previousHash = hashes.get(filePaths[i]).digest('hex');
+      console.debug(i + '  Previous hash for '+filePaths[i]+': '+ previousHash);
+      console.debug('     hashFrequency '+ hashFrequency.get(previousHash))
+      if (hashFrequency.get(previousHash) === 1) {
+        console.debug('The current hash for '+filePaths[i]+' is unique. Further hashing not needed.');
+        done[i] = true;
+      }
+      if (done[i]) {
+        resolve();
+      } else {
+        stream.once('readable', () => {
+          let chunk = stream.read();
+          if (chunk !== null) {
+            hashes.get(filePaths[i]).update(chunk);
+            let digest=hashes.get(filePaths[i]).digest('hex');
+            console.debug(i + '  Current hash for '+filePaths[i]+': '+digest);
+            console.debug('   before hashFrequency')
+            console.debug('   ' + hashFrequency.get(digest))
+            hashFrequency.set(digest, (hashFrequency.get(digest) || 0) + 1);
+            console.debug('   after hashFrequency')
+            console.debug('   ' + hashFrequency.get(digest))
+            resolve();
+          } else {
+            done[i] = true;
+            resolve();
+          }
+        });
+      }
+    })));
+    console.debug("======================================")
+    console.debug(`Iteration ${++iteration}: ${Array.from(hashes, ([filePath, hash]) => `${filePath}: ${hash.digest('hex')}`).join(', ')}`);
+    console.debug("======================================")
+  }
+  return new Map(Array.from(hashes, ([filePath, hash]) => [filePath, hash.digest('hex')]));
 }
+
+
 
 async function saveMapToFile(map, filePath) {
   const mapObject = Object.fromEntries(map);
@@ -77,10 +83,10 @@ async function saveMapToFile(map, filePath) {
 
 app.get("/scan", async () => {
   //const files = functions.getAllFiles(settings.include[0])
-  //console.log('Enumerating files...');
+  console.log('Enumerating files...');
   const files = functions.getAllFiles('/mnt/user/downloads');
   //console.log('\x1b[1A' + '\x1b[20G' + 'done.');
-  await filterFiles(files); // Wait for filterFiles to complete
+  await processFiles(files);
   //console.log(files);
   await saveMapToFile(files, "./files.json")
 });
@@ -93,6 +99,9 @@ app.get("/add/:num1/:num2", (req, res) => {
   res.send(`The sum of ${num1} and ${num2} is ${sum}.`);
 });
 
+if (!process.argv.includes('--debug')) {
+  console.debug = function() {}
+}
 const PORT = 3000;
 const settings = functions.getSettings();
 console.log(util.inspect(settings, false, null, true /* enable colors */));

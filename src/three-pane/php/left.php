@@ -2,17 +2,16 @@
 
 <script>
 function findObjectsWithMatchingHash() {
+    console.log("test");
   const result = [];
   Object.keys(db)
-    .filter(key => Array.isArray(db[key]))
+    .filter(key => Array.isArray(db[key])) // Filter out non-array values
     .forEach(key => {
       const array = db[key];
+      // Iterate over each object in the array
       array.forEach(obj => {
+        // Check if any other object in the same array has the same hash
         if (array.some(otherObj => otherObj !== obj && otherObj.hash === obj.hash)) {
-            //obj.path
-            obj.count = obj.length;
-            obj.recoverable = ( (obj.count - 1));
-            console.error(obj)
           result.push(obj);
         }
       });
@@ -61,7 +60,7 @@ function findNonUniqueHashes() {
     return nonUniqueHashes;
 }
 
-const matchingObjects = findObjectsWithMatchingHash();
+const matchingObjects = findNonUniqueHashes();
 
 function customFormatter(cell) {
     const date = new Date(cell.getValue(0));
@@ -87,40 +86,32 @@ function convertFileSize(cell) {
         return null;
     }
 }
-
-
-const printIcon = function (cell, formatterParams, onRendered) { //plain text value
+//custom formatter definition
+var printIcon = function(cell, formatterParams, onRendered){ //plain text value
     return "<i class='fa fa-print'></i>";
 };
 
-let totalSum = 0;
-matchingObjects.forEach(row => {
-    totalSum += row.size;
-});
-
-// Convert the total sum to a formatted string
-let totalSumFormatted = convertFileSize({ getValue: () => totalSum });
+//column definition in the columns array
 
 const leftTable = new Tabulator("#left", {
     selectableRows: 1,
     data: matchingObjects,
     groupBy: "hash",
-    //layout: "-webkit-fill-available",
-    footerElement: `<div>Total Size: ${totalSumFormatted}</div>`,
+    layout: "-webkit-fill-available",
     columns: [
         {title: "Hash", field: "hash", sorter: "string", visible: false},
-        {title: "File", field: "path", sorter: "string", width: "-webkit-fill-available"},
+        {title: "File", field: "file", sorter: "string", width: "-webkit-fill-available"},
         {title: "#", field: "count", sorter: "number"},
-        {title: "Size", field: "size", sorter: "number", formatter: convertFileSize, bottomCalc: "sum", bottomCalcFormatter: convertFileSize},
-        {title: "Recoverable", field: "recoverable", sorter: "number", formatter: convertFileSize},
-        {title: "Last Accessed", field: "atimeMs", sorter: "date", formatter: customFormatter},
-        {title: "Last Modified", field: "mtimeMs", sorter: "date", formatter: customFormatter},
-        {title: "Last Metadata Change", field: "ctimeMs", sorter: "date", formatter: customFormatter}
+        {title: "Size", field: "size", sorter: "number", formatter: convertFileSize},
+        {title: "freeable", field: "freeable", sorter: "number", formatter: convertFileSize}
     ]
 });
 
 leftTable.on("rowSelected", function(row) {
     const rowData = row.getData("");
     const hashValue = rowData.hash;
+    const matchingItems = findItemsWithHash(hashValue);
+    bottom.setData(matchingItems);
+    console.log("Matching items:", matchingItems);
 });
 </script>
