@@ -1,5 +1,3 @@
-
-
 <script>
 function findObjectsWithMatchingHash() {
   const result = [];
@@ -9,8 +7,7 @@ function findObjectsWithMatchingHash() {
       const array = db[key];
       array.forEach(obj => {
         if (array.some(otherObj => otherObj !== obj && otherObj.hash === obj.hash)) {
-            //obj.path
-            obj.count = obj.length;
+            obj.path = obj.path.map(innerArray => innerArray.join('/'));            obj.count = obj.length;
             obj.recoverable = ( (obj.count - 1));
             console.error(obj)
           result.push(obj);
@@ -20,57 +17,14 @@ function findObjectsWithMatchingHash() {
   return result;
 }
 
-function findNonUniqueHashes() {
-    const hashMap = {};
-    const nonUniqueHashes = [];
-    // Iterate over each key in the data object
-    for (const key in db) {
-        if (db.hasOwnProperty(key)) {
-            // Iterate over each item in the array of values for the current key
-            db[key].forEach(item => {
-                if (item.hasOwnProperty('hash')) {
-                    const { hash } = item;
-                    if (hashMap[hash]) {
-                        hashMap[hash].push(item);
-                    } else {
-                        hashMap[hash] = [item];
-                    }
-                }
-            });
-        }
-    }
-
-    // Find non-unique hash items and count them
-    let size;
-    let count;
-    let file;
-    for (const hash in hashMap) {
-        if (hashMap[hash].length > 1) {
-            size = hashMap[hash][0]['size']
-            file = hashMap[hash][0]['path'][0].split('/').pop();
-            count = hashMap[hash].length
-            nonUniqueHashes.push({
-                hash,
-                file,
-                count,
-                size,
-                freeable: (size * (count - 1))
-            });
-        }
-    }
-    return nonUniqueHashes;
-}
-
-const matchingObjects = findObjectsWithMatchingHash();
-
-function customFormatter(cell) {
+function dateFormatter(cell) {
     const date = new Date(cell.getValue(0));
-    return date.toDateString();
+    return date.toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 }
 
 function sizeFormatter(cell) {
     const date = new Date(cell.getValue(0));
-    return date.toDateString(); 
+    return date.toDateString();
 }
 
 function convertFileSize(cell) {
@@ -88,35 +42,127 @@ function convertFileSize(cell) {
     }
 }
 
-
-const printIcon = function (cell, formatterParams, onRendered) { //plain text value
-    return "<i class='fa fa-print'></i>";
-};
-
+const matchingObjects = findObjectsWithMatchingHash();
 let totalSum = 0;
 matchingObjects.forEach(row => {
     totalSum += row.size;
 });
-
-// Convert the total sum to a formatted string
 let totalSumFormatted = convertFileSize({ getValue: () => totalSum });
 
 const leftTable = new Tabulator("#left", {
     selectableRows: 1,
     data: matchingObjects,
     groupBy: "hash",
+    rowSelectableCheck: function(row) {
+        return !row.getElement().classList.contains('disabled');
+    },
+    groupHeader: function(value, count, data, group){
+        return `<input type="checkbox" id="${value}-checkbox"> ${value} <span style='color:#d00; margin-left:10px;'>(${count} item)</span>`;
+    },
     //layout: "-webkit-fill-available",
     footerElement: `<div>Total Size: ${totalSumFormatted}</div>`,
     columns: [
+        {
+            headerSort: false,
+            maxWidth: 40,
+            formatter: function(cell, formatterParams, onRendered) {
+                let rowData = cell.getRow().getData();
+                return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><input type='radio' name='rowSelection-${rowData.hash}'></div>`;
+            },
+            cellClick: function(e, cell) {
+                // Get the row and group
+                let row = cell.getRow();
+                let group = row.getGroup();
+
+                // Remove the 'disabled' class from all rows in the group
+                group.getRows().forEach(function(row) {
+                    row.getElement().classList.remove('disabled');
+                });
+
+                // Add the 'disabled' class to the selected row
+                row.getElement().classList.add('disabled');
+
+                console.log("Radio button clicked on row: ", row.getData());
+            }
+        },
+{
+    headerSort: false,
+    maxWidth: 40,
+    formatter: function(cell, formatterParams, onRendered) {
+        let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
+        return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><button class='fa fa-trash' style='width: 15px; margin: 0; padding: 0; border: none; background: none;' ${disabled}></button></div>`;
+    },
+    cellClick: function(e, cell) {
+        // Get the row data
+        let rowData = cell.getRow().getData();
+
+        // Add a new property to the row data
+        rowData.action = "delete";
+
+        // Check if the row data already exists in the right table
+        let rightTableData = right.getData();
+        let isDuplicate = rightTableData.some(function(row) {
+            return row.hash === rowData.hash;
+        });
+
+        // If the row data already exists in the right table, display a message
+        if (isDuplicate) {
+            alert("This row already exists in the right table.");
+        } else {
+            // If the row data does not already exist in the right table, add it
+            right.addRow(rowData);
+        }
+    }
+},
+{
+    headerSort: false,
+    maxWidth: 40,
+    formatter: function(cell, formatterParams, onRendered) {
+        let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
+        return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><button class='fa fa-link' style='width: 15px; margin: 0; padding: 0; border: none; background: none;' ${disabled}></button></div>`;
+    },
+    cellClick: function(e, cell) {
+        // Get the row data
+        let rowData = cell.getRow().getData();
+
+        // Add a new property to the row data
+        rowData.action = "link";
+
+        // Check if the row data already exists in the right table
+        let rightTableData = right.getData();
+        let isDuplicate = rightTableData.some(function(row) {
+            return row.hash === rowData.hash;
+        });
+
+        // If the row data already exists in the right table, display a message
+        if (isDuplicate) {
+            alert("This row already exists in the right table.");
+        } else {
+            // If the row data does not already exist in the right table, add it
+            right.addRow(rowData);
+        }
+    }
+},
         {title: "Hash", field: "hash", sorter: "string", visible: false},
         {title: "File", field: "path", sorter: "string", width: "-webkit-fill-available"},
-        {title: "#", field: "count", sorter: "number"},
+        //{title: "#", field: "count", sorter: "number"},
         {title: "Size", field: "size", sorter: "number", formatter: convertFileSize, bottomCalc: "sum", bottomCalcFormatter: convertFileSize},
-        {title: "Recoverable", field: "recoverable", sorter: "number", formatter: convertFileSize},
-        {title: "Last Accessed", field: "atimeMs", sorter: "date", formatter: customFormatter},
-        {title: "Last Modified", field: "mtimeMs", sorter: "date", formatter: customFormatter},
-        {title: "Last Metadata Change", field: "ctimeMs", sorter: "date", formatter: customFormatter}
-    ]
+        //{title: "Recoverable", field: "recoverable", sorter: "number", formatter: convertFileSize},
+        {title: "Last Accessed", field: "atimeMs", sorter: "date", formatter: dateFormatter},
+        {title: "Last Modified", field: "mtimeMs", sorter: "date", formatter: dateFormatter},
+        {title: "Last Metadata Change", field: "ctimeMs", sorter: "date", formatter: dateFormatter}
+    ],
+    rowFormatter: function(row) {
+        let group = row.getGroup();
+        if (group && group.getRows()[0] === row) {
+            let rowElement = row.getElement();
+            let radioButton = rowElement.querySelector("input[type='radio']");
+            radioButton.checked = true;
+
+            // Add a class to the row element when the radio button is selected
+            rowElement.classList.add('disabled');
+        }
+    },
 });
 
 leftTable.on("rowSelected", function(row) {

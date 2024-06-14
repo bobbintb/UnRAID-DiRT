@@ -38,9 +38,9 @@
             {title: "File Name", field: "file", sorter: "number"},
             {title: "Links", field: "nlink"},
             {title: "Size", field: "size", formatter: convertFileSize},
-            {title: "Last Accessed", field: "atimeMs", sorter: "date", formatter: customFormatter},
-            {title: "Last Modified", field: "mtimeMs", sorter: "date", formatter: customFormatter},
-            {title: "Last Metadata Change", field: "ctimeMs", sorter: "date", formatter: customFormatter},
+            {title: "Last Accessed", field: "atimeMs", sorter: "date", formatter: dateFormatter},
+            {title: "Last Modified", field: "mtimeMs", sorter: "date", formatter: dateFormatter},
+            {title: "Last Metadata Change", field: "ctimeMs", sorter: "date", formatter: dateFormatter},
             {title: "α", field: "birthtimeMs", hozAlign: "center", formatter:"toggle", formatterParams:{
                     onValue:"on",
                     offValue:"off",

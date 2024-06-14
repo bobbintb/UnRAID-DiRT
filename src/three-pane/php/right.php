@@ -7,7 +7,7 @@
             {title: "File Name", field: "nlink", sorter: "number"},
             {title: "Links", field: "nlink"},
             {title: "Size", field: "size", formatter: convertFileSize},
-            {title: "Last Accessed", field: "atimeMs", sorter: "date", formatter: customFormatter},
+            {title: "Last Accessed", field: "atimeMs", sorter: "date", formatter: dateFormatter},
             {title: "Last Modified", field: "mtimeMs", sorter: "number"},
             {title: "Last Metadata Change", field: "ctimeMs", sorter: "number", hozAlign: "center"},
             {title: "α", field: "birthtimeMs", hozAlign: "center"}

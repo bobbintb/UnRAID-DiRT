@@ -4,18 +4,22 @@ Title="Main"
 <style>
     #main_container {
         --main_container_height: 70vh;
-        border:1px solid black;
+        //border:1px solid black;
         height: var(--main_container_height);
         display: flex;
         flex-direction: row;
     }
 
-
+    .disabled {
+        background-color: #ccc !important;
+        color: #888 !important;
+        cursor: default !important;
+    }
 
     #left {
-        border:1px solid red;
+        //border:1px solid red;
         resize: horizontal;
-        width: 50%;
+        width: 70%;
         min-width: 20%;
         max-width: 80%;
         overflow: auto;
@@ -24,15 +28,12 @@ Title="Main"
     }
 
     #right {
-        border:1px solid blue;
+        //border:1px solid blue;
         flex: 1;
         margin-left: 5px;
         margin-right: 10px;
     }
-
-
 </style>
-
 
 <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.1/dist/js/tabulator.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/luxon/build/global/luxon.min.js"></script>
