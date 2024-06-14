@@ -14,7 +14,7 @@ Title="Main"
         background-color: #ccc !important;
         color: #888 !important;
         cursor: default !important;
-    }
+        pointer-events: none !important;    }
 
     #left {
         //border:1px solid red;

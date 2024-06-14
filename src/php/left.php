@@ -63,82 +63,65 @@ const leftTable = new Tabulator("#left", {
     footerElement: `<div>Total Size: ${totalSumFormatted}</div>`,
     columns: [
         {
+            // Radio button column
             headerSort: false,
             maxWidth: 40,
-            formatter: function(cell, formatterParams, onRendered) {
+            formatter: function(cell) {
                 let rowData = cell.getRow().getData();
                 return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><input type='radio' name='rowSelection-${rowData.hash}'></div>`;
             },
             cellClick: function(e, cell) {
-                // Get the row and group
+                if (e.target.type !== 'radio') {
+                    return;
+                }
                 let row = cell.getRow();
                 let group = row.getGroup();
-
-                // Remove the 'disabled' class from all rows in the group
                 group.getRows().forEach(function(row) {
                     row.getElement().classList.remove('disabled');
                 });
-
-                // Add the 'disabled' class to the selected row
                 row.getElement().classList.add('disabled');
-
-                console.log("Radio button clicked on row: ", row.getData());
             }
         },
 {
+    // Trash column
     headerSort: false,
     maxWidth: 40,
-    formatter: function(cell, formatterParams, onRendered) {
+    formatter: function(cell) {
         let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
-        return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><button class='fa fa-trash' style='width: 15px; margin: 0; padding: 0; border: none; background: none;' ${disabled}></button></div>`;
+        return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><i class='fa fa-trash' style='width: 15px; margin: 0; padding: 0; border: none; background: none;' ${disabled}></i></div>`;
     },
     cellClick: function(e, cell) {
-        // Get the row data
         let rowData = cell.getRow().getData();
-
-        // Add a new property to the row data
         rowData.action = "delete";
-
-        // Check if the row data already exists in the right table
         let rightTableData = right.getData();
         let isDuplicate = rightTableData.some(function(row) {
             return row.hash === rowData.hash;
         });
-
-        // If the row data already exists in the right table, display a message
         if (isDuplicate) {
             alert("This row already exists in the right table.");
         } else {
-            // If the row data does not already exist in the right table, add it
             right.addRow(rowData);
         }
     }
 },
 {
+    // Link column
     headerSort: false,
     maxWidth: 40,
-    formatter: function(cell, formatterParams, onRendered) {
+    formatter: function(cell) {
         let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
-        return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><button class='fa fa-link' style='width: 15px; margin: 0; padding: 0; border: none; background: none;' ${disabled}></button></div>`;
+        return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><i class='fa fa-link' style='width: 15px; margin: 0; padding: 0; border: none; background: none;' ${disabled}></i></div>`;
     },
     cellClick: function(e, cell) {
-        // Get the row data
         let rowData = cell.getRow().getData();
-
-        // Add a new property to the row data
         rowData.action = "link";
-
-        // Check if the row data already exists in the right table
         let rightTableData = right.getData();
         let isDuplicate = rightTableData.some(function(row) {
             return row.hash === rowData.hash;
         });
-
-        // If the row data already exists in the right table, display a message
         if (isDuplicate) {
             alert("This row already exists in the right table.");
         } else {
-            // If the row data does not already exist in the right table, add it
             right.addRow(rowData);
         }
     }
@@ -158,8 +141,6 @@ const leftTable = new Tabulator("#left", {
             let rowElement = row.getElement();
             let radioButton = rowElement.querySelector("input[type='radio']");
             radioButton.checked = true;
-
-            // Add a class to the row element when the radio button is selected
             rowElement.classList.add('disabled');
         }
     },
