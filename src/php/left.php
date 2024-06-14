@@ -93,14 +93,17 @@ const leftTable = new Tabulator("#left", {
     cellClick: function(e, cell) {
         let rowData = cell.getRow().getData();
         rowData.action = "delete";
-        let rightTableData = right.getData();
+        let rightTableData = rightTable.getData();
         let isDuplicate = rightTableData.some(function(row) {
             return row.hash === rowData.hash;
         });
         if (isDuplicate) {
             alert("This row already exists in the right table.");
         } else {
-            right.addRow(rowData);
+            cell.getRow().getCells().forEach(function(cell) {
+                cell.getElement().classList.add('strike-through');
+            });
+            rightTable.addRow(rowData);
         }
     }
 },
@@ -115,14 +118,14 @@ const leftTable = new Tabulator("#left", {
     cellClick: function(e, cell) {
         let rowData = cell.getRow().getData();
         rowData.action = "link";
-        let rightTableData = right.getData();
+        let rightTableData = rightTable.getData();
         let isDuplicate = rightTableData.some(function(row) {
             return row.hash === rowData.hash;
         });
         if (isDuplicate) {
             alert("This row already exists in the right table.");
         } else {
-            right.addRow(rowData);
+            rightTable.addRow(rowData);
         }
     }
 },

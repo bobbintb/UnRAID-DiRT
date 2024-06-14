@@ -16,6 +16,10 @@ Title="Main"
         cursor: default !important;
         pointer-events: none !important;    }
 
+    .strike-through {
+        text-decoration: line-through red;
+    }
+
     #left {
         //border:1px solid red;
         resize: horizontal;

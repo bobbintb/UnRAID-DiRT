@@ -1,5 +1,5 @@
 <script>
-    const right = new Tabulator("#right", {
+    const rightTable = new Tabulator("#right", {
         //data: matchingObjects,
         layout: "fitColumns",
         columns: [
@@ -20,8 +20,8 @@
                     }
                 }
             },
-            {title: "Directory", field: "path", sorter: "string"}
-        ]
+            {title: "File", field: "path", sorter: "string"}
+        ],
     });
 </script>
 
