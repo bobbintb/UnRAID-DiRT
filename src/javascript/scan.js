@@ -1,8 +1,8 @@
 const plugin = 'bobbintb.system.dedupe';
 import path from 'path';
-import * as util from 'util';
 import fs from 'fs';
 import MultiMap from 'multimap';
+import { nanoid } from 'nanoid';
 
 
 export function getSettings() {
@@ -30,6 +30,7 @@ export function getAllFiles(dirPath) {
       const fullPath = [dirPath, entry.name];
       const stats = fs.statSync(path.join(...fullPath), {bigint: true});
       const currentFileInfo = {
+        id: nanoid(),
         path: [fullPath],
         nlink: Number(stats.nlink),
         ino: stats.ino.toString(),
@@ -45,12 +46,9 @@ export function getAllFiles(dirPath) {
       } else {
         fileMap.set(Number(stats.size), currentFileInfo);
       }
+      console.log('Adding file: ' + path.join(...fullPath));
+
     }
   }
-  //console.log('Map of files grouped by size with detailed stats:');
-  //console.log(fileMap);
-  //console.log(util.inspect(fileMap._, false, null, true /* enable colors */));
   return fileMap._;
 }
-
-// /module.exports = { getSettings, getAllFiles };

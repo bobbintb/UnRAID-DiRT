@@ -7,6 +7,19 @@ Title="Settings"
         <script type="text/html" id="tmplShare">
 
         </script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+        function scan() {
+            axios.get(`<?php echo "http://".$_SERVER['SERVER_ADDR'].":3000";?>/scan`)
+                .then(response => {
+                    console.log(response.data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
       </div>
   <dl>
     <button id="delete-db"  onclick="deleteDB()">Delete database </button>

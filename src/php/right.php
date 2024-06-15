@@ -13,10 +13,15 @@
                     return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><i class='fa ${iconClass}'></i>`;
                 },
                 cellClick: function(e, cell) {
-                    // Check if the clicked element is an icon
                     if (e.target.tagName === 'I') {
-                        // If it is, delete the row
+                        let rowData = cell.getRow().getData();
                         cell.getRow().delete();
+                        let leftTableRow = leftTable.getRow(rowData.id);
+                        if (leftTableRow) {
+                            leftTableRow.getCells().forEach(function(cell) {
+                                cell.getElement().classList.remove('strike-through');
+                            });
+                        }
                     }
                 }
             },
