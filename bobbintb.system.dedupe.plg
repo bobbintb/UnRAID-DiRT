@@ -1,0 +1,81 @@
+<?xml version='1.0' standalone='yes'?>
+
+<!DOCTYPE PLUGIN [
+<!ENTITY name        "bobbintb.system.dedupe">
+<!ENTITY author      "bobbintb">
+<!ENTITY repo        "UnRAID-DeDuper">
+<!ENTITY launch      "Settings/Dedupe">
+<!ENTITY pluginURL   "https://raw.githubusercontent.com/&author;/&repo;/dev/&name;.plg">
+<!ENTITY source      "/boot/config/plugins/&name;/&name;">
+<!ENTITY icon        "fa-search-minus">
+<!ENTITY min         "6.1.9">
+<!ENTITY version     "2024.06.04">
+<!ENTITY MD5         "8d3ccf07ef8cc255aceca23f00faece9">
+]>
+<PLUGIN name="&name;" author="&author;" repo="&repo;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;" version="&version;" MD5="&MD5;">
+
+<CHANGES>
+2024.06.04
+Update main.yml
+
+2024.06.03a
+Update main.yml
+
+2024.06.03
+Delete sh/install.sh
+
+2024.06.02c
+Update main.yml
+
+2024.06.02b
+Update main.yml
+
+2024.06.02a
+Update main.yml
+
+2024.06.02
+Update bobbintb.system.dedupe.plg
+Update main.yml
+Update main.yml
+Update main.yml
+Update main.yml
+Update main.yml
+Update main.yml
+test
+Update main.yml
+Delete bobbintb.system.dedupe.plg
+</CHANGES>
+
+<!-- PRE-INSTALL SCRIPT -->
+<FILE Run="/bin/bash" Method="install">
+<INLINE>
+echo "-----------------------------------------------------------"
+echo "Installing dependencies..."
+echo "-----------------------------------------------------------"
+</INLINE>
+</FILE>
+
+<!-- POST-INSTALL SCRIPT -->
+<FILE Run="/bin/bash" Method="install">
+<INLINE>
+echo ""
+echo "-----------------------------------------------------------"
+echo " Plugin &name; is installed."
+echo " Version: &version;"
+echo "-----------------------------------------------------------"
+echo ""
+</INLINE>
+</FILE>
+
+<!-- REMOVE SCRIPT -->
+<FILE Run="/bin/bash" Method="remove">
+<INLINE>
+# Remove plugin related files
+rm -rf /boot/config/plugins/&name;
+
+# Uninstall the 'source' package
+removepkg &name;
+</INLINE>
+</FILE>
+
+</PLUGIN>
