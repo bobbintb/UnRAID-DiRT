@@ -9,12 +9,15 @@
 <!ENTITY source      "/boot/config/plugins/&name;/&name;">
 <!ENTITY icon        "fa-search-minus">
 <!ENTITY min         "6.1.9">
-<!ENTITY version     "2024.06.02b">
-<!ENTITY MD5         "e4fd5319d247c9dbb1b30f7337da69ad">
+<!ENTITY version     "2024.06.19">
+<!ENTITY MD5         "9c4d3446a957a038a9a9ed978e182ce1">
 ]>
 <PLUGIN name="&name;" author="&author;" repo="&repo;" launch="&launch;" pluginURL="&pluginURL;" source="&source;" icon="&icon;" min="&min;" version="&version;" MD5="&MD5;">
 
 <CHANGES>
+2024.06.19
+
+
 2024.06.02b
 Update main.yml
 
@@ -59,15 +62,16 @@ Delete bobbintb.system.dedupe.plg
 ]]>
 </INLINE>
 </FILE>
+
 <!-- PRE-INSTALL SCRIPT -->
-<FILE Run=/bin/bash Method=install>
+<FILE Run="/bin/bash" Method="install">
 <INLINE>
 
 </INLINE>
 </FILE>
 
 <!-- REMOVE SCRIPT -->
-<FILE Run=/bin/bash Method=remove>
+<FILE Run="/bin/bash" Method="remove">
 <INLINE>
 # Remove plugin related files
 rm -rf /boot/config/plugins/&name;
