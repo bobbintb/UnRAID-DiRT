@@ -4,6 +4,15 @@ on:
 jobs:
   package_and_update:
     runs-on: ubuntu-latest
+    env:
+      name: "bobbintb.system.dedupe"
+      author: "bobbintb"
+      repo: "UnRAID-DeDuper"
+      launch: "Settings/Dedupe"
+      pluginURL: "https://raw.githubusercontent.com/&author;/&repo;/master/&name;.plg"
+      source: "/boot/config/plugins/&name;/&name;"
+      icon: "fa-search-minus"
+      min: "6.1.9"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.1.6
