@@ -4,6 +4,7 @@ on:
 jobs:
   package_and_update:
     runs-on: ubuntu-latest
+    container: spaceinvaderone/auto_slack_pack
     env:
       name: "bobbintb.system.dedupe"
       author: "bobbintb"
@@ -15,9 +16,7 @@ jobs:
       min: "6.1.9"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.1.6
-        with:
-          token: ${{ secrets.PAT }}
+        uses: actions/checkout@v4
       - name: Download UnRAID-Plugin-Generator
         run: |
           wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
@@ -29,10 +28,4 @@ jobs:
           ./plugin.sh
           rm plugin.sh
           ls -ls
-      - name: Commit changes
-        uses: EndBug/add-and-commit@v9
-        with:
-          author_name: Armando
-          author_email: bobbintb@gmail.com
-          message: ${{ github.event.head_commit.message }}
-          add: 'bobbintb.system.dedupe.plg bobbintb.system.dedupe.txz'
+
