@@ -1,0 +1,18 @@
+name: Delete failed runs
+on:
+  workflow_dispatch:
+jobs:
+  delete_runs:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete workflow runs
+        uses: dmvict/clean-workflow-runs@v1
+        with:
+          repo: bobbintb/UnRAID-DeDuper
+          branch: main
+          save_period: 0
+          save_min_runs_number: 0
+          run_conclusions: |
+                failure
+                timed_out
