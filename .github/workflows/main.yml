@@ -7,7 +7,7 @@ jobs:
   package_and_update:
     permissions: write-all
     runs-on: ubuntu-latest
-    container: bobbintb/auto_slack_pack:latest
+    container: bobbintb/AutoSlackPack:latest
     env:
       name: "bobbintb.system.dedupe"
       author: "bobbintb"
