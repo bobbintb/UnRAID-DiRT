@@ -17,6 +17,7 @@ jobs:
       source: "/boot/config/plugins/&name;/&name;"
       icon: "fa-search-minus"
       min: "6.1.9"
+      SSL_CERT_FILE: "/etc/ssl/certs/ca-certificates.crt"
     steps:
       - name: delete me later
         run: slackpkg reinstall openssl
