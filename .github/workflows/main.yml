@@ -1,6 +1,8 @@
 name: Package PLG
 on:
   workflow_dispatch:
+env:
+  SSL_CERT_FILE: "/etc/ssl/certs/ca-certificates.crt"
 jobs:
   package_and_update:
     permissions: write-all
