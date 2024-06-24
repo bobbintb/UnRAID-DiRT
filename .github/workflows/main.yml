@@ -1,31 +1,29 @@
 name: Package PLG
 on:
-  push:
-    branches:
-      - dev
+  workflow_dispatch:
 jobs:
   package_and_update:
-    if: github.event.commits[0].author.name == 'bobbintb'
+    permissions: write-all
     runs-on: ubuntu-latest
+    container: spaceinvaderone/auto_slack_pack
+    env:
+      name: "bobbintb.system.dedupe"
+      author: "bobbintb"
+      repo: "UnRAID-DeDuper"
+      launch: "Settings/Dedupe"
+      pluginURL: "https://raw.githubusercontent.com/&author;/&repo;/master/&name;.plg"
+      source: "/boot/config/plugins/&name;/&name;"
+      icon: "fa-search-minus"
+      min: "6.1.9"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.1.6
-        with:
-          token: ${{ secrets.PAT }}
+        uses: actions/checkout@v4
       - name: Download UnRAID-Plugin-Generator
         run: |
           wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
           chmod +x plugin.sh
       - name: Run UnRAID-Plugin-Generator
-        env:
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           ./plugin.sh
           rm plugin.sh
-      - name: Commit changes
-        uses: EndBug/add-and-commit@v9
-        with:
-          author_name: Armando
-          author_email: bobbintb@gmail.com
-          message: ${{ github.event.head_commit.message }}
-          add: 'bobbintb.system.dedupe.plg bobbintb.system.dedupe.txz'
+          ls -ls
