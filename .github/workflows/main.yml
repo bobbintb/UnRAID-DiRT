@@ -1,13 +1,11 @@
 name: Package PLG
 on:
   workflow_dispatch:
-env:
-  SSL_CERT_FILE: "/etc/ssl/certs/ca-certificates.crt"
 jobs:
   package_and_update:
     permissions: write-all
     runs-on: ubuntu-latest
-    container: bobbintb/AutoSlackPack:latest
+    container: ghcr.io/bobbintb/autoslackpack:latest
     env:
       name: "bobbintb.system.dedupe"
       author: "bobbintb"
@@ -17,7 +15,6 @@ jobs:
       source: "/boot/config/plugins/&name;/&name;"
       icon: "fa-search-minus"
       min: "6.1.9"
-      SSL_CERT_FILE: "/etc/ssl/certs/ca-certificates.crt"
     steps:
       - name: delete me later
         run: slackpkg reinstall openssl
