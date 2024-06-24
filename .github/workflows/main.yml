@@ -16,6 +16,8 @@ jobs:
       icon: "fa-search-minus"
       min: "6.1.9"
     steps:
+      - name: delete me later
+        run: update-ca-certificates && git config --global http.sslCAinfo /etc/ssl/certs/ca-certificates.crt
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Download UnRAID-Plugin-Generator
