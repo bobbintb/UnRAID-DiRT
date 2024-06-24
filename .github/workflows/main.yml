@@ -3,6 +3,7 @@ on:
   workflow_dispatch:
 jobs:
   package_and_update:
+    permissions: write-all
     runs-on: ubuntu-latest
     container: spaceinvaderone/auto_slack_pack
     env:
