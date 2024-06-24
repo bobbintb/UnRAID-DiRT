@@ -5,7 +5,7 @@ jobs:
   package_and_update:
     permissions: write-all
     runs-on: ubuntu-latest
-    container: ghcr.io/bobbintb/autoslackpack:latest
+    container: ghcr.io/bobbintb/autoslackpack
     env:
       name: "bobbintb.system.dedupe"
       author: "bobbintb"
@@ -16,10 +16,8 @@ jobs:
       icon: "fa-search-minus"
       min: "6.1.9"
     steps:
-      - name: delete me later
-        run: slackpkg reinstall openssl
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@latest
       - name: Download UnRAID-Plugin-Generator
         run: |
           wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
