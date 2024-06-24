@@ -7,7 +7,7 @@ jobs:
   package_and_update:
     permissions: write-all
     runs-on: ubuntu-latest
-    container: spaceinvaderone/auto_slack_pack
+    container: spaceinvaderone/auto_slack_pack:latest
     env:
       name: "bobbintb.system.dedupe"
       author: "bobbintb"
