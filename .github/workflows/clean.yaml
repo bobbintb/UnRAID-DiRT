@@ -12,6 +12,3 @@ jobs:
           repo: bobbintb/UnRAID-DeDuper
           save_period: 0
           save_min_runs_number: 0
-          run_conclusions: |
-                failure
-                timed_out
