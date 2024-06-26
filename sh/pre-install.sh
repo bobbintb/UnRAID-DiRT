@@ -1,8 +1,8 @@
 echo "-----------------------------------------------------------"
 echo "Installing dependencies..."
 echo "-----------------------------------------------------------"
-FILE="nodejs-20.14.0-x86_64-1.txz"
-NODE="https://slackware.uk/slackware/slackware64-current/slackware64/l/${FILE}"
+FILE="nodejs-20.11.0-x86_64-1_SBo_UES.txz"
+NODE="https://github.com/UnRAIDES/unRAID-NerdTools/raw/main/packages/pkgs/${FILE}"
 if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
     wget "$NODE" -O "/boot/config/plugins/&name;/$FILE"
 fi
