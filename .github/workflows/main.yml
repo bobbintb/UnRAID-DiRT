@@ -29,6 +29,8 @@ jobs:
           ls -ls
       - name: Release
         uses: softprops/action-gh-release@v2
+        env:
+          TAG: ${{ env.TAG }}
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: ${{ env.TAG }}
