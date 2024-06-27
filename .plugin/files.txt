@@ -1,0 +1,28 @@
+<FILE Name="/boot/config/plugins/&name;/&name;.json" Mode="0770">
+<INLINE>
+<![CDATA[
+{
+  "dbfile": "/mnt/cache",
+  "hardlinks": false,
+  "include": [
+    "/mnt/user/downloads",
+    "/mnt/user/server"
+  ],
+  "exclude": [
+    "/mnt/user/downloads",
+    "/mnt/user/server"
+  ]
+}
+]]>
+</INLINE>
+</FILE>
+
+<FILE Name="/usr/local/emhttp/plugins/&name;/README.md">
+<INLINE>
+<![CDATA[
+**File De-Duper**
+
+File De-Duper monitors the filesystem for changes as they happen, providing near real-time identification of duplicate files in UnRAID shares while prioritizing low resource usage.
+]]>
+</INLINE>
+</FILE>
