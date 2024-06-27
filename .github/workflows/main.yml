@@ -25,11 +25,6 @@ jobs:
       - name: Run UnRAID-Plugin-Generator
         run: |
           ./plugin.sh
-          echo "tagtest"
-          echo $TAG
-          echo "tagtest"
-          echo ${{ env.TAG }}
-          echo "tagtest"
           rm plugin.sh
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -38,6 +33,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: dev
+          make_latest: false
           files: |
             *.txz
             *.plg
