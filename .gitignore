@@ -7,3 +7,6 @@ issues.txt
 src/package-lock.json
 bobbintb.system.dedupe.plg
 bobbintb.system.dedupe.txz
+/node_modules/
+/package-lock.json
+/files.json
