@@ -37,7 +37,7 @@ jobs:
           TAG: ${{ env.TAG }}
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: ${{ env.TAG }}
+          tag_name: dev
           prerelease: true
           files: |
             *.txz
