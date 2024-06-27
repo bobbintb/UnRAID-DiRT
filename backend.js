@@ -6,7 +6,7 @@ import {createHash, load} from 'blake3';
 import {JSONFilePreset} from 'lowdb/node'
 import {Memory, Low} from 'lowdb'
 import path from "path";
-
+const app = express();
 
 async function processFiles(files) {
   for (const value of files.values()) {
@@ -104,7 +104,6 @@ app.get("/add/:num1/:num2", (req, res) => {
 if (!process.argv.includes('--debug')) {
   console.debug = function() {}
 }
-const app = express();
 const PORT = 3000;
 const settings = functions.getSettings();
 console.log(util.inspect(settings, false, null, true /* enable colors */ ));
