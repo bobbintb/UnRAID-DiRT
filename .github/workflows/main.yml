@@ -17,7 +17,7 @@ jobs:
       min: "6.1.9"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@latest
+        uses: actions/checkout@4
       - name: Download UnRAID-Plugin-Generator
         run: |
           wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
@@ -27,3 +27,11 @@ jobs:
           ./plugin.sh
           rm plugin.sh
           ls -ls
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: v${{ env.VERSION }}
+          make_latest: true
+          files: |
+            *.txz
