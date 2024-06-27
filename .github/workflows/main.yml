@@ -17,7 +17,7 @@ jobs:
       min: "6.1.9"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4
       - name: Download UnRAID-Plugin-Generator
         run: |
           wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
