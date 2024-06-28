@@ -65,8 +65,6 @@
         selectableRows: 1,
         data: matchingObjects,
         groupBy: "hash",
-
-
         rowSelectableCheck: function(row) {
             return !row.getElement().classList.contains('disabled');
         },
@@ -116,6 +114,7 @@
                         cell.getRow().getCells().forEach(function(cell) {
                             cell.getElement().classList.add('strike-through');
                         });
+                        // add to a queue. the right table should reflect the queue, not be the queue.
                         rightTable.addRow(rowData);
                     }
                 }
@@ -138,6 +137,7 @@
                     if (isDuplicate) {
                         alert("This row already exists in the right table.");
                     } else {
+                        // add to a queue. the right table should reflect the queue, not be the queue.
                         rightTable.addRow(rowData);
                     }
                 }

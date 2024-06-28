@@ -7,6 +7,10 @@ import {JSONFilePreset} from 'lowdb/node'
 import {Memory, Low} from 'lowdb'
 import path from "path";
 const app = express();
+var r = require('rethinkdbdash')({
+  pool: false,
+  cursor: true
+});
 
 async function processFiles(files) {
   for (const value of files.values()) {
