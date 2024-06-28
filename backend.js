@@ -65,6 +65,9 @@ async function hashFilesSequentially(filePaths) {
             done[i] = true;
             resolve();
             console.debug('   done[i] = ' + done[i]);
+            if (stream.readableEnded) {
+              stream.emit('readable');
+            }
           }
         });
       }

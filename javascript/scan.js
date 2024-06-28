@@ -50,5 +50,6 @@ export function getAllFiles(dirPath) {
 
     }
   }
+  console.log('Done.');
   return fileMap._;
 }
