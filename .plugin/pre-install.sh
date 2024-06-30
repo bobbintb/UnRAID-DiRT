@@ -18,7 +18,7 @@ if ! command -v node &> /dev/null; then
 fi
 
 FILE="protobuf-3.19.6-x86_64-1gds.txz"
-URL="https://ftp.sotirov-bg.net/pub/contrib/slackware/packages/slackware64-15.0/$FILE"
+URL="https://ftp.sotirov-bg.net/pub/contrib/slackware/packages/slackware64-15.0/${FILE}"
 NAME="protobuf"
 if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
     echo "-----------------------------------------------------------"
@@ -34,7 +34,7 @@ if ! command -v node &> /dev/null; then
 fi
 
 FILE="rethinkdb-x86_64.txz"
-URL="https://github.com/bobbintb/rethinkdb_slackware/releases/latest/download/$FILE"
+URL="https://github.com/bobbintb/rethinkdb_slackware/releases/latest/download/${FILE}"
 NAME="rethinkdb"
 if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
     echo "-----------------------------------------------------------"
