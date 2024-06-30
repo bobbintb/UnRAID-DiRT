@@ -10,7 +10,7 @@ if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
     echo "-----------------------------------------------------------"
     wget "$URL" -O "/boot/config/plugins/&name;/$FILE"
 fi
-if ! command -v node &> /dev/null; then
+if ! command -v node > /dev/null; then
     echo "-----------------------------------------------------------"
     echo "Installing $NAME..."
     echo "-----------------------------------------------------------"
@@ -26,7 +26,7 @@ if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
     echo "-----------------------------------------------------------"
     wget "$URL" -O "/boot/config/plugins/&name;/$FILE"
 fi
-if ! command -v node &> /dev/null; then
+if ! command -v node > /dev/null; then
     echo "-----------------------------------------------------------"
     echo "Installing $NAME..."
     echo "-----------------------------------------------------------"
@@ -42,7 +42,7 @@ if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
     echo "-----------------------------------------------------------"
     wget "$URL" -O "/boot/config/plugins/&name;/$FILE"
 fi
-if ! command -v node &> /dev/null; then
+if ! command -v node > /dev/null; then
     echo "-----------------------------------------------------------"
     echo "Installing $NAME..."
     echo "-----------------------------------------------------------"
