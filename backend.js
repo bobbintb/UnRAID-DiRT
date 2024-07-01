@@ -7,9 +7,17 @@ import {JSONFilePreset} from 'lowdb/node'
 import {Memory, Low} from 'lowdb'
 import path from "path";
 const app = express();
-var r = require('rethinkdbdash')({
-  pool: false,
-  cursor: true
+import rethinkdbdash from 'rethinkdbdash';
+
+// Create a connection
+let r = rethinkdbdash({
+  servers: [
+    {
+      host: '192.168.1.2', // replace with your host
+      port: 28015 // replace with your port
+    }
+  ],
+  db: 'test' // replace with your database name
 });
 
 async function processFiles(files) {
@@ -43,8 +51,6 @@ async function hashFilesSequentially(filePaths) {
   while (!done.every(Boolean)) {
     await Promise.all(streams.map((stream, i) => new Promise(resolve => {
       let previousHash = hashes.get(filePaths[i]).digest('hex');
-      //console.debug(i + '  Previous hash for '+filePaths[i]+': '+ previousHash);
-      //console.debug('     hashFrequency '+ hashFrequency.get(previousHash))
       if (hashFrequency.get(previousHash) === 1) {
         console.debug('The current hash for ' + filePaths[i] + ' is unique. Further hashing not needed.');
         done[i] = true;
@@ -57,12 +63,7 @@ async function hashFilesSequentially(filePaths) {
           if (chunk !== null) {
             hashes.get(filePaths[i]).update(chunk);
             let digest = hashes.get(filePaths[i]).digest('hex');
-            //console.debug(i + '  Current hash for '+filePaths[i]+': '+digest);
-            //console.debug('   before hashFrequency')
-            //console.debug('   ' + hashFrequency.get(digest))
             hashFrequency.set(digest, (hashFrequency.get(digest) || 0) + 1);
-            //console.debug('   after hashFrequency')
-            //console.debug('   ' + hashFrequency.get(digest))
             resolve();
           } else {
             console.debug('No more data to read from ' + filePaths[i] + '.');
@@ -100,12 +101,13 @@ app.get("/scan", async () => {
   await saveMapToFile(files, "./files.json")
 });
 
-// Route to perform addition
-app.get("/add/:num1/:num2", (req, res) => {
-  const num1 = parseInt(req.params.num1);
-  const num2 = parseInt(req.params.num2);
-  const sum = num1 + num2;
-  res.send(`The sum of ${num1} and ${num2} is ${sum}.`);
+app.get("/test", async () => {
+  let user = {
+    name: 'John Doe',
+    email: 'john.doe@example.com',
+    age: 30
+  };
+  await r.table('users').insert(user).run();
 });
 
 if (!process.argv.includes('--debug')) {

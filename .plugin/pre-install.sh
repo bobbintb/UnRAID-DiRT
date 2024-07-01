@@ -10,7 +10,7 @@ if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
     echo "-----------------------------------------------------------"
     wget "$URL" -O "/boot/config/plugins/&name;/$FILE"
 fi
-if ! command -v node > /dev/null; then
+if ! command -v $NAME > /dev/null; then
     echo "-----------------------------------------------------------"
     echo "Installing $NAME..."
     echo "-----------------------------------------------------------"
@@ -33,6 +33,23 @@ if ! command -v node > /dev/null; then
     installpkg "/boot/config/plugins/&name;/$FILE"
 fi
 
+FILE="openssl-1.1.1m-x86_64-1.txz"
+URL="https://slackware.uk/slackware/slackware64-15.0/slackware64/n/${FILE}"
+NAME="openssl"
+if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
+    echo "-----------------------------------------------------------"
+    echo "Downloading $NAME..."
+    echo "-----------------------------------------------------------"
+    wget "$URL" -O "/boot/config/plugins/&name;/$FILE"
+fi
+if ! command -v $NAME > /dev/null; then
+    echo "-----------------------------------------------------------"
+    echo "Installing $NAME..."
+    echo "-----------------------------------------------------------"
+    installpkg "/boot/config/plugins/&name;/$FILE"
+fi
+
+
 FILE="rethinkdb-x86_64.txz"
 URL="https://github.com/bobbintb/rethinkdb_slackware/releases/latest/download/${FILE}"
 NAME="rethinkdb"
@@ -42,7 +59,7 @@ if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
     echo "-----------------------------------------------------------"
     wget "$URL" -O "/boot/config/plugins/&name;/$FILE"
 fi
-if ! command -v node > /dev/null; then
+if ! command -v $NAME > /dev/null; then
     echo "-----------------------------------------------------------"
     echo "Installing $NAME..."
     echo "-----------------------------------------------------------"

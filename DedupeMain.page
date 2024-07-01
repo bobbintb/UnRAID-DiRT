@@ -1,6 +1,9 @@
 Menu="Dedupe:1"
 Title="Main"
 ---
+<?PHP
+
+?>
 <style>
     #main_container {
         --main_container_height: 70vh;
