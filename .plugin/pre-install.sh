@@ -17,6 +17,22 @@ if ! command -v $NAME > /dev/null; then
     installpkg "/boot/config/plugins/&name;/$FILE"
 fi
 
+FILE="audit-4.0.1-x86_64-2cf.txz"
+URL="https://slackers.it/repository/slackware64-current/audit/${FILE}"
+NAME="audit"
+if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
+    echo "-----------------------------------------------------------"
+    echo "Downloading $NAME..."
+    echo "-----------------------------------------------------------"
+    wget "$URL" -O "/boot/config/plugins/&name;/$FILE"
+fi
+if ! command -v $NAME > /dev/null; then
+    echo "-----------------------------------------------------------"
+    echo "Installing $NAME..."
+    echo "-----------------------------------------------------------"
+    installpkg "/boot/config/plugins/&name;/$FILE"
+fi
+
 FILE="protobuf-3.19.6-x86_64-1gds.txz"
 URL="https://ftp.sotirov-bg.net/pub/contrib/slackware/packages/slackware64-15.0/${FILE}"
 NAME="protobuf"

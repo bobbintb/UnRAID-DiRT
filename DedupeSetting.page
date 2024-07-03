@@ -19,6 +19,17 @@ Title="Settings"
                     console.error('Error:', error);
                 });
         }
+
+        function test() {
+            axios.get(`<?php echo "http://".$_SERVER['SERVER_ADDR'].":3000";?>/test`)
+                .then(response => {
+                    console.log(response.data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
     </script>
       </div>
   <dl>
@@ -30,6 +41,7 @@ Title="Settings"
     <div style='height:10px; width:600px;' id='ttydContainer'>Scan not running.</div>
     <br>
     <button id="scan-button"  onclick="scan()">Begin scan </button>
+      <button id="test-button"  onclick="test()">Test </button>
   </dl>
   <dl>
   <font size='2'><span id='daemonStatus'>Daemon status: </span>

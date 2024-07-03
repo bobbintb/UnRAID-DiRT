@@ -8,17 +8,7 @@ import {Memory, Low} from 'lowdb'
 import path from "path";
 const app = express();
 import rethinkdbdash from 'rethinkdbdash';
-
-// Create a connection
-let r = rethinkdbdash({
-  servers: [
-    {
-      host: '192.168.1.2', // replace with your host
-      port: 28015 // replace with your port
-    }
-  ],
-  db: 'test' // replace with your database name
-});
+import {checkDatabaseExists} from "./javascript/rethink.js";
 
 async function processFiles(files) {
   for (const value of files.values()) {
@@ -27,10 +17,15 @@ async function processFiles(files) {
       for (const element of value) {
         paths.push(element.path[0]);
       }
+      console.debug(`Processing the following files: ${paths.map(path => path.join(...path)).join(', ')}`);
+
       const hashes = await hashFilesSequentially(paths);
       for (const element of value) {
+        console.debug("begin loop.")
         element.hash = hashes.get(path.join(...element.path[0]));
+        console.debug("end loop.")
       }
+      console.debug("Done processing files.")
     }
   }
 }
@@ -77,37 +72,44 @@ async function hashFilesSequentially(filePaths) {
         });
       }
     })));
-    console.debug("======================================")
-    console.debug(`Iteration ${++iteration}: ${Array.from(hashes, ([filePath, hash]) => `${filePath}: ${hash.digest('hex')}`).join(', ')}`);
-    console.debug("======================================")
+    process.stdout.moveCursor(0, -1) // up one line
+    process.stdout.clearLine(1) // from cursor to end
+
+    process.stdout.write('\r' + 'Iteration ' + `${++iteration}: ${Array.from(hashes, ([filePath, hash]) => `${filePath}: ${hash.digest('hex')}`).join(', ')}` + '\r');
   }
+  console.debug("Done hashing files.")
   return new Map(Array.from(hashes, ([filePath, hash]) => [filePath, hash.digest('hex')]));
 }
 
-async function saveMapToFile(map, filePath) {
+async function saveMapToFile(map, r) {
+  // lowdb
   const mapObject = Object.fromEntries(map);
-  const db = await JSONFilePreset(filePath, mapObject)
+  const db = await JSONFilePreset("files.json", mapObject)
   await db.write()
+
+  // rethinkdb
+  const filesArray = Array.from(map, ([key, value]) => ({key, ...value}));
+  await r.db('dedupe').table('files').insert(filesArray).run();
 }
 
 app.get("/scan", async () => {
   const db = new Low(new Memory(), {})
-  console.log(db);
+  //console.log(db);
+  const r = rethinkdbdash();
+  await checkDatabaseExists(r, 'dedupe');
   //const files = functions.getAllFiles(settings.include[0])
   const files = functions.getAllFiles('/mnt/user/downloads');
   //console.log('\x1b[1A' + '\x1b[20G' + 'done.');
   await processFiles(files);
   //console.log(files);
-  await saveMapToFile(files, "./files.json")
+  console.debug("Saving files to database.")
+  await saveMapToFile(files, r)
+  console.debug("Done saving files to database.")
 });
 
 app.get("/test", async () => {
-  let user = {
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    age: 30
-  };
-  await r.table('users').insert(user).run();
+  //const rdb = createConnection('192.168.1.2', 28015, 'test');
+  //await createDatabaseIfNotExists(rdb, 'dedupe');
 });
 
 if (!process.argv.includes('--debug')) {

@@ -1,25 +1,3 @@
-<FILE Name="/boot/config/plugins/&name;/&name;.json" Mode="0770">
-<INLINE>
-<![CDATA[
-{
-  "dbfile": "/mnt/cache",
-  "hardlinks": false,
-  "include": [
-    "/mnt/user/downloads",
-    "/mnt/user/server"
-  ],
-  "exclude": [
-    "/mnt/user/downloads",
-    "/mnt/user/server"
-  ]
-}
-]]>
-</INLINE>
-</FILE>
-
-<FILE Name="/etc/init.d/functions" Mode="0755">
-<INLINE>
-<![CDATA[
 # -*-Shell-script-*-
 #
 # functions This file contains functions to be used by most or all
@@ -716,6 +694,3 @@ fi
 
 strstr "$(cat /proc/cmdline)" "rc.debug" && set -x
 return 0
-]]>
-</INLINE>
-</FILE>
