@@ -1,4 +1,4 @@
-Menu="Dedupe:1"
+Menu="Dedupe:2"
 Title="Settings"
 ---
 <!--PHP begin-->
@@ -30,6 +30,16 @@ Title="Settings"
                 });
         }
 
+        function hash() {
+            axios.get(`<?php echo "http://".$_SERVER['SERVER_ADDR'].":3000";?>/hash`)
+                .then(response => {
+                    console.log(response.data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
     </script>
       </div>
   <dl>
@@ -42,6 +52,7 @@ Title="Settings"
     <br>
     <button id="scan-button"  onclick="scan()">Begin scan </button>
       <button id="test-button"  onclick="test()">Test </button>
+      <button id="hash-button"  onclick="hash()">Hash </button>
   </dl>
   <dl>
   <font size='2'><span id='daemonStatus'>Daemon status: </span>

@@ -9,6 +9,9 @@ import path from "path";
 const app = express();
 import rethinkdbdash from 'rethinkdbdash';
 import {checkDatabaseExists} from "./javascript/rethink.js";
+import * as xattrs from './javascript/xattrs.js';
+import {addDedupeHashAttribute} from "./javascript/xattrs.js";
+
 
 async function processFiles(files) {
   for (const value of files.values()) {
@@ -107,9 +110,8 @@ app.get("/scan", async () => {
   console.debug("Done saving files to database.")
 });
 
-app.get("/test", async () => {
-  //const rdb = createConnection('192.168.1.2', 28015, 'test');
-  //await createDatabaseIfNotExists(rdb, 'dedupe');
+app.get("/hash", async () => {
+  await addDedupeHashAttribute('/mnt/user/downloads/testfile.txt', 'test');
 });
 
 if (!process.argv.includes('--debug')) {
