@@ -1,16 +1,18 @@
-Menu="Dedupe:1"
-Title="Main"
+Menu="DiskUtilities"
+Title="Dedupe"
+Icon="fa-search-minus"
 ---
 <?PHP
 
 ?>
 <style>
     #main_container {
-        --main_container_height: 70vh;
+        --main_container_height: 65vh;
         //border:1px solid black;
         height: var(--main_container_height);
         display: flex;
         flex-direction: row;
+        margin-top: -30px;
     }
 
     .disabled {
@@ -30,15 +32,41 @@ Title="Main"
         min-width: 20%;
         max-width: 80%;
         overflow: auto;
-        margin-left: 10px;
+        //margin-left: 10px;
         margin-right: 5px;
+    }
+
+
+    #left.tabulator {
+        font-size: 12px;
     }
 
     #right {
         //border:1px solid blue;
         flex: 1;
         margin-left: 5px;
-        margin-right: 10px;
+        //margin-right: 10px;
+    }
+
+    #bottom_container {
+        --bottom_container_height: 10vh;
+    //border:1px solid black;
+        height: var(--bottom_container_height);
+        display: flex;
+        flex-direction: row;
+    }
+    #bleft {
+        border:1px solid red;
+        resize: horizontal;
+        overflow: auto;
+        width: 70%;
+    }
+
+    #bright {
+    border:1px solid blue;
+        flex: 1;
+        margin-left: 5px;
+    //margin-right: 10px;
     }
 </style>
 
@@ -46,14 +74,28 @@ Title="Main"
 <script src="https://cdn.jsdelivr.net/npm/luxon/build/global/luxon.min.js"></script>
 
 <script>
-    console.log("test");
-    <?php $db = file_get_contents('./plugins/bobbintb.system.dedupe/files.json');?>
-    const db = <?php echo $db; ?>;
-    const tableData = Object.values(db).reduce((acc, val) => acc.concat(val), []);
+    <?php
+    $DBfilename = './plugins/bobbintb.system.dedupe/files.json';
+
+    if (file_exists($DBfilename)) {
+        $db = file_get_contents($DBfilename);
+        echo "const db = " . $db . ";";
+        echo "const tableData = Object.values(db).reduce((acc, val) => acc.concat(val), []);";
+
+    } else {
+        echo "const tableData = []);";
+    }
+    ?>
+
 
 </script>
 <div id="main_container">
         <link href="https://unpkg.com/tabulator-tables@6.2.1/dist/css/tabulator.min.css" rel="stylesheet">
         <div id="left"><?php include './plugins/bobbintb.system.dedupe/php/left.php'; ?></div>
         <div id="right"><?php include './plugins/bobbintb.system.dedupe/php/right.php'; ?></div>
+
+</div>
+<div id="bottom_container">
+<div id="bleft"></div>
+<div id="bright"></div>
 </div>
