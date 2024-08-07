@@ -17,6 +17,17 @@
 </INLINE>
 </FILE>
 
+<FILE Name="/etc/audit/plugins.d/dedupe.conf" Mode="0770">
+<INLINE>
+<![CDATA[
+active = yes
+path = /usr/bin/node
+type = always
+args = /usr/local/emhttp/plugins/&name;/process_audit_event.sh
+]]>
+</INLINE>
+</FILE>
+
 <FILE Name="/etc/init.d/functions" Mode="0755">
 <INLINE>
 <![CDATA[

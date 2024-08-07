@@ -2,111 +2,121 @@ Menu="Utilities"
 Title="Dedupe"
 Icon="fa-search-minus"
 ---
-<!--PHP begin-->
-<div>
-    <?
-    switch ($display['theme']) {
-        case 'gray' : $bgcolor = '#121510'; $border = '#606e7f'; $top = -44; break;
-        case 'azure': $bgcolor = '#edeaef'; $border = '#606e7f'; $top = -44; break;
-        case 'black': $bgcolor = '#212121'; $border = '#2b2b2b'; $top = -58; break;
-        default     : $bgcolor = '#ededed'; $border = '#e3e3e3'; $top = -58; break;
-    }
-    ?>
+<?
+$docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
+require_once "$docroot/plugins/dynamix.vm.manager/include/libvirt_helpers.php";
 
-    <link type="text/css" rel="stylesheet" href="<?autov('/plugins/dynamix.vm.manager/styles/dynamix.vm.manager.css')?>">
-    <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>">
-    <link type="text/css" rel="stylesheet" href="<?autov('/plugins//dynamix.vm.manager/sheets/UpdateVM.css')?>">
+switch ($display['theme']) {
+    case 'gray' : $bgcolor = '#121510'; $border = '#606e7f'; $top = -44; break;
+    case 'azure': $bgcolor = '#edeaef'; $border = '#606e7f'; $top = -44; break;
+    case 'black': $bgcolor = '#212121'; $border = '#2b2b2b'; $top = -58; break;
+    default     : $bgcolor = '#ededed'; $border = '#e3e3e3'; $top = -58; break;
+}
 
-    <style>
-        .fileTree{background:<?=$bgcolor?>;width:300px;max-height:150px;overflow-y:scroll;overflow-x:hidden;position:relative;z-index:100;display:none}
-        #vmform table tr td:nth-child(odd){width:150px;text-align:right}
-        #sb-wrapper {width: 500px !important;position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important;}
-        #sb-wrapper-inner {height: 400px !important}
-        html > body > div > div > div.xterm-viewport {overflow: auto !important;}
-    </style>
 
-    <div class="domain">
-        <form id="vmform" method="POST">
-            <div id="form_content"><?
+function loadConfig() {
+    $jsonData = file_get_contents("./plugins/bobbintb.system.dedupe/bobbintb.system.dedupe.json");
+    return json_decode($jsonData, true);
+}
 
-                $arrConfig = [
-                    'shares' => [
-                        [
-                            'source' => ''
-                        ]
-                    ]
-                ];
-                ?>
-            </div>
+$configArray = loadConfig();
 
+
+?>
+
+<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>">
+<link type="text/css" rel="stylesheet" href="<?autov('/plugins/dynamix.vm.manager/sheets/UpdateVM.css')?>">
+<style>
+    .fileTree{background:<?= $bgcolor ?>;width:300px;max-height:150px;overflow-y:scroll;overflow-x:hidden;position:relative;z-index:100;display:none}
+    #vmform table tr td:nth-child(odd){width:150px;text-align:right}
+    #sb-wrapper {width: 500px !important;position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important;}
+    #sb-wrapper-inner {height: 400px !important}
+</style>
+<div class="domain">
+    <form id="vmform" method="POST">
+        <div id="form_content">
+            <dl>
             <div class="formview">
                 <?
-                foreach ($arrConfig['shares'] as $i => $arrShare) {
+                foreach ($configArray['include'] as $i => $arrShare) {
                     $strLabel = ($i > 0) ? appendOrdinalSuffix($i + 1) : '';
                     ?>
-                    <table data-category="Share" data-multiple="true" data-minimum="1" data-index="<?=$i?>" data-prefix="<?=$strLabel?>">
-                        <tr class="advanced">
+                    <table  data-category="Monitor" data-multiple="true" data-minimum="1" data-index="<?= $i ?>" data-prefix="<?= $strLabel ?>">
+                        <tr>
                             <td>
-                                <text id="shares[<?=$i?>]sourcetext" > _(Monitor Path)_: </text>
+                                <text id="monitor[<?= $i ?>]" > _(Monitor Path)_: </text>
                             </td>
                             <td>
-                                <input type="text" id="shares[<?=$i?>][source]" name="shares[<?=$i?>][source]" autocomplete="off" data-pickfolders="true" data-pickfilter="NO_FILES_FILTER" data-pickroot="/mnt/" value="<?=htmlspecialchars($arrShare['source'])?>" placeholder="_(e.g.)_ /mnt/user/..." title="_(path to monitor)_" />
+                                <input type="text" id="monitor[<?= $i ?>]" name="monitor[<?= $i ?>]" autocomplete="off" data-pickfolders="true" data-pickfilter="NO_FILES_FILTER" data-pickroot="/mnt/" value="<?= htmlspecialchars(
+                                    $arrShare
+                                ) ?>" placeholder="_(e.g.)_ /mnt/user/..." title="_(path to monitor)_" />
                             </td>
                         </tr>
                     </table>
                 <?}?>
-                <script type="text/html" id="tmplShare">
+                <script type="text/html" id="tmplMonitor">
                     <table>
-                        <tr class="advanced">
+                        <tr>
                             <td>_(Monitor Path)_:</td>
                             <td>
-                                <input type="text" name="shares[{{INDEX}}][source]" id="shares[{{INDEX}}][source]" autocomplete="off" spellcheck="false" data-pickfolders="true" data-pickfilter="NO_FILES_FILTER" data-pickroot="/mnt/" value="" placeholder="_(e.g.)_ /mnt/user/..." title="_(path to monitor)_" />
+                                <input type="text" name="monitor[{{INDEX}}]" id="monitor[{{INDEX}}]" autocomplete="off" spellcheck="false" data-pickfolders="true" data-pickfilter="NO_FILES_FILTER" data-pickroot="/mnt/" value="" placeholder="_(e.g.)_ /mnt/user/..." title="_(path to monitor)_" />
                             </td>
                         </tr>
                     </table>
                 </script>
-
-                <script src="<?autov('/webGui/javascript/jquery.filedrop.js')?>"></script>
-                <script src="<?autov('/webGui/javascript/jquery.filetree.js')?>" charset="utf-8"></script>
-                <script src="<?autov('/plugins/dynamix.vm.manager/javascript/dynamix.vm.manager.js')?>"></script>
-                <script type="text/javascript">
-
-                    function isVMAdvancedMode() {
-                        return true;
-                    }
-
-                    $(function() {
-                        $("#vmform table[data-category]").each(function () {
-                            var category = $(this).data('category');
-                            updatePrefixLabels(category);
-                            bindSectionEvents(category);
-                        });
-
-                        $("#vmform input[data-pickroot]").fileTreeAttach();
-
-                        var $el = $('#form_content');
-                        var $xmlview = $el.find('.xmlview');
-                        var $formview = $el.find('.formview');
-
-
-                        $("#vmform #btnCancel").click(function (){
-                            done();
-                        });
-
-                        $('#form_content').fadeIn('fast');
-                    });
-                </script>
+                <input type="hidden" name="updatevm" value="1" />
+                <button type="submit" id="save-button" disabled="true">Save</button>
             </div>
-        </form>
-    </div>
+            </dl>
+        </div>
+    </form>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="<?autov('/webGui/javascript/jquery.filedrop.js')?>"></script>
+<script src="<?autov('/webGui/javascript/jquery.filetree.js')?>" charset="utf-8"></script>
+<script src="<?autov('/plugins/dynamix.vm.manager/javascript/dynamix.vm.manager.js')?>"></script>
+<script type="text/javascript">
+    $("#vmform .formview #save-button").click(function frmSubmit() {
+        const monitorInputs = document.querySelectorAll('input[name^="monitor["]');
+        const monitorPaths = Array.from(monitorInputs).map(input => input.value);
+        const oldPaths = JSON.parse('<?php echo json_encode($configArray['include']); ?>');
+        const removedPaths = oldPaths.filter(path => !monitorPaths.includes(path));
+        const addedPaths = monitorPaths.filter(path => !oldPaths.includes(path));
 
+
+
+        $.post('/plugins/bobbintb.system.dedupe/php/config.php', JSON.stringify({ include: monitorPaths }), function(data) {
+            console.log('Server response:', data);
+        }, 'json')
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                console.error('Error:', textStatus, errorThrown);
+            });
+    });
+
+    function isVMAdvancedMode() {
+        return true;
+    }
+
+    $(function() {
+        $("#vmform table[data-category]").each(function () {
+            var category = $(this).data('category');
+            updatePrefixLabels(category);
+            bindSectionEvents(category);
+        });
+
+        $("#vmform input[data-pickroot]").fileTreeAttach();
+        var $el = $('#form_content');
+        $('#form_content').fadeIn('fast');
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<div>
     <script>
         function scan() {
-            axios.get(`<?php echo "http://".$_SERVER['SERVER_ADDR'].":3000";?>/scan`)
-                .then(response => {
-                    console.log(response.data);
+            fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/scan`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -114,9 +124,10 @@ Icon="fa-search-minus"
         }
 
         function test() {
-            axios.get(`<?php echo "http://".$_SERVER['SERVER_ADDR'].":3000";?>/test`)
-                .then(response => {
-                    console.log(response.data);
+            fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/test`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -124,38 +135,64 @@ Icon="fa-search-minus"
         }
 
         function hash() {
-            axios.get(`<?php echo "http://".$_SERVER['SERVER_ADDR'].":3000";?>/hash`)
-                .then(response => {
-                    console.log(response.data);
+            fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/hash`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
                 })
                 .catch(error => {
                     console.error('Error:', error);
                 });
         }
 
+        document.addEventListener('DOMContentLoaded', function() {
+            const saveButton = document.getElementById('save-button');
+            const form = document.getElementById('vmform');
+            function attachInputListeners() {
+                const formInputs = document.querySelectorAll('#vmform input');
+                formInputs.forEach(input => {
+                    input.addEventListener('input', function() {
+                        saveButton.disabled = false;
+                    });
+                });
+            }
+            attachInputListeners();
+            const observer = new MutationObserver(function(mutationsList) {
+                for (let mutation of mutationsList) {
+                    if (mutation.type === 'childList') {
+                        attachInputListeners();
+                        const addedNodes = Array.from(mutation.addedNodes);
+                        const removedNodes = Array.from(mutation.removedNodes);
+                        if (addedNodes.some(node => node.tagName === 'TABLE') || removedNodes.some(node => node.tagName === 'TABLE')) {
+                            saveButton.disabled = false;
+                        }
+                    }
+                }
+            });
+            observer.observe(form, { childList: true, subtree: true });
+        });
     </script>
-      </div>
-  <dl>
-    <button id="delete-db"  onclick="deleteDB()">Delete database </button>
-    <div class="title">
+    <dl>
+
+        <button id="delete-db" onclick="deleteDB()">Delete database</button>
+        <div class="title">
       <span class="left">
         <i class="fa fa-search icon"></i>_(Scan)_</span>
-    </div>
-    <div style='height:10px; width:600px;' id='ttydContainer'>Scan not running.</div>
-    <br>
-    <button id="scan-button"  onclick="scan()">Begin scan </button>
-      <button id="test-button"  onclick="test()">Test </button>
-      <button id="hash-button"  onclick="hash()">Hash </button>
-  </dl>
-  <dl>
-  <font size='2'><span id='daemonStatus'>Daemon status: </span>
-  </font>
-  <!--
-  <div style="border: 1px solid white; height: 300px; width: 25vw; overflow: auto; white-space: pre-wrap;" id="daemonLines"></div>
-  -->
-  <br>
-  <button id="daemon" onclick="daemon()"></button>
-  </dl>
-
+        </div>
+        <div style='height:10px; width:600px;' id='ttydContainer'>Scan not running.</div>
+        <br>
+        <button id="scan-button" onclick="scan()">Begin scan</button>
+        <button id="test-button" onclick="test()">Test</button>
+        <button id="hash-button" onclick="hash()">Hash</button>
+    </dl>
+    <dl>
+        <font size='2'><span id='daemonStatus'>Daemon status: </span>
+        </font>
+        <!--
+        <div style="border: 1px solid white; height: 300px; width: 25vw; overflow: auto; white-space: pre-wrap;" id="daemonLines"></div>
+        -->
+        <br>
+        <button id="daemon" onclick="daemon()"></button>
+    </dl>
 </div>
 
