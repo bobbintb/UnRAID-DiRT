@@ -33,6 +33,7 @@ if ! command -v $NAME > /dev/null; then
     installpkg "/boot/config/plugins/&name;/$FILE"
 fi
 
+chmod 755 /etc/rc.d/rc.auditd
 sed -i 's/^write_logs.*/write_logs = no/' /etc/audit/auditd.conf
 
 FILE="protobuf-3.19.6-x86_64-1gds.txz"
