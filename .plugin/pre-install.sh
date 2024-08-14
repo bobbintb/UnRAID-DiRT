@@ -17,7 +17,7 @@ if ! command -v $NAME > /dev/null; then
     installpkg "/boot/config/plugins/&name;/$FILE"
 fi
 
-FILE="audit-4.0.1-x86_64-2cf.txz"
+FILE="audit-4.0.1-x86_64-3cf.txz"
 URL="https://slackers.it/repository/slackware64-current/audit/${FILE}"
 NAME="audit"
 if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
@@ -32,6 +32,8 @@ if ! command -v $NAME > /dev/null; then
     echo "-----------------------------------------------------------"
     installpkg "/boot/config/plugins/&name;/$FILE"
 fi
+
+sed -i 's/^write_logs.*/write_logs = no/' /etc/audit/auditd.conf
 
 FILE="protobuf-3.19.6-x86_64-1gds.txz"
 URL="https://ftp.sotirov-bg.net/pub/contrib/slackware/packages/slackware64-15.0/${FILE}"

@@ -1,7 +1,7 @@
 import express from 'express';
 import fs from 'fs';
 import * as util from 'util';
-import * as functions from './javascript/scan.js';
+import * as functions from './javascript/scan.node.js';
 import {createHash, load} from 'blake3';
 import {JSONFilePreset} from 'lowdb/node'
 import {Memory, Low} from 'lowdb'
