@@ -1,12 +1,61 @@
-import fs from 'fs';
-const outputFile = '/usr/local/emhttp/plugins/bobbintb.system.dedupe/file.log';
-const writeStream = fs.createWriteStream(outputFile, { flags: 'a' });
+#!/usr/bin/node
 
-process.stdin.on("data", data => {
-    data = data.toString()
-    writeStream.write(data + "\n");
+import * as redisHelpers from "./javascript/redisHelpers.js"
+import * as readline from "node:readline";
+
+const rl = readline.createInterface({
+    input: process.stdin,
+    terminal: false
 });
 
-process.stdin.on('end', () => {
-    writeStream.end();
+rl.on('line', (line) => {
+    try {
+        const data = JSON.parse(line);
+        switch (data.SYSCALL.SYSCALL) {
+            // make sure it doesn't run when deleting a folder
+            case 'unlinkat':
+
+                unlinkatEvent(data);
+                break;
+            case 'renameat':
+                renameatEvent(data);
+                break;
+            default:
+                handleUnknownEvent(data);
+                break;
+        }
+    } catch (error) {
+        handleError(line);
+    }
 });
+
+function unlinkatEvent(data) {
+    if (isNotDirectory(data.PATH[1].mode)) {
+        redisHelpers.queueDeleteFile(data.PATH[1].name)
+    }
+}
+
+function renameatEvent(data) {
+    // If this is a one event rename
+    if (data.ID === data.SYSCALL.PID.EVENT_ID) {
+        let src = data.PATH[2].name
+        let dest = data.PATH[3].name
+        redisHelpers.queueMoveFile(src,dest)
+    } else {
+        // It's a two event rename, using openat because the dest is a dir and not a file
+        let src = data.PATH[2].name
+        let dest = path.join(data.PROCTITLE.ARGV[2], data.PATH[3].name)
+        redisHelpers.queueMoveFile(src,dest)
+    }
+
+}
+
+function handleUnknownEvent(data) {}
+
+function handleError(line) {}
+
+function isNotDirectory(mode) {
+    const modeNumber = Number(mode);
+    const isDirectory = (modeNumber & 0o40000) === 0o40000;
+    return !isDirectory;
+}
