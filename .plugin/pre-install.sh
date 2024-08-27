@@ -62,7 +62,7 @@ if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
     echo "-----------------------------------------------------------"
     wget "$URL" -O "/boot/config/plugins/&name;/$FILE"
 fi
-if [ -f /usr/lib64/libcrypto.so.1.1 ] >/dev/null 2>&1; then
+if [ ! -f /usr/lib64/libcrypto.so.1.1 ] >/dev/null 2>&1; then
     echo "-----------------------------------------------------------"
     echo "Installing $NAME..."
     echo "-----------------------------------------------------------"
@@ -84,6 +84,24 @@ if ! command -v $NAME >/dev/null 2>&1; then
     echo "Installing $NAME..."
     echo "-----------------------------------------------------------"
     installpkg "/boot/config/plugins/&name;/$FILE"
+fi
+
+FILE="laurel-v0.6.3-x86_64-glibc.tar.gz"
+https://github.com/bobbintb/laurel/archive/refs/tags/v0.6.3.zip
+URL="https://github.com/threathunters-io/laurel/releases/download/v0.6.3/${FILE}"
+NAME="laurel"
+if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
+    echo "-----------------------------------------------------------"
+    echo "Downloading $NAME..."
+    echo "-----------------------------------------------------------"
+    wget "$URL" -O "/boot/config/plugins/&name;/$FILE"
+fi
+if ! command -v $NAME >/dev/null 2>&1; then
+    echo "-----------------------------------------------------------"
+    echo "Installing $NAME..."
+    echo "-----------------------------------------------------------"
+    tar xzf "/boot/config/plugins/&name;/$FILE" /tmp/laurel
+    install -m755 /tmp/laurel /usr/local/sbin/laurel
 fi
 
 echo "Done."

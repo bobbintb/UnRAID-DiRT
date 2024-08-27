@@ -12,10 +12,11 @@ rl.on('line', (line) => {
     try {
         const data = JSON.parse(line);
         switch (data.SYSCALL.SYSCALL) {
-            // make sure it doesn't run when deleting a folder
             case 'unlinkat':
-
                 unlinkatEvent(data);
+                break;
+            case 'creat':
+                creatEvent(data);
                 break;
             case 'renameat':
                 renameatEvent(data);
@@ -30,6 +31,12 @@ rl.on('line', (line) => {
 });
 
 function unlinkatEvent(data) {
+    if (isNotDirectory(data.PATH[1].mode)) {
+        redisHelpers.queueDeleteFile(data.PATH[1].name)
+    }
+}
+
+function creatEvent(data) {
     if (isNotDirectory(data.PATH[1].mode)) {
         redisHelpers.queueDeleteFile(data.PATH[1].name)
     }
