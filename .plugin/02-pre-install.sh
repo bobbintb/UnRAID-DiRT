@@ -78,7 +78,8 @@ if ! command -v $NAME >/dev/null 2>&amp;1; then
     echo "-----------------------------------------------------------"
     echo "Installing $NAME..."
     echo "-----------------------------------------------------------"
-    tar xzf "/boot/config/plugins/&name;/$FILE" -C "/boot/config/plugins/&name;/" laurel && rm "/boot/config/plugins/&name;/$FILE"
+    tar xzf "/boot/config/plugins/&name;/$FILE" -C "/boot/config/plugins/&name;/" laurel
+    rm "/boot/config/plugins/&name;/$FILE"
     install -m755 "/boot/config/plugins/&name;/laurel" /usr/local/sbin/laurel
 fi
 
