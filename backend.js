@@ -1,16 +1,12 @@
 import express from 'express';
 import fs from 'fs';
 import * as util from 'util';
-import * as functions from './javascript/scan.node.js';
+import * as functions from './javascript/scan.js';
 import {createHash, load} from 'blake3';
 import {JSONFilePreset} from 'lowdb/node'
 import {Memory, Low} from 'lowdb'
 import path from "path";
 const app = express();
-import rethinkdbdash from 'rethinkdbdash';
-import {checkDatabaseExists} from "./javascript/rethink.js";
-import * as xattrs from './javascript/xattrs.js';
-import {addDedupeHashAttribute} from "./javascript/xattrs.js";
 
 
 async function processFiles(files) {
@@ -96,23 +92,15 @@ async function saveMapToFile(map, r) {
 }
 
 app.get("/scan", async () => {
-  const db = new Low(new Memory(), {})
   //console.log(db);
-  const r = rethinkdbdash();
-  await checkDatabaseExists(r, 'dedupe');
   //const files = functions.getAllFiles(settings.include[0])
-  const files = functions.getAllFiles('/mnt/user/downloads');
+  functions.getAllFiles('/mnt/user/downloads');
   //console.log('\x1b[1A' + '\x1b[20G' + 'done.');
-  await processFiles(files);
   //console.log(files);
   console.debug("Saving files to database.")
-  await saveMapToFile(files, r)
   console.debug("Done saving files to database.")
 });
 
-app.get("/hash", async () => {
-  await addDedupeHashAttribute('/mnt/user/downloads/testfile.txt', 'test');
-});
 
 if (!process.argv.includes('--debug')) {
   console.debug = function() {}

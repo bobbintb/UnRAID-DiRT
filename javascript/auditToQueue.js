@@ -32,13 +32,13 @@ rl.on('line', (line) => {
 
 function unlinkatEvent(data) {
     if (isNotDirectory(data.PATH[1].mode)) {
-        redisHelpers.queueDeleteFile(data.PATH[1].name)
+        redisHelpers.enqueueDeleteFile(data.PATH[1].name)
     }
 }
 
 function creatEvent(data) {
     if (isNotDirectory(data.PATH[1].mode)) {
-        redisHelpers.queueDeleteFile(data.PATH[1].name)
+        redisHelpers.enqueueDeleteFile(data.PATH[1].name)
     }
 }
 
@@ -47,12 +47,12 @@ function renameatEvent(data) {
     if (data.ID === data.SYSCALL.PID.EVENT_ID) {
         let src = data.PATH[2].name
         let dest = data.PATH[3].name
-        redisHelpers.queueMoveFile(src,dest)
+        redisHelpers.enqueueMoveFile(src,dest)
     } else {
         // It's a two event rename, using openat because the dest is a dir and not a file
         let src = data.PATH[2].name
         let dest = path.join(data.PROCTITLE.ARGV[2], data.PATH[3].name)
-        redisHelpers.queueMoveFile(src,dest)
+        redisHelpers.enqueueMoveFile(src,dest)
     }
 
 }

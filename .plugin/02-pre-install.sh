@@ -33,10 +33,6 @@ if ! command -v $NAME >/dev/null 2>&1; then
     installpkg "/boot/config/plugins/&name;/$FILE"
 fi
 
-chmod 755 /etc/rc.d/rc.auditd
-ln -s /etc/rc.d/rc.auditd /usr/bin/rc.auditd
-sed -i 's/^write_logs.*/write_logs = no/' /etc/audit/auditd.conf
-
 FILE="protobuf-3.19.6-x86_64-1gds.txz"
 URL="https://ftp.sotirov-bg.net/pub/contrib/slackware/packages/slackware64-15.0/${FILE}"
 NAME="protobuf"
@@ -69,25 +65,7 @@ if [ ! -f /usr/lib64/libcrypto.so.1.1 ] >/dev/null 2>&1; then
     installpkg "/boot/config/plugins/&name;/$FILE"
 fi
 
-
-FILE="rethinkdb-x86_64.txz"
-URL="https://github.com/bobbintb/rethinkdb_slackware/releases/latest/download/${FILE}"
-NAME="rethinkdb"
-if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
-    echo "-----------------------------------------------------------"
-    echo "Downloading $NAME..."
-    echo "-----------------------------------------------------------"
-    wget "$URL" -O "/boot/config/plugins/&name;/$FILE"
-fi
-if ! command -v $NAME >/dev/null 2>&1; then
-    echo "-----------------------------------------------------------"
-    echo "Installing $NAME..."
-    echo "-----------------------------------------------------------"
-    installpkg "/boot/config/plugins/&name;/$FILE"
-fi
-
 FILE="laurel-v0.6.3-x86_64-glibc.tar.gz"
-https://github.com/bobbintb/laurel/archive/refs/tags/v0.6.3.zip
 URL="https://github.com/threathunters-io/laurel/releases/download/v0.6.3/${FILE}"
 NAME="laurel"
 if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
@@ -100,8 +78,8 @@ if ! command -v $NAME >/dev/null 2>&1; then
     echo "-----------------------------------------------------------"
     echo "Installing $NAME..."
     echo "-----------------------------------------------------------"
-    tar xzf "/boot/config/plugins/&name;/$FILE" /tmp/laurel
-    install -m755 /tmp/laurel /usr/local/sbin/laurel
+    tar xzf "/boot/config/plugins/&name;/$FILE" -C "/boot/config/plugins/&name;/" laurel && rm "/boot/config/plugins/&name;/$FILE"
+    install -m755 "/boot/config/plugins/&name;/laurel" /usr/local/sbin/laurel
 fi
 
 echo "Done."

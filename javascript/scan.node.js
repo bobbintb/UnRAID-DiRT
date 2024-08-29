@@ -4,7 +4,6 @@ import fs from 'fs';
 import MultiMap from 'multimap';
 import { nanoid } from 'nanoid';
 
-
 export function getSettings() {
   const filePath = plugin + '.json';
   try {
