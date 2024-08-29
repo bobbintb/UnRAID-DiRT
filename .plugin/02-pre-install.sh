@@ -10,7 +10,7 @@ if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
     echo "-----------------------------------------------------------"
     wget "$URL" -O "/boot/config/plugins/&name;/$FILE"
 fi
-if ! command -v $NAME >/dev/null 2>&1; then
+if ! command -v $NAME >/dev/null 2>&amp;1; then
     echo "-----------------------------------------------------------"
     echo "Installing $NAME..."
     echo "-----------------------------------------------------------"
@@ -26,7 +26,7 @@ if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
     echo "-----------------------------------------------------------"
     wget "$URL" -O "/boot/config/plugins/&name;/$FILE"
 fi
-if ! command -v $NAME >/dev/null 2>&1; then
+if ! command -v $NAME >/dev/null 2>&amp;1; then
     echo "-----------------------------------------------------------"
     echo "Installing $NAME..."
     echo "-----------------------------------------------------------"
@@ -42,7 +42,7 @@ if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
     echo "-----------------------------------------------------------"
     wget "$URL" -O "/boot/config/plugins/&name;/$FILE"
 fi
-if ! command -v $NAME >/dev/null 2>&1; then
+if ! command -v $NAME >/dev/null 2>&amp;1; then
     echo "-----------------------------------------------------------"
     echo "Installing $NAME..."
     echo "-----------------------------------------------------------"
@@ -58,7 +58,7 @@ if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
     echo "-----------------------------------------------------------"
     wget "$URL" -O "/boot/config/plugins/&name;/$FILE"
 fi
-if [ ! -f /usr/lib64/libcrypto.so.1.1 ] >/dev/null 2>&1; then
+if [ ! -f /usr/lib64/libcrypto.so.1.1 ] >/dev/null 2>&amp;1; then
     echo "-----------------------------------------------------------"
     echo "Installing $NAME..."
     echo "-----------------------------------------------------------"
@@ -74,7 +74,7 @@ if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
     echo "-----------------------------------------------------------"
     wget "$URL" -O "/boot/config/plugins/&name;/$FILE"
 fi
-if ! command -v $NAME >/dev/null 2>&1; then
+if ! command -v $NAME >/dev/null 2>&amp;1; then
     echo "-----------------------------------------------------------"
     echo "Installing $NAME..."
     echo "-----------------------------------------------------------"
