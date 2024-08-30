@@ -17,7 +17,7 @@ if ! command -v $NAME >/dev/null 2>&amp;1; then
     installpkg "/boot/config/plugins/&name;/$FILE"
 fi
 
-FILE="audit-4.0.1-x86_64-3cf.txz"
+FILE="audit-4.0.1-x86_64-4cf.txz"
 URL="https://slackers.it/repository/slackware64-current/audit/${FILE}"
 NAME="audit"
 if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
