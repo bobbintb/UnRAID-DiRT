@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
-import {nanoid} from "nanoid";
-import {enqueueCreateFile} from "./redisHelpers.js";
+import {enqueueCreateFile} from "./queueListener.js";
 const plugin = 'bobbintb.system.dedupe';
 
 export function getSettings() {

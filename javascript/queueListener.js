@@ -4,19 +4,19 @@ import Queue from 'bee-queue';
 import {processFiles} from "./addFile.js";
 
 
-export const queue = new Queue('dedupe', {
+export const queue = new Queue('queue', {
     redis: {
         host: '127.0.0.1',
         port: 6379,
         db: 0,
         options: {},
     },
+    prefix: 'dedupe',
     removeOnSuccess: true
 });
 
-const data = new Redis({ db: 1 });
-const index = new Redis({ db: 2 });
-
+const redis = new Redis();
+const sizeIndex = 'bq:indicies:sizeIndex'
 export function enqueueDeleteFile(src) {
     const jobData = {
         task: 'delete',
@@ -44,6 +44,7 @@ export function enqueueMoveFile(src, dest) {
 
 
 async function dequeueCreateFile(file) {
+    const pipeline = redis.pipeline();
     const stats = fs.statSync(file, {bigint: true});
     const fileInfo = {
         path: file,
@@ -55,9 +56,9 @@ async function dequeueCreateFile(file) {
         ctimeMs: Number(stats.ctimeMs),
         birthtimeMs: Number(stats.birthtimeMs)
     };
-    const sameSize = await index.zrange("sortedSet", stats.size, stats.size, "BYSCORE");
+    const sameSize = await redis.zrange(sizeIndex, stats.size, stats.size, "BYSCORE");
     if (sameSize.length > 0) {
-        sameSize.push(file)
+        sameSize.unshift(file)
         console.debug('files of the same size')
         console.debug(sameSize)
         console.debug('processing for dupes')
@@ -65,24 +66,42 @@ async function dequeueCreateFile(file) {
         if (results.length > 0) {
             fileInfo.hash = results[0].hash;
             console.debug('*********')
-            console.debug(results[0].hash)
             console.debug(results[0].file)
+            console.debug(results[0].hash)
             console.debug('*********')
-            for (const { file, hash } of results.slice(1)) {
-                console.debug(file)
-                console.debug(hash)
-                await data.hset(file, 'hash', hash);
+            for (const result of results.slice(1)) {
+                console.debug(result.file);
+                console.debug(result.hash);
+                pipeline.hset(result.file, 'hash', result.hash);
             }
+
             console.debug(results)
             console.debug('+++++++++++++++++++++++++++++++++++++++++++++++++++++')
         }
     }
     console.debug(fileInfo)
-
-    await data.hset(file, fileInfo);
-    await index.zadd("sortedSet", stats.size, file);
+    // What if the file changes size? What does that do to the index?
+    pipeline.hset(file, fileInfo);
+    pipeline.zadd(sizeIndex, stats.size, file);
+    await pipeline.exec();
 }
 
+
+async function dequeueDeleteFile(file) {
+    const pipeline = redis.pipeline();
+
+    pipeline.del(file);
+    pipeline.zrem(sizeIndex, ...file);
+    await pipeline.exec();
+}
+
+async function dequeueMoveFile(src, dest) {
+    const pipeline = redis.pipeline();
+    const score = await redis.zscore(sizeIndex, src);
+    pipeline.zrem(sizeIndex, ...src);
+    pipeline.zadd(sizeIndex, score, dest);
+    await pipeline.exec();
+}
 
 queue.process(async (job) => {
     switch (job.data.task) {
@@ -90,8 +109,10 @@ queue.process(async (job) => {
             await dequeueCreateFile(job.data.src)
             break;
         case 'move':
+            await dequeueMoveFile(job.data.src, job.data.dest)
             break;
         case 'delete':
+            await dequeueDeleteFile(job.data.src)
             break;
     }
     return job.data.x + job.data.y;
