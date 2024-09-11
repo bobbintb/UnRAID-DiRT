@@ -2,7 +2,7 @@ import { createHash, load } from 'blake3';
 import { open } from 'node:fs/promises';
 import path from 'path';
 
-const CHUNK_SIZE = 1024 * 1024; // 1MB
+const CHUNK_SIZE = 1048576; // 1MB
 
 async function hashFileChunk(fileHandle, hash, offset, filePath) {
     try {

@@ -99,5 +99,21 @@ if ! command -v $NAME >/dev/null 2>&amp;1; then
     installpkg "/boot/config/plugins/&name;/$FILE"
 fi
 
+FILE="redisearch.so"
+URL="https://github.com/bobbintb/Slackware_Packages/raw/main/redisearch/2.10.7/${FILE}"
+NAME="redisearch"
+if [ ! -f "/boot/config/plugins/&name;/$FILE" ]; then
+    echo "-----------------------------------------------------------"
+    echo "Downloading $NAME..."
+    echo "-----------------------------------------------------------"
+    wget "$URL" -O "/boot/config/plugins/&name;/$FILE"
+fi
+if [ ! -f /opt/keydb/lib/$FILE ] >/dev/null 2>&amp;1; then
+    echo "-----------------------------------------------------------"
+    echo "Installing $NAME..."
+    echo "-----------------------------------------------------------"
+    cp "/boot/config/plugins/&name;/$FILE" /opt/keydb/lib/
+fi
+sed -i '54 i\loadmodule /opt/keydb/lib/redisearch.so' /etc/keydb/keydb.conf
 
 echo "Done."

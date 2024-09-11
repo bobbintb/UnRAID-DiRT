@@ -1,11 +1,12 @@
 <script>
     // maybe rewrite this to use lowdb find commands
-    function findObjectsWithMatchingHash() {
+    function findObjectsWithMatchingHash(redisData) {
         const result = [];
-        Object.keys(db)
-            .filter(key => Array.isArray(db[key]))
+        console.error(redisData);
+        Object.keys(redisData)
+            .filter(key => Array.isArray(redisData[key]))
             .forEach(key => {
-                const array = db[key];
+                const array = redisData[key];
                 array.forEach(obj => {
                     if (array.some(otherObj => otherObj !== obj && otherObj.hash === obj.hash)) {
                         obj.path = obj.path.map(innerArray => innerArray.join('/'))
@@ -52,7 +53,7 @@
         }
     }
 
-    const matchingObjects = findObjectsWithMatchingHash();
+    const matchingObjects = findObjectsWithMatchingHash(redisData);
     let totalSum = 0;
     matchingObjects.forEach(row => {
         totalSum += row.size;
