@@ -2,6 +2,8 @@ echo "-----------------------------------------------------------"
 echo "Checking dependencies..."
 echo "-----------------------------------------------------------"
 
+PLUGIN_NAME="bobbintb.system.dedupe"
+
 # The first three arguments MUST be supplied in the order of NAME, FILE, and URL. For example:
 # install_package "nodejs" \
 # "nodejs-20.11.0-x86_64-1_SBo_UES.txz" \
@@ -13,7 +15,7 @@ install_package() {
     NAME="$1"
     FILE="$2"
     URL="$3"
-    PLUGIN_PATH="/boot/config/plugins/${NAME}/${FILE}"
+    PLUGIN_PATH="/boot/config/plugins/${PLUGIN_NAME}/${FILE}"
     basename="${FILE%.*}"
 
     if [ ! -f "$PLUGIN_PATH" ]; then
