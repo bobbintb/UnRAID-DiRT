@@ -14,10 +14,10 @@ PLUGIN_NAME="&name;"
 
 install_package() {
     NAME="$1"
-    FILE="$2"
-    URL="$3"
+    URL="$2"
+    FILE=$(basename "$URL")
     TXZ_PATH="/boot/config/plugins/${PLUGIN_NAME}/${FILE}"
-    basename="${FILE%.*}"
+    FILE_BASE="${FILE%.*}"
 
     if [ ! -f "$TXZ_PATH" ]; then
         echo "-----------------------------------------------------------"
@@ -26,13 +26,13 @@ install_package() {
         wget --continue "$URL" -O "$TXZ_PATH"
     fi
 
-    if [ ! -f "/var/log/packages/${basename}" ] >/dev/null 2>&amp;1; then
+    if [ ! -f "/var/log/packages/${FILE_BASE}" ] >/dev/null 2>&amp;1; then
         echo "-----------------------------------------------------------"
         echo "Installing $NAME..."
         echo "-----------------------------------------------------------"
 
-        if [ -n "$4" ]; then
-                cp "/boot/config/plugins/&name;/$FILE" "$4"
+        if [ -n "$3" ]; then
+                cp "/boot/config/plugins/${PLUGIN_NAME}/$FILE" "$3"
             else
                 installpkg "$TXZ_PATH"
             fi
@@ -40,16 +40,14 @@ install_package() {
 }
 
 install_package "audit" \
-"audit-4.0.2-x86_64-1cf.txz" \
-"https://slackers.it/repository/slackware64-current/audit/${FILE}"
+"https://slackers.it/repository/slackware64-current/audit/audit-4.0.2-x86_64-1cf.txz"
 
 install_package "keydb" \
-"keydb-6.3.4-x86_64-1loom.txz" \
-"https://github.com/bobbintb/Slackware_Packages/raw/main/keydb/${FILE}"
+"https://github.com/bobbintb/Slackware_Packages/raw/main/keydb/keydb-6.3.4-x86_64-1loom.txz"
 
 NAME="laurel"
-FILE="laurel-v0.6.3-x86_64-glibc.tar.gz"
-URL="https://github.com/threathunters-io/laurel/releases/download/v0.6.3/${FILE}"
+FILE=$(basename "$URL")
+URL="https://github.com/threathunters-io/laurel/releases/download/v0.6.3/laurel-v0.6.3-x86_64-glibc.tar.gz"
 TXZ_PATH="/boot/config/plugins/${PLUGIN_NAME}/${NAME}"
 
 if [ ! -f "$TXZ_PATH" ]; then
@@ -61,7 +59,7 @@ if [ ! -f "$TXZ_PATH" ]; then
   rm $FILE
 fi
 
-if [ ! -f "/var/log/packages/${basename}" ] >/dev/null 2>&amp;1; then
+if [ ! -f "/var/log/packages/${FILE_BASE}" ] >/dev/null 2>&amp;1; then
   echo "-----------------------------------------------------------"
   echo "Installing $NAME..."
   echo "-----------------------------------------------------------"
@@ -69,24 +67,20 @@ if [ ! -f "/var/log/packages/${basename}" ] >/dev/null 2>&amp;1; then
 fi
 
 install_package "nodejs" \
-"nodejs-20.11.0-x86_64-1_SBo_UES.txz" \
-"https://github.com/UnRAIDES/unRAID-NerdTools/raw/main/packages/pkgs/${FILE}"
+"https://github.com/UnRAIDES/unRAID-NerdTools/raw/main/packages/pkgs/nodejs-20.11.0-x86_64-1_SBo_UES.txz"
 
 install_package "openssl" \
-"openssl-1.1.1m-x86_64-1.txz" \
-"https://slackware.uk/slackware/slackware64-15.0/slackware64/n/${FILE}"
+"https://slackware.uk/slackware/slackware64-15.0/slackware64/n/openssl-1.1.1m-x86_64-1.txz"
 
 install_package "protobuf" \
-"protobuf-3.19.6-x86_64-1gds.txz" \
-"https://ftp.sotirov-bg.net/pub/contrib/slackware/packages/slackware64-15.0/${FILE}"
+"https://ftp.sotirov-bg.net/pub/contrib/slackware/packages/slackware64-15.0/protobuf-3.19.6-x86_64-1gds.txz"
 
 # install_package "redis"\
-# "redis-7.4.0-x86_64-1loom.txz"\
-# "https://github.com/bobbintb/Slackware_Packages/raw/main/${NAME}/${FILE}"
+# "https://github.com/bobbintb/Slackware_Packages/raw/main/${NAME}/redis-7.4.0-x86_64-1loom.txz"
 
+mkdir -p "/opt/keydb/lib/"
 install_package "redisearch" \
-"redisearch.so" \
-"https://github.com/bobbintb/Slackware_Packages/raw/main/redisearch/2.10.7/${FILE}" \
+"https://github.com/bobbintb/Slackware_Packages/raw/main/redisearch/2.10.7/redisearch.so" \
 "/opt/keydb/lib/"
 sed -i '54 i\loadmodule /opt/keydb/lib/redisearch.so' /etc/keydb/keydb.conf
 
