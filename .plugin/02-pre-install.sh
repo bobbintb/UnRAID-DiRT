@@ -47,9 +47,9 @@ install_package() {
     fi
 
     if [ -n "$3" ]; then
-            condition="[ ! -f $3$FILE ] >/dev/null 2>&amp;1"
+            condition="[ ! -f $3$FILE ] >/dev/null 2>&1"
         else
-            condition="! -f /var/log/packages/${FILE_BASE} ] >/dev/null 2>&amp;1"
+            condition="! -f /var/log/packages/${FILE_BASE} ] >/dev/null 2>&1"
     fi
 
 
