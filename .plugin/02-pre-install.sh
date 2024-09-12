@@ -23,7 +23,7 @@ install_package() {
         echo "-----------------------------------------------------------"
         echo "Downloading $NAME..."
         echo "-----------------------------------------------------------"
-        wget "$URL" -O "$TXZ_PATH"
+        wget --continue "$URL" -O "$TXZ_PATH"
     fi
 
     if [ ! -f "/var/log/packages/${basename}" ] >/dev/null 2>&amp;1; then
@@ -40,7 +40,7 @@ install_package() {
 }
 
 install_package "audit" \
-"audit-4.0.1-x86_64-4cf.txz" \
+"audit-4.0.2-x86_64-1cf.txz" \
 "https://slackers.it/repository/slackware64-current/audit/${FILE}"
 
 install_package "keydb" \
@@ -56,7 +56,7 @@ if [ ! -f "$TXZ_PATH" ]; then
   echo "-----------------------------------------------------------"
   echo "Downloading $NAME..."
   echo "-----------------------------------------------------------"
-  wget "$URL" -O "$TXZ_PATH"
+  wget --continue "$URL" -O "$TXZ_PATH"
   tar -xzf $FILE $NAME
   rm $FILE
 fi
