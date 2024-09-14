@@ -13,54 +13,41 @@ app.get("/scan", async () => {
 
 
 const redis = new Redis();
+await redis.call('FT.CREATE', 'idx:file', 'ON', 'HASH', 'SCHEMA', 'size', 'NUMERIC', 'SORTABLE');
 
-app.get('/hashes', async (req, res) => {
-  findNonUniqueHashes().then(nonUniqueHashes => {
-    console.log('Non-unique hash values and their keys:', nonUniqueHashes);
-    redis.quit(); // Close the connection when done
-  }).catch(err => {
-    console.error('Error:', err);
-    redis.quit();
-  });
+app.get('/hash', async (req, res) => {
+  findDuplicateSizes().catch(console.error);
 });
 
 
-async function findNonUniqueHashes() {
+async function findDuplicateSizes() {
+  const results = await redis.call('FT.SEARCH', 'idx:file', '*', 'RETURN', '1', 'size', 'LIMIT', '0', '10000');
 
-  const hashField = 'hash'; // The field you're interested in
-  const hashOccurrences = {}; // To track occurrences of each hash value
-  const nonUniqueHashes = []; // To store keys with non-unique hash values
+  const sizeToKeys = new Map();
 
-  let cursor = '0';
+  for (let i = 1; i < results.length; i += 2) {
+    const key = results[i];
+    const size = results[i + 1][1];  // Get the size directly, assuming 'RETURN 1 size' always returns 'size' first
 
-  do {
-    const result = await redis.scan(cursor);
-    cursor = result[0]; // New cursor position
-    const keys = result[1]; // List of keys
-
-    for (const key of keys) {
-      const keyType = await redis.type(key);
-      if (keyType !== 'hash') continue;
-      const hashValue = await redis.hget(key, hashField);
-      if (hashValue) {
-        if (hashOccurrences[hashValue]) {
-          hashOccurrences[hashValue].push(key);
-        } else {
-          hashOccurrences[hashValue] = [key];
-        }
-      }
+    if (!sizeToKeys.has(size)) {
+      sizeToKeys.set(size, []);
     }
-  } while (cursor !== '0'); // Continue scanning until the cursor wraps around
-  for (const [hashValue, keys] of Object.entries(hashOccurrences)) {
-    if (keys.length > 1) {
-      nonUniqueHashes.push({
-        hashValue,
-        keys
-      });
-    }
+    sizeToKeys.get(size).push(key);  // Add the key to the list of keys for this size
   }
-  return nonUniqueHashes;
+
+  const duplicates = [...sizeToKeys.entries()].filter(([_, keys]) => keys.length > 1);
+
+  const pipeline = redis.pipeline();
+
+  duplicates.forEach(([_, keys]) => {
+    keys.forEach(key => pipeline.hgetall(key));
+  });
+
+  const responses = await pipeline.exec();
+  console.log(responses);
 }
+
+
 
 
 if (!process.argv.includes('--debug')) {
