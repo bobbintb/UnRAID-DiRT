@@ -1,7 +1,7 @@
 import fs from "fs";
 import Redis from "ioredis";
 import Queue from 'bee-queue';
-import {processFiles} from "./addFile.js";
+import {processFiles} from "../nodejs/addFile.js";
 
 
 export const queue = new Queue('queue', {
@@ -43,7 +43,6 @@ export function enqueueMoveFile(src, dest) {
 
 
 async function dequeueCreateFile(file) {
-    const pipeline = redis.pipeline();
     const stats = fs.statSync(file, {bigint: true});
     const fileInfo = {
         path: file,
@@ -55,9 +54,8 @@ async function dequeueCreateFile(file) {
         ctimeMs: Number(stats.ctimeMs),
         birthtimeMs: Number(stats.birthtimeMs)
     };
-    console.debug(fileInfo)
-    pipeline.hset(file, fileInfo);
-    await pipeline.exec();
+    console.debug(fileInfo);
+    await redis.hset(file, ...Object.entries(fileInfo).flat());
 }
 
 

@@ -1,6 +1,5 @@
-<script>
-    // maybe rewrite this to use lowdb find commands
-    function findObjectsWithMatchingHash(redisData) {
+<script type="module">
+    async function findObjectsWithMatchingHash(redisData) {
         const result = [];
         console.error(redisData);
         Object.keys(redisData)
@@ -53,7 +52,7 @@
         }
     }
 
-    const matchingObjects = findObjectsWithMatchingHash(redisData);
+    const matchingObjects = await findObjectsWithMatchingHash(redisData);
     let totalSum = 0;
     matchingObjects.forEach(row => {
         totalSum += row.size;

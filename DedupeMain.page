@@ -76,29 +76,19 @@ Icon="fa-search-minus"
 <script>
 
 
-    // Function to call the PHP script and handle the response
-    function queryRedis() {
-        try {
-            // Send a GET request to the PHP script
-            const response = fetch('test.php');
-
-            // Check if the response is OK
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-
-            // Parse the JSON response
-            const data = response.json();
-
-            // Log the result
-            console.log('Data from Redis:', data);
-        } catch (error) {
-            console.error('Error querying Redis:', error);
-        }
+    function hash() {
+        fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/hash`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     }
 
     // Call the function to test it
-    redisData = queryRedis();
+    redisData = hash();
 
 
 </script>

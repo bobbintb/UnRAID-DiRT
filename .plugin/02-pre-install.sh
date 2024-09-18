@@ -110,6 +110,5 @@ mkdir -p "/opt/keydb/lib/"
 install_package "redisearch" \
 "https://github.com/bobbintb/Slackware_Packages/raw/main/redisearch/2.10.7/redisearch.so" \
 "/opt/keydb/lib/"
-sed -i '54 i\loadmodule /opt/keydb/lib/redisearch.so' /etc/keydb/keydb.conf
 
 echo "Done."
