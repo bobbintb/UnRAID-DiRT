@@ -1,7 +1,7 @@
 import express from 'express';
 import * as util from 'util';
 import * as functions from '../javascript/scan.js';
-import Redis from 'ioredis';
+import {createClient, SchemaFieldTypes} from 'redis';
 const app = express();
 
 
@@ -16,31 +16,15 @@ app.get('/hash', async (req, res) => {
 });
 
 
-const redis = new Redis();
-const indexList = await redis.call('FT._LIST');
-if (!indexList.includes('idx:files'))
-  await redis.call('FT.CREATE', 'idx:files', 'ON', 'HASH', 'SCHEMA', 'size', 'NUMERIC', 'SORTABLE');
+const redis = await createClient()
+    .on('error', err => console.log('Redis Client Error', err))
+    .connect();
 
+const indexList = await redis.ft._list();
 
-
-async function findDuplicateSizes() {
-  const result = await redis.call(
-      'FT.AGGREGATE',
-      'idx:files', '*',
-      'GROUPBY', '1', '@size',
-      'REDUCE', 'COUNT', '0', 'AS', 'nb_of_files',
-      'FILTER', '@nb_of_files > 1',
-      'SORTBY', '2', '@nb_of_files', 'ASC',
-      'LIMIT', '0', '10000'
-  );
-
-
-
-  console.log(result);
-}
-
-
-
+if (!indexList.includes('idx:files')) {
+  await redis.ft.create('idx:files', {size: {type: SchemaFieldTypes.NUMERIC, SORTABLE: true}}, {ON: 'HASH'});
+};
 
 
 if (!process.argv.includes('--debug')) {

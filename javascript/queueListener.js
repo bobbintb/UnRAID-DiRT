@@ -2,6 +2,7 @@ import fs from "fs";
 import Redis from "ioredis";
 import Queue from 'bee-queue';
 import {processFiles} from "../nodejs/addFile.js";
+import * as test from "./test4.js"
 
 
 export const queue = new Queue('queue', {
@@ -16,6 +17,7 @@ export const queue = new Queue('queue', {
 });
 
 const redis = new Redis();
+
 export function enqueueDeleteFile(src) {
     const jobData = {
         task: 'delete',
@@ -41,7 +43,6 @@ export function enqueueMoveFile(src, dest) {
     queue.createJob(jobData).save();
 }
 
-
 async function dequeueCreateFile(file) {
     const stats = fs.statSync(file, {bigint: true});
     const fileInfo = {
@@ -55,9 +56,22 @@ async function dequeueCreateFile(file) {
         birthtimeMs: Number(stats.birthtimeMs)
     };
     console.debug(fileInfo);
-    await redis.hset(file, ...Object.entries(fileInfo).flat());
-}
+    let sameSizeFiles = await test.searchBySize(stats.size);
 
+    if (sameSizeFiles.length > 0){
+        file.push(fileInfo)
+        console.log('=======================================')
+        console.log(sameSizeFiles)
+        const results = await test.hashFilesInIntervals(file)
+        const pipeline = redis.pipeline();
+        results.forEach((result) => {
+            pipeline.hset(result.path, ...Object.entries(result).flat());
+        });
+        await pipeline.exec();
+    } else {
+        await redis.hset(file, ...Object.entries(fileInfo).flat());
+    }
+}
 
 async function dequeueDeleteFile(file) {
     const pipeline = redis.pipeline();
