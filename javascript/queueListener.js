@@ -55,14 +55,12 @@ async function dequeueCreateFile(file) {
         ctimeMs: Number(stats.ctimeMs),
         birthtimeMs: Number(stats.birthtimeMs)
     };
-    console.debug(fileInfo);
     let sameSizeFiles = await test.searchBySize(stats.size);
 
     if (sameSizeFiles.length > 0){
-        file.push(fileInfo)
-        console.log('=======================================')
-        console.log(sameSizeFiles)
-        const results = await test.hashFilesInIntervals(file)
+        let files = sameSizeFiles
+        files.splice(0, 0, fileInfo)
+        const results = await test.hashFilesInIntervals(files)
         const pipeline = redis.pipeline();
         results.forEach((result) => {
             pipeline.hset(result.path, ...Object.entries(result).flat());

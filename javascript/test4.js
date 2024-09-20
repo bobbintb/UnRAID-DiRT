@@ -25,13 +25,12 @@ export async function searchBySize(size) {
     }
 }
 
+await blake3.load();
 
 export async function hashFilesInIntervals(files) {
-    await blake3.load();
     let hashers = files.map(() => blake3.createHash());
-    console.debug(hashers)
     let processedBytes = files.map(() => 0); // Track how much of each file has been processed
-    return new Promise(async (resolve, reject) => {
+    return await new Promise(async (resolve, reject) => {
         while (files.length > 1) {
             const fileChunkPromises = files.map((file, index) => {
                 return new Promise((chunkResolve) => {
@@ -54,6 +53,7 @@ export async function hashFilesInIntervals(files) {
                         });
                         stream.on('error', (error) => {
                             console.error(`Error processing file: ${file.path}`, error);
+                            hashers[index].dispose();
                             chunkResolve(null);
                         });
                     }
@@ -63,31 +63,24 @@ export async function hashFilesInIntervals(files) {
             // Wait for all file chunks to be processed for the current interval
             await Promise.all(fileChunkPromises).then((results) => {
                 // Get the intermediate hash of the first file
-                const firstFileHash = hashers[0].digest('hex');
-                const remainingFiles = [];
-                const remainingHashers = [];
-                const remainingProcessedBytes = [];
-                files.forEach((file, index) => {
+                for (let index = files.length - 1; index >= 0; index--) {
                     const currentHash = hashers[index].digest('hex');  // Get intermediate hash
-                    if (index === 0 || currentHash === firstFileHash) {
+                    if (index === 0 || currentHash === hashers[0].digest('hex')) {
                         // Keep the first file and those that match the first file's hash
                         console.debug(`File ${index}: \x1b[32m${currentHash}\x1b[0m`);
-                        remainingFiles.push(file);
-                        remainingHashers.push(hashers[index]);
-                        remainingProcessedBytes.push(processedBytes[index]);
                     } else {
                         console.debug(`File ${index}: \x1b[33m${currentHash}\x1b[0m (No match, removing from further processing.)`);
+                        files.splice(index, 1);
+                        hashers.splice(index, 1);
+                        processedBytes.splice(index, 1);
                     }
-                });
+                }
                 const progress = ((processedBytes[0] / files[0].size) * 100).toFixed(2);
                 console.debug(`${progress}% (${processedBytes[0]} bytes)`);
 
-                // Update the files, hashers, and processedBytes arrays with remaining items
-                files = remainingFiles;
-                hashers = remainingHashers;
-                processedBytes = remainingProcessedBytes;
                 console.debug('\x1b[96m%s\x1b[0m','========================================================================');
             }).catch(reject);
+
             if (processedBytes[0] >= files[0].size) {
                 files.forEach((file, index) => {
                     file.hash = hashers[index].digest('hex');

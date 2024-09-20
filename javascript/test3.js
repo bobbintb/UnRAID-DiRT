@@ -10,7 +10,7 @@ const CHUNK_SIZE = 1048576; // 1MB chunk size
 
 async function searchBySize(size) {
     try {
-        const result = await redis.ft.search('idx:file', `@size:[${size} ${size}]`, {
+        const result = await redis.ft.search('idx:files', `@size:[${size} ${size}]`, {
             LIMIT: { from: 0, size: 10000 },
             RETURN: ['id', 'size']
         });
