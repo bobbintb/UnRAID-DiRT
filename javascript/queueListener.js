@@ -60,66 +60,75 @@ async function dequeueCreateFile(file) {
         birthtimeMs: Number(stats.birthtimeMs)
     };
     let sameSizeFiles = await test.searchBySize(stats.size);
-    console.debug('\x1b[96m%s\x1b[0m','========================================================================');
-    console.debug(`file: ${file}`);
-    console.debug(fileInfo);
-    console.debug('sameSizeFiles:');
-    console.debug(sameSizeFiles);
     if (sameSizeFiles.length > 0){
         let files = sameSizeFiles
         files.splice(0, 0, fileInfo) // adds working file to the front of the array of same size files
         const results = await test.hashFilesInIntervals(files)
-        //const pipeline = redis.pipeline();
-        //await pipeline.hset(file, sameSizeFiles[0]);
-        redis.hset(file, sameSizeFiles[0]);
-        //.log('files')
-        //console.log(files.length)
-        //console.log(files)
-        //await pauseForUserInput('press Enter to continue.');
-
+        const pipeline = redis.pipeline();
+        await pipeline.hset(file, sameSizeFiles[0]);
         for (const result of results) {
-            //await pipeline.hset(result.path, 'hash', result.hash);
-            redis.hset(result.path, 'hash', result.hash);
-            console.log('result')
-            console.log(result)
-            console.debug('This should match the above!:');
-            console.debug(await redis.hgetall(result))
-            //console.log('hash')
-            //console.log(hash)  // where is this coming from? should be literal text but it shows multiple values.
-            //console.log('result.hash')
-            //console.log(result.hash) // why is this NaN% (0 bytes)
-
-
+            console.debug('\x1b[96m%s\x1b[0m','========================================================================');
+            await pipeline.hset(result.path, 'hash', result.hash);
         }
-        //await pipeline.exec();
-
-        //console.log('Pipeline execution results:', execResults);
+        await pipeline.exec();
     } else {
-        console.debug('Only one files of that size. Adding to Redis:');
-        console.debug(fileInfo)
         await redis.hset(file, fileInfo);
-        console.debug('This should match the above!:');
-        const redisresult = await redis.hgetall(file)
-        console.debug(await redis.hgetall(file))
-        for (const key of fileInfo) {
-            if (fileInfo[key] !== redisresult[key]) {
-                console.debug('NO MATCH!');
-            } else
-                console.debug('MATCH!');
-        }
-
-        //await redis.hset('key', 'field', Buffer.from('value'));
-
     }
 }
+function verify(result, redisresult) {
+    if (result.path == redisresult.path) {
+        console.debug('\x1b[32m%s\x1b[0m', `Paths match: ${result.path} ${redisresult.path}`);
+    } else {
+        console.debug('\x1b[31m%s\x1b[0m', `Paths DO NOT match: ${result.path} ${redisresult.path}`);
+    }
 
-function pauseForUserInput(message) {
-    return new Promise((resolve) => {
-        console.log(message);
-        rl.question('Press Enter to continue...', () => {
-            resolve();
-        });
-    });
+    if (result.nlink == redisresult.nlink) {
+        console.debug('\x1b[32m%s\x1b[0m', `nlink match: ${result.nlink} ${redisresult.nlink}`);
+    } else {
+        console.debug('\x1b[31m%s\x1b[0m', `nlink DO NOT match: ${result.nlink} ${redisresult.nlink}`);
+    }
+
+    if (result.ino == redisresult.ino) {
+        console.debug('\x1b[32m%s\x1b[0m', `ino match: ${result.ino} ${redisresult.ino}`);
+    } else {
+        console.debug('\x1b[31m%s\x1b[0m', `ino DO NOT match: ${result.ino} ${redisresult.ino}`);
+    }
+
+    if (result.size == redisresult.size) {
+        console.debug('\x1b[32m%s\x1b[0m', `size match: ${result.size} ${redisresult.size}`);
+    } else {
+        console.debug('\x1b[31m%s\x1b[0m', `size DO NOT match: ${result.size} ${redisresult.size}`);
+    }
+
+    if (result.atimeMs == redisresult.atimeMs) {
+        console.debug('\x1b[32m%s\x1b[0m', `atimeMs match: ${result.atimeMs} ${redisresult.atimeMs}`);
+    } else {
+        console.debug('\x1b[31m%s\x1b[0m', `atimeMs DO NOT match: ${result.atimeMs} ${redisresult.atimeMs}`);
+    }
+
+    if (result.mtimeMs == redisresult.mtimeMs) {
+        console.debug('\x1b[32m%s\x1b[0m', `mtimeMs match: ${result.mtimeMs} ${redisresult.mtimeMs}`);
+    } else {
+        console.debug('\x1b[31m%s\x1b[0m', `mtimeMs DO NOT match: ${result.mtimeMs} ${redisresult.mtimeMs}`);
+    }
+
+    if (result.ctimeMs == redisresult.ctimeMs) {
+        console.debug('\x1b[32m%s\x1b[0m', `ctimeMs match: ${result.ctimeMs} ${redisresult.ctimeMs}`);
+    } else {
+        console.debug('\x1b[31m%s\x1b[0m', `ctimeMs DO NOT match: ${result.ctimeMs} ${redisresult.ctimeMs}`);
+    }
+
+    if (result.birthtimeMs == redisresult.birthtimeMs) {
+        console.debug('\x1b[32m%s\x1b[0m', `birthtimeMs match: ${result.birthtimeMs} ${redisresult.birthtimeMs}`);
+    } else {
+        console.debug('\x1b[31m%s\x1b[0m', `birthtimeMs DO NOT match: ${result.birthtimeMs} ${redisresult.birthtimeMs}`);
+    }
+
+    if (result.hash == redisresult.hash) {
+        console.debug('\x1b[32m%s\x1b[0m', `hash match: ${result.hash} ${redisresult.hash}`);
+    } else {
+        console.debug('\x1b[31m%s\x1b[0m', `hash DO NOT match: ${result.hash} ${redisresult.hash}`);
+    }
 }
 
 async function dequeueDeleteFile(file) {
