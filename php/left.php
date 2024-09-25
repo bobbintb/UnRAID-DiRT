@@ -1,7 +1,8 @@
 <script type="module">
+    let redisData = await hash();
+
     async function findObjectsWithMatchingHash(redisData) {
         const result = [];
-        console.error(redisData);
         Object.keys(redisData)
             .filter(key => Array.isArray(redisData[key]))
             .forEach(key => {

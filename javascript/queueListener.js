@@ -1,8 +1,8 @@
 import fs from "fs";
-import Redis from "ioredis";
+import Redis from "ioredis"; // remove this
 import Queue from 'bee-queue';
 import {processFiles} from "../nodejs/addFile.js";
-import * as test from "./test4.js"
+import * as test from "./hashHelper.js"
 import * as readline from "node:readline";
 
 

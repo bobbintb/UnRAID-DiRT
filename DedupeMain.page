@@ -1,5 +1,5 @@
 Menu="DiskUtilities"
-Title="Dedupe"
+Title="Deduplication in Real-Time"
 Icon="fa-search-minus"
 ---
 <?PHP
@@ -76,8 +76,8 @@ Icon="fa-search-minus"
 <script>
 
 
-    function hash() {
-        fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/hash`)
+    async function hash() {
+        return await fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/hash`)
             .then(response => response.json())
             .then(data => {
                 console.log(data);
@@ -88,7 +88,7 @@ Icon="fa-search-minus"
     }
 
     // Call the function to test it
-    redisData = hash();
+    let redisData = hash();
 
 
 </script>
