@@ -50,7 +50,7 @@ export function enqueueMoveFile(src, dest) {
 async function dequeueCreateFile(file) {
     const stats = fs.statSync(file, {bigint: true});
     const fileInfo = {
-        path: file,
+        path: file,  // get rid of path
         nlink: Number(stats.nlink),
         ino: stats.ino.toString(),
         size: Number(stats.size),
@@ -67,7 +67,7 @@ async function dequeueCreateFile(file) {
         const pipeline = redis.pipeline();
         await pipeline.hset(file, sameSizeFiles[0]);
         for (const result of results) {
-            console.debug('\x1b[96m%s\x1b[0m','========================================================================');
+            //  console.debug('\x1b[96m%s\x1b[0m','========================================================================');
             await pipeline.hset(result.path, 'hash', result.hash);
         }
         await pipeline.exec();
@@ -132,14 +132,11 @@ function verify(result, redisresult) {
 }
 
 async function dequeueDeleteFile(file) {
-    const pipeline = redis.pipeline();
-    pipeline.del(file);
-    await pipeline.exec();
+    redis.delete(file);
 }
 
 async function dequeueMoveFile(src, dest) {
-    const pipeline = redis.pipeline();
-    await pipeline.exec();
+    await redis.rename(src, dest);
 }
 
 queue.process(async (job) => {
