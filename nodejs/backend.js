@@ -1,36 +1,49 @@
 import express from 'express';
 import * as util from 'util';
-import * as functions from '../javascript/scan.js';
+import * as scan from '../nodejs/scan.js';
 import {AggregateGroupByReducers, AggregateSteps, createClient, SchemaFieldTypes} from 'redis';
-const app = express();
 
+const app = express();
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*'); // Allow all origins
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
 
 app.get("/scan", async () => {
-  functions.getAllFiles('/mnt/user/downloads');
+  scan.getAllFiles('/mnt/user/downloads'); // need to eventually fix this
   console.debug("Saving files to database.")
   console.debug("Done saving files to database.")
 });
 
 app.get('/hash', async (req, res) => {
-  findDuplicateSizes().catch(console.error);
+  try {
+    const result = await findDuplicateSizes();
+    res.json(result); // Send the result back to the client
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' }); // Send error response
+  }
 });
+
 
 async function findDuplicateSizes() {
   try {
     const result = await redis.ft.aggregate('idx:files', '*', {
+      LOAD: ['@hash'],
       STEPS: [
+        {
+          type: AggregateSteps.FILTER,
+          expression: 'exists(@hash)'
+        },
         {   type: AggregateSteps.GROUPBY,
-          properties: ['@size'],
+          properties: ['@hash'],
           REDUCE: [
             {   type: AggregateGroupByReducers.COUNT,
-              property: '@size',
+              property: '@hash',
               AS: 'nb_of_files'
             }
           ]
-        },
-        {
-          type: AggregateSteps.FILTER,
-          expression: '@nb_of_files > 1'
         },
         {
           type: AggregateSteps.SORTBY,
@@ -40,21 +53,40 @@ async function findDuplicateSizes() {
           }
         },
         {
+          type: AggregateSteps.FILTER,
+          expression: '@nb_of_files > 1'
+        },
+        {
           type: AggregateSteps.LIMIT,
           from: 0,
           size: 10000
         }
       ]
     });
-    //console.log(JSON.stringify(result.results));  // Log the result for debugging
-    return result;        // Return the result so it can be used elsewhere
+    const hashes = result.results.map(group => group.hash);
+    const resultsArray = await Promise.all(
+        hashes.map(hash =>
+            redis.ft.search('idx:files', `@hash:${hash}`)
+                .then(result => ({
+                  hash,
+                  documents: result.documents.map(doc => ({
+                    id: doc.id,
+                    ...doc.value
+                  }))
+                }))
+        )
+    );
+    return resultsArray.reduce((acc, {hash, documents}) => {
+      acc[hash] = documents;
+      return acc;
+    }, {});
   } catch (error) {
     console.error('Error running aggregation:', error);
-    throw error;          // Re-throw the error if needed
+    throw error;
   }
 }
 
-
+// MAIN
 const redis = await createClient()
     .on('error', err => console.log('Redis Client Error', err))
     .connect();
@@ -62,7 +94,10 @@ const redis = await createClient()
 const indexList = await redis.ft._list();
 
 if (!indexList.includes('idx:files')) {
-  await redis.ft.create('idx:files', {size: {type: SchemaFieldTypes.NUMERIC, SORTABLE: true}}, {ON: 'HASH'});
+  await redis.ft.create('idx:files', {
+    size: {type: SchemaFieldTypes.NUMERIC, SORTABLE: true},
+    hash: {type: SchemaFieldTypes.TEXT}
+  }, {ON: 'HASH'});
 };
 
 
@@ -70,7 +105,7 @@ if (!process.argv.includes('--debug')) {
   console.debug = function() {}
 }
 const PORT = 3000;
-const settings = functions.getSettings();
+const settings = scan.getSettings();
 console.log(util.inspect(settings, false, null, true /* enable colors */ ));
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

@@ -1,10 +1,8 @@
 import fs from "fs";
 import Redis from "ioredis"; // remove this
 import Queue from 'bee-queue';
-import {processFiles} from "../nodejs/addFile.js";
 import * as test from "./hashHelper.js"
-import * as readline from "node:readline";
-
+import {createClient} from "redis";
 
 export const queue = new Queue('queue', {
     redis: {
@@ -13,14 +11,13 @@ export const queue = new Queue('queue', {
         db: 0,
         options: {},
     },
-    prefix: 'dedupe',
+    prefix: 'dirt',
     removeOnSuccess: true
 });
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-const redis = new Redis();
+
+const redis = await createClient()
+    .on('error', err => console.log('Redis Client Error', err))
+    .connect();
 
 export function enqueueDeleteFile(src) {
     const jobData = {
@@ -59,22 +56,26 @@ async function dequeueCreateFile(file) {
         ctimeMs: Number(stats.ctimeMs),
         birthtimeMs: Number(stats.birthtimeMs)
     };
+
     let sameSizeFiles = await test.searchBySize(stats.size);
-    if (sameSizeFiles.length > 0){
-        let files = sameSizeFiles
-        files.splice(0, 0, fileInfo) // adds working file to the front of the array of same size files
-        const results = await test.hashFilesInIntervals(files)
-        const pipeline = redis.pipeline();
-        await pipeline.hset(file, sameSizeFiles[0]);
+    if (sameSizeFiles.length > 0) {
+        let files = sameSizeFiles;
+        files.splice(0, 0, fileInfo); // adds working file to the front of the array of same size files
+        const results = await test.hashFilesInIntervals(files);
+
+        const pipeline = redis.multi(); // 'pipeline' in node-redis is 'multi'
+
+        await pipeline.hSet(file, sameSizeFiles[0]);
         for (const result of results) {
-            //  console.debug('\x1b[96m%s\x1b[0m','========================================================================');
-            await pipeline.hset(result.path, 'hash', result.hash);
+            await pipeline.hSet(result.path, 'hash', result.hash);
         }
         await pipeline.exec();
     } else {
-        await redis.hset(file, fileInfo);
+        await redis.hSet(file, fileInfo);
     }
 }
+
+
 function verify(result, redisresult) {
     if (result.path == redisresult.path) {
         console.debug('\x1b[32m%s\x1b[0m', `Paths match: ${result.path} ${redisresult.path}`);

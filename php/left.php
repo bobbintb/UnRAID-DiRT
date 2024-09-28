@@ -1,5 +1,4 @@
 <script type="module">
-    let redisData = await hash();
 
     async function findObjectsWithMatchingHash(redisData) {
         const result = [];
@@ -17,6 +16,7 @@
                     }
                 });
             });
+        console.error(result)
         return result;
     }
 
@@ -53,9 +53,11 @@
         }
     }
 
-    const matchingObjects = await findObjectsWithMatchingHash(redisData);
+    //const matchingObjects = await findObjectsWithMatchingHash(redisData);
+    console.error('testtesttest')
+    console.error(matchingObjects)
     let totalSum = 0;
-    matchingObjects.forEach(row => {
+    await matchingObjects.forEach(row => {
         totalSum += row.size;
     });
     let totalSumFormatted = convertFileSize({
