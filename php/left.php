@@ -1,24 +1,40 @@
 <script type="module">
+    let matchingObjects;
 
-    async function findObjectsWithMatchingHash(redisData) {
-        const result = [];
-        Object.keys(redisData)
-            .filter(key => Array.isArray(redisData[key]))
-            .forEach(key => {
-                const array = redisData[key];
-                array.forEach(obj => {
-                    if (array.some(otherObj => otherObj !== obj && otherObj.hash === obj.hash)) {
-                        obj.path = obj.path.map(innerArray => innerArray.join('/'))
-                        obj.count = obj.length;
-                        obj.recoverable = ((obj.count - 1));
-                        console.error(obj)
-                        result.push(obj);
-                    }
-                });
-            });
-        console.error(result)
-        return result;
+    async function hash() {
+        try {
+            console.error("Starting fetch...");
+            const response = await Promise.race([
+                fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/hash`),
+                new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Request timed out')), 5000) // 5 seconds timeout
+                )
+            ]);
+
+            console.error("Fetch completed.");
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.error("Fetched data:", data);
+            return data;
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            return null;
+        }
     }
+    async function fetchData() {
+        matchingObjects = await hash();
+        if (matchingObjects) {
+            console.error("redisData:", matchingObjects); // This should log the fetched data
+        } else {
+            console.error("No data returned or an error occurred.");
+        }
+    }
+
+    fetchData();
 
     function dateFormatter(cell) {
         const date = new Date(cell.getValue(0));
@@ -53,11 +69,10 @@
         }
     }
 
-    //const matchingObjects = await findObjectsWithMatchingHash(redisData);
     console.error('testtesttest')
     console.error(matchingObjects)
     let totalSum = 0;
-    await matchingObjects.forEach(row => {
+    matchingObjects.forEach(row => {
         totalSum += row.size;
     });
     let totalSumFormatted = convertFileSize({
