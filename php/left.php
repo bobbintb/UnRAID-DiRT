@@ -3,41 +3,28 @@
 
     async function hash() {
         try {
-            console.error("Starting fetch...");
             const response = await Promise.race([
                 fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/hash`),
                 new Promise((_, reject) =>
                     setTimeout(() => reject(new Error('Request timed out')), 5000) // 5 seconds timeout
                 )
             ]);
-
-            console.error("Fetch completed.");
-
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-
             const data = await response.json();
-            console.error("Fetched data:", data);
             return data;
         } catch (error) {
             console.error('Error fetching data:', error);
             return null;
         }
     }
-    async function fetchData() {
-        matchingObjects = await hash();
-        if (matchingObjects) {
-            console.error("redisData:", matchingObjects); // This should log the fetched data
-        } else {
-            console.error("No data returned or an error occurred.");
-        }
-    }
 
-    fetchData();
+
+    matchingObjects = await hash();
 
     function dateFormatter(cell) {
-        const date = new Date(cell.getValue(0));
+        const date = new Date(Number(cell.getValue()));
         return date.toLocaleString('en-US', {
             year: 'numeric',
             month: '2-digit',
@@ -69,8 +56,6 @@
         }
     }
 
-    console.error('testtesttest')
-    console.error(matchingObjects)
     let totalSum = 0;
     matchingObjects.forEach(row => {
         totalSum += row.size;
@@ -79,6 +64,7 @@
         getValue: () => totalSum
     });
     let groupCount = 0;
+
     const leftTable = new Tabulator("#left", {
         selectableRows: 1,
         data: matchingObjects,
@@ -87,7 +73,7 @@
             return !row.getElement().classList.contains('disabled');
         },
         groupHeader: function(value, count) {
-            return `<input type="checkbox" id="${value}-checkbox"> ${value} <span style='color:#d00; margin-left:10px;'>(${count} item)</span>`;
+            return `<input type="checkbox" id="${value}-checkbox"> ${value} <span style='color:#d00; margin-left:10px;'>(${count} items)</span>`;
         },
         //layout: "-webkit-fill-available",
         footerElement: `<div>Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}</div>`,
@@ -117,7 +103,7 @@
                 maxWidth: 40,
                 formatter: function(cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
-                    return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><i class='fa fa-trash' style='width: 15px; margin: 0; padding: 0; border: none; background: none;' ${disabled}></i></div>`;
+                    return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><i class='fa fa-trash' style='text-align: center; width: 15px; margin: 0; padding: 0; border: none; background: none;' ${disabled}></i></div>`;
                 },
                 cellClick: function(e, cell) {
                     let rowData = cell.getRow().getData();
@@ -130,8 +116,17 @@
                         alert("This row already exists in the right table.");
                     } else {
                         cell.getRow().getCells().forEach(function(cell) {
+                            cell.getElement().style.color = ''; // Resets color
+                            cell.getElement().classList.remove('strike-through');
+                            cell.getElement().style.color = 'red';
                             cell.getElement().classList.add('strike-through');
                         });
+                        const iconElement = cell.getElement().querySelector('.fa.fa-trash'); // Select the Font Awesome icon
+                        if (iconElement) {
+                            iconElement.style.border = '2px solid red'; // Add a blue border to the icon
+                            iconElement.style.borderRadius = '5px'; // Optional: rounded corners
+                            iconElement.style.padding = '5px'; // Optional: add padding
+                        }
                         // add to a queue. the right table should reflect the queue, not be the queue.
                         rightTable.addRow(rowData);
                     }
@@ -143,7 +138,7 @@
                 maxWidth: 40,
                 formatter: function(cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
-                    return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><i class='fa fa-link' style='width: 15px; margin: 0; padding: 0; border: none; background: none;' ${disabled}></i></div>`;
+                    return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><i class='fa fa-link' style='text-align: center; width: 15px; margin: 0; padding: 0; border: none; background: none;' ${disabled}></i></div>`;
                 },
                 cellClick: function(e, cell) {
                     let rowData = cell.getRow().getData();
@@ -155,6 +150,17 @@
                     if (isDuplicate) {
                         alert("This row already exists in the right table.");
                     } else {
+                        cell.getRow().getCells().forEach(function(cell) {
+                            cell.getElement().style.color = ''; // Resets color
+                            cell.getElement().classList.remove('strike-through');
+                            cell.getElement().style.color = 'blue';
+                            const iconElement = cell.getElement().querySelector('.fa.fa-link'); // Select the Font Awesome icon
+                            if (iconElement) {
+                                iconElement.style.border = '2px solid blue'; // Add a blue border to the icon
+                                iconElement.style.borderRadius = '5px'; // Optional: rounded corners
+                                iconElement.style.padding = '5px'; // Optional: add padding
+                            }
+                        });
                         // add to a queue. the right table should reflect the queue, not be the queue.
                         rightTable.addRow(rowData);
                     }
@@ -192,6 +198,7 @@
                 title: "Last Modified",
                 field: "mtimeMs",
                 sorter: "date",
+                type: "date",
                 formatter: dateFormatter
             },
             {
@@ -221,4 +228,12 @@
         groupCount = leftTable.getGroups().length;
         document.querySelector('.tabulator-footer').innerText = `Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}`;
     });
+
+    // TODO:
+    // fix color of scroll bars so it is more visible
+    // removing file from actions list does not un-strike it from dupes list
+    // fix total size on left table
+    // need a delete all/link all for groups and everything
+    // maybe red number of items on left decreases as each duplicate is addressed until it reaches 1 and turns green
 </script>
+

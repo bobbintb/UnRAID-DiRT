@@ -36,10 +36,12 @@ async function findDuplicateSizes() {
           type: AggregateSteps.FILTER,
           expression: 'exists(@hash)'
         },
-        {   type: AggregateSteps.GROUPBY,
+        {
+          type: AggregateSteps.GROUPBY,
           properties: ['@hash'],
           REDUCE: [
-            {   type: AggregateGroupByReducers.COUNT,
+            {
+              type: AggregateGroupByReducers.COUNT,
               property: '@hash',
               AS: 'nb_of_files'
             }
@@ -63,7 +65,10 @@ async function findDuplicateSizes() {
         }
       ]
     });
+
     const hashes = result.results.map(group => group.hash);
+    console.log('hashes', hashes);
+
     const resultsArray = await Promise.all(
         hashes.map(hash =>
             redis.ft.search('idx:files', `@hash:${hash}`)
@@ -76,15 +81,26 @@ async function findDuplicateSizes() {
                 }))
         )
     );
-    return resultsArray.reduce((acc, {hash, documents}) => {
-      acc[hash] = documents;
-      return acc;
-    }, {});
+
+    console.log('resultsArray', resultsArray);
+
+    // Convert the final results into an array of objects for Tabulator
+    const formattedResults = resultsArray.flatMap(({ hash, documents }) =>
+        documents.map(doc => ({
+          ...doc,    // Spread document properties (e.g., id, path, size, etc.)
+          hash      // Add the hash as a separate field for grouping in Tabulator
+        }))
+    );
+
+    console.log('formattedResults', formattedResults);
+
+    return formattedResults; // Return array format suitable for Tabulator
   } catch (error) {
     console.error('Error running aggregation:', error);
     throw error;
   }
 }
+
 
 // MAIN
 const redis = await createClient()
