@@ -26,31 +26,41 @@ Icon="fa-search-minus"
     }
 
     #left {
-        //border:1px solid red;
+        /*border:1px solid red;*/
         resize: horizontal;
         width: 70%;
         min-width: 20%;
         max-width: 80%;
         overflow: auto;
-        //margin-left: 10px;
+        /*margin-left: 10px;*/
         margin-right: 5px;
     }
 
 
     #left.tabulator {
         font-size: 12px;
+        background-color: unset;
+    }
+    .tabulator-row.tabulator-group {
+        padding: 0px 5px 0px 10px !important;
     }
 
+    .tabulator-group-toggle {
+        width: 15px;
+    }
+
+
+
     #right {
-        //border:1px solid blue;
+        /*border:1px solid blue;*/
         flex: 1;
         margin-left: 5px;
-        //margin-right: 10px;
+        /*margin-right: 10px;*/
     }
 
     #bottom_container {
         --bottom_container_height: 10vh;
-    //border:1px solid black;
+    /*border:1px solid black;*/
         height: var(--bottom_container_height);
         display: flex;
         flex-direction: row;
@@ -79,7 +89,7 @@ Icon="fa-search-minus"
 
 </script>
 <div id="main_container">
-        <link href="https://unpkg.com/tabulator-tables@6.2.1/dist/css/tabulator.min.css" rel="stylesheet">
+        <link href="https://unpkg.com/tabulator-tables@6.3/dist/css/tabulator.min.css" rel="stylesheet">
         <div id="left"><?php include './plugins/bobbintb.system.dedupe/php/left.php'; ?></div>
         <div id="right"><?php include './plugins/bobbintb.system.dedupe/php/right.php'; ?></div>
 

@@ -65,20 +65,57 @@
     });
     let groupCount = 0;
 
+
+
     const leftTable = new Tabulator("#left", {
         selectableRows: 1,
         data: matchingObjects,
         groupBy: "hash",
+        setGroupStartOpen: true,
         rowSelectableCheck: function(row) {
             return !row.getElement().classList.contains('disabled');
         },
         groupHeader: function(value, count) {
-            return `<input type="checkbox" id="${value}-checkbox"> ${value} <span style='color:#d00; margin-left:10px;'>(${count} items)</span>`;
+            return `<div class="tabulator-cell" role="gridcell" style="margin-left: 4px; border-left: 1px solid #aaa; height: 24px; width: 41px;">
+        <div style="display: flex; font-size: large; align-items: center; justify-content: center; height: 100%;">
+            <i class="fa fa-trash"></i></div></div>
+    <div class="tabulator-cell" role="gridcell" style="height: 24px; width: 37px;">
+        <div style="display: flex; font-size: large; align-items: center; justify-content: center; height: 100%;">
+            <i class="fa fa-link"></i></div></div>
+${value}<span style='color:#d00; margin-left:10px;'>(${count-1} duplicate files)</span>`;
         },
-        //layout: "-webkit-fill-available",
         footerElement: `<div>Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}</div>`,
         columns: [{
             // Radio button column
+            title: `<div class="custom-arrow" style="display: inline-flex; font-size: large; align-items: center; justify-content: center; height: 100%; cursor: pointer;
+    border-width: 6px 6px 0px;
+
+    border-left-style: solid;
+    border-left-color: transparent;
+
+    border-right-style: solid;
+    border-right-color: transparent;
+
+    border-top-style: solid;
+    border-top-color: rgb(102, 102, 102);
+
+    border-bottom-style: initial;
+    border-bottom-color: initial;"
+      onclick="
+           this.style.setProperty('border-width', this.style.borderWidth === '6px 6px 0px' ? '6px 0px 6px 6px' : '6px 6px 0px');
+           this.style.setProperty('border-left-color', this.style.borderLeftColor === 'transparent' ? 'rgb(102, 102, 102)' : 'transparent');
+           this.style.setProperty('border-right-style', this.style.borderRightStyle === 'solid' ? 'initial' : 'solid');
+           this.style.setProperty('border-right-color', this.style.borderRightColor === 'transparent' ? 'initial' : 'transparent');
+           this.style.setProperty('border-top-color', this.style.borderTopColor === 'rgb(102, 102, 102)' ? 'transparent' : 'rgb(102, 102, 102');
+           this.style.setProperty('border-bottom-style', this.style.borderBottomStyle === 'initial' ? 'solid' : 'initial');
+           this.style.setProperty('border-bottom-color', this.style.borderBottomColor === 'initial' ? 'transparent' : 'initial');
+//start groups open
+console.error(getGroups());
+
+           ">
+</div>`,
+
+            headerHozAlign: "center",
             headerSort: false,
             maxWidth: 40,
             formatter: function(cell) {
@@ -99,6 +136,8 @@
         },
             {
                 // Trash column
+                title: `<div style="display: flex; font-size: large; align-items: center; justify-content: center; height: 100%;">
+    <i class="fa fa-trash"></i></div>`,
                 headerSort: false,
                 maxWidth: 40,
                 formatter: function(cell) {
@@ -117,15 +156,15 @@
                     } else {
                         cell.getRow().getCells().forEach(function(cell) {
                             cell.getElement().style.color = ''; // Resets color
-                            cell.getElement().classList.remove('strike-through');
-                            cell.getElement().style.color = 'red';
-                            cell.getElement().classList.add('strike-through');
+                            // cell.getElement().classList.remove('strike-through');
+                            cell.getElement().style.color = 'maroon';
+                            // cell.getElement().classList.add('strike-through');
                         });
-                        const iconElement = cell.getElement().querySelector('.fa.fa-trash'); // Select the Font Awesome icon
+                        const iconElement = cell.getElement().querySelector('.fa.fa-trash');
                         if (iconElement) {
-                            iconElement.style.border = '2px solid red'; // Add a blue border to the icon
-                            iconElement.style.borderRadius = '5px'; // Optional: rounded corners
-                            iconElement.style.padding = '5px'; // Optional: add padding
+                            iconElement.style.border = '2px solid maroon';
+                            iconElement.style.borderRadius = '5px';
+                            iconElement.style.padding = '5px';
                         }
                         // add to a queue. the right table should reflect the queue, not be the queue.
                         rightTable.addRow(rowData);
@@ -134,6 +173,8 @@
             },
             {
                 // Link column
+                title: `<div style="display: flex; font-size: large; align-items: center; justify-content: center; height: 100%;">
+    <i class="fa fa-link"></i></div>`,
                 headerSort: false,
                 maxWidth: 40,
                 formatter: function(cell) {
@@ -152,13 +193,13 @@
                     } else {
                         cell.getRow().getCells().forEach(function(cell) {
                             cell.getElement().style.color = ''; // Resets color
-                            cell.getElement().classList.remove('strike-through');
-                            cell.getElement().style.color = 'blue';
-                            const iconElement = cell.getElement().querySelector('.fa.fa-link'); // Select the Font Awesome icon
+                            // cell.getElement().classList.remove('strike-through');
+                            cell.getElement().style.color = 'navy';
+                            const iconElement = cell.getElement().querySelector('.fa.fa-link');
                             if (iconElement) {
-                                iconElement.style.border = '2px solid blue'; // Add a blue border to the icon
-                                iconElement.style.borderRadius = '5px'; // Optional: rounded corners
-                                iconElement.style.padding = '5px'; // Optional: add padding
+                                iconElement.style.border = '2px solid navy';
+                                iconElement.style.borderRadius = '5px';
+                                iconElement.style.padding = '5px';
                             }
                         });
                         // add to a queue. the right table should reflect the queue, not be the queue.
@@ -198,7 +239,6 @@
                 title: "Last Modified",
                 field: "mtimeMs",
                 sorter: "date",
-                type: "date",
                 formatter: dateFormatter
             },
             {

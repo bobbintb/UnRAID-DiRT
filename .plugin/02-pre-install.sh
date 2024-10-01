@@ -52,7 +52,6 @@ install_package() {
             condition="[ ! -f "/var/log/packages/${FILE_BASE}" ] >/dev/null 2>&amp;1"
     fi
 
-
     if eval "$condition"; then
         echo "-----------------------------------------------------------"
         echo "$NAME is not installed. Installing $NAME..."
