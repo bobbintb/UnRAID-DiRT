@@ -265,11 +265,6 @@
     leftTable.on("tableBuilt", function() {
         groups = leftTable.getGroups()
         groupCount = leftTable.getGroups().length;
-
-        //start groups open
-//change grouping
-//trigger group on gender column
-
         document.querySelector('.tabulator-footer').innerText = `Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}`;
     });
 
