@@ -78,41 +78,27 @@
         },
         groupHeader: function(value, count) {
             return `<div class="tabulator-cell" role="gridcell" style="margin-left: 4px; border-left: 1px solid #aaa; height: 24px; width: 41px;">
-        <div style="display: flex; font-size: large; align-items: center; justify-content: center; height: 100%;">
-            <i class="fa fa-trash"></i></div></div>
-    <div class="tabulator-cell" role="gridcell" style="height: 24px; width: 37px;">
-        <div style="display: flex; font-size: large; align-items: center; justify-content: center; height: 100%;">
-            <i class="fa fa-link"></i></div></div>
-${value}<span style='color:#d00; margin-left:10px;'>(${count-1} duplicate files)</span>`;
-        },
+                        <div style="display: flex; font-size: large; align-items: center; justify-content: center; height: 100%;">
+                            <i class="fa fa-trash"></i></div></div>
+                    <div class="tabulator-cell" role="gridcell" style="height: 24px; width: 37px;">
+                        <div style="display: flex; font-size: large; align-items: center; justify-content: center; height: 100%;">
+                            <i class="fa fa-link"></i></div></div>
+                    ${value}
+                    <span style='color:#d00; margin-left:10px;'>(${count-1} duplicate files)</span>`;},
         footerElement: `<div>Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}</div>`,
         columns: [{
             // Radio button column
             title: `<div class="custom-arrow" style="display: inline-flex; font-size: large; align-items: center; justify-content: center; height: 100%; cursor: pointer;
-    border-width: 6px 6px 0px;
-
-    border-left-style: solid;
-    border-left-color: transparent;
-
-    border-right-style: solid;
-    border-right-color: transparent;
-
-    border-top-style: solid;
-    border-top-color: rgb(102, 102, 102);
-
-    border-bottom-style: initial;
-    border-bottom-color: initial;"
-      onclick="
-           this.style.setProperty('border-width', this.style.borderWidth === '6px 6px 0px' ? '6px 0px 6px 6px' : '6px 6px 0px');
-           this.style.setProperty('border-left-color', this.style.borderLeftColor === 'transparent' ? 'rgb(102, 102, 102)' : 'transparent');
-           this.style.setProperty('border-right-style', this.style.borderRightStyle === 'solid' ? 'initial' : 'solid');
-           this.style.setProperty('border-right-color', this.style.borderRightColor === 'transparent' ? 'initial' : 'transparent');
-           this.style.setProperty('border-top-color', this.style.borderTopColor === 'rgb(102, 102, 102)' ? 'transparent' : 'rgb(102, 102, 102');
-           this.style.setProperty('border-bottom-style', this.style.borderBottomStyle === 'initial' ? 'solid' : 'initial');
-           this.style.setProperty('border-bottom-color', this.style.borderBottomColor === 'initial' ? 'transparent' : 'initial');
-        ">
-</div>`,
-
+                        border-width: 6px 6px 0px;
+                        border-left-style: solid;
+                        border-left-color: transparent;
+                        border-right-style: solid;
+                        border-right-color: transparent;
+                        border-top-style: solid;
+                        border-top-color: rgb(102, 102, 102);
+                        border-bottom-style: initial;
+                        border-bottom-color: initial;">
+                    </div>`,
             headerHozAlign: "center",
             headerSort: false,
             maxWidth: 40,
@@ -263,6 +249,14 @@ ${value}<span style='color:#d00; margin-left:10px;'>(${count-1} duplicate files)
     });
 
     leftTable.on("headerClick", function() {
+        let arrowCell = document.getElementsByClassName('custom-arrow')[0]
+        arrowCell.style.setProperty('border-width', arrowCell.style.borderWidth === '6px 6px 0px' ? '6px 0px 6px 6px' : '6px 6px 0px');
+        arrowCell.style.setProperty('border-left-color', arrowCell.style.borderLeftColor === 'transparent' ? 'rgb(102, 102, 102)' : 'transparent');
+        arrowCell.style.setProperty('border-right-style', arrowCell.style.borderRightStyle === 'solid' ? 'initial' : 'solid');
+        arrowCell.style.setProperty('border-right-color', arrowCell.style.borderRightColor === 'transparent' ? 'initial' : 'transparent');
+        arrowCell.style.setProperty('border-top-color', arrowCell.style.borderTopColor === 'rgb(102, 102, 102)' ? 'transparent' : 'rgb(102, 102, 102');
+        arrowCell.style.setProperty('border-bottom-style', arrowCell.style.borderBottomStyle === 'initial' ? 'solid' : 'initial');
+        arrowCell.style.setProperty('border-bottom-color', arrowCell.style.borderBottomColor === 'initial' ? 'transparent' : 'initial');
         leftTable.setGroupStartOpen(!leftTable.options.groupStartOpen);
         leftTable.setGroupBy(false);
         leftTable.setGroupBy("hash");
