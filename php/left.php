@@ -20,7 +20,6 @@
         }
     }
 
-
     matchingObjects = await hash();
 
     function dateFormatter(cell) {
@@ -63,7 +62,9 @@
     let totalSumFormatted = convertFileSize({
         getValue: () => totalSum
     });
+
     let groupCount = 0;
+    let groups = {};
 
 
 
@@ -109,10 +110,7 @@ ${value}<span style='color:#d00; margin-left:10px;'>(${count-1} duplicate files)
            this.style.setProperty('border-top-color', this.style.borderTopColor === 'rgb(102, 102, 102)' ? 'transparent' : 'rgb(102, 102, 102');
            this.style.setProperty('border-bottom-style', this.style.borderBottomStyle === 'initial' ? 'solid' : 'initial');
            this.style.setProperty('border-bottom-color', this.style.borderBottomColor === 'initial' ? 'transparent' : 'initial');
-//start groups open
-console.error(getGroups());
-
-           ">
+        ">
 </div>`,
 
             headerHozAlign: "center",
@@ -264,10 +262,31 @@ console.error(getGroups());
         const hashValue = rowData.hash;
     });
 
+    leftTable.on("headerClick", function() {
+        leftTable.setGroupStartOpen(!leftTable.options.groupStartOpen);
+        leftTable.setGroupBy(false);
+        leftTable.setGroupBy("hash");
+    });
+
     leftTable.on("tableBuilt", function() {
+        groups = leftTable.getGroups()
         groupCount = leftTable.getGroups().length;
+
+        //start groups open
+//change grouping
+//trigger group on gender column
+
         document.querySelector('.tabulator-footer').innerText = `Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}`;
     });
+
+    function toggleGroups() {
+        const groups = leftTable.getGroups();
+        groups.forEach(function(group) {
+            group.show();
+        });
+        console.log(groups);
+    }
+
 
     // TODO:
     // fix color of scroll bars so it is more visible

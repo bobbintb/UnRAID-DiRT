@@ -10,19 +10,23 @@ DIRT_OPTIONS=""
 
 start() {
       # Start daemons.
-      echo -n "Starting dirt:  /usr/sbin/dirt $DIRT_OPTIONS "
-	  cd /usr/local/emhttp/plugins/bobbintb.system.dedupe
-	  node nodejs/dirt.js $DIRT_OPTIONS &
+      echo -n "Starting dirt..."
+	    cd /usr/local/emhttp/plugins/bobbintb.system.dedupe
+	    node nodejs/dirt.js $DIRT_OPTIONS &
       echo
 }
 stop() {
       # Stop daemons.
-      echo -n "Shutting down dirt: "
-      killall -TERM dirt
+      echo -n "Shutting down dirt..."
+      if kill -TERM $(pgrep -f "node nodejs/dirt.js"); then
+          echo "Process terminated successfully."
+      else
+          echo "Failed to terminate the process."
+      fi
       echo
 }
 status() {
-  PIDS=$(pidof dirt)
+  PIDS=$(pgrep -f "node nodejs/dirt.js")
   if [ "$PIDS" == "" ]; then
     echo "dirt is not running!"
   else

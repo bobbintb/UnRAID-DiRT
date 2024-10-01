@@ -86,7 +86,6 @@ Icon="fa-search-minus"
 <script>
 
 
-
 </script>
 <div id="main_container">
         <link href="https://unpkg.com/tabulator-tables@6.3/dist/css/tabulator.min.css" rel="stylesheet">
