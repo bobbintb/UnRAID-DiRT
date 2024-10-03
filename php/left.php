@@ -4,16 +4,29 @@
     async function hash() {
         try {
             const response = await Promise.race([
-                fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/hash`),
-                new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Request timed out')), 5000) // 5 seconds timeout
-                )
+                fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/hash`)
             ]);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
             return data;
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            return null;
+        }
+    }
+
+    async function process(action, src) {
+        try {
+            const response = await Promise.race([
+                fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/process/${encodeURIComponent(action)}/${encodeURIComponent(src)}`)
+        ]);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            // const data = await response.json();
+            // return data;
         } catch (error) {
             console.error('Error fetching data:', error);
             return null;
@@ -66,11 +79,10 @@
     let groupCount = 0;
     let groups = {};
 
-
-
     const leftTable = new Tabulator("#left", {
         selectableRows: 1,
         data: matchingObjects,
+        // groupBy: ["hash", "ino"],
         groupBy: "hash",
         setGroupStartOpen: true,
         rowSelectableCheck: function(row) {
@@ -86,7 +98,8 @@
                     ${value}
                     <span style='color:#d00; margin-left:10px;'>(${count-1} duplicate files)</span>`;},
         footerElement: `<div>Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}</div>`,
-        columns: [{
+        columns: [
+            {
             // Radio button column
             title: `<div class="custom-arrow" style="display: inline-flex; font-size: large; align-items: center; justify-content: center; height: 100%; cursor: pointer;
                         border-width: 6px 6px 0px;
@@ -116,12 +129,16 @@
                     row.getElement().classList.remove('disabled');
                 });
                 row.getElement().classList.add('disabled');
+                row.getElement().style.color = '';
+                row.getElement().querySelector('.fa.fa-trash').style.border = 'initial';
+                row.getElement().querySelector('.fa.fa-link').style.border = 'initial';
             }
-        },
+            },
             {
                 // Trash column
                 title: `<div style="display: flex; font-size: large; align-items: center; justify-content: center; height: 100%;">
-    <i class="fa fa-trash"></i></div>`,
+                            <i class="fa fa-trash"></i>
+                        </div>`,
                 headerSort: false,
                 maxWidth: 40,
                 formatter: function(cell) {
@@ -138,19 +155,16 @@
                     if (isDuplicate) {
                         alert("This row already exists in the right table.");
                     } else {
-                        cell.getRow().getCells().forEach(function(cell) {
-                            cell.getElement().style.color = ''; // Resets color
-                            // cell.getElement().classList.remove('strike-through');
-                            cell.getElement().style.color = 'maroon';
-                            // cell.getElement().classList.add('strike-through');
-                        });
+                        let row = cell.getRow();
+                        console.error(rowData)
+                        row.getElement().style.color = '';
+                        row.getElement().style.color = 'maroon';
                         const iconElement = cell.getElement().querySelector('.fa.fa-trash');
-                        if (iconElement) {
-                            iconElement.style.border = '2px solid maroon';
-                            iconElement.style.borderRadius = '5px';
-                            iconElement.style.padding = '5px';
-                        }
+                        iconElement.style.border = '2px solid maroon';
+                        iconElement.style.borderRadius = '5px';
+                        iconElement.style.padding = '5px';
                         // add to a queue. the right table should reflect the queue, not be the queue.
+                        process('del', rowData.id)
                         rightTable.addRow(rowData);
                     }
                 }
@@ -158,7 +172,8 @@
             {
                 // Link column
                 title: `<div style="display: flex; font-size: large; align-items: center; justify-content: center; height: 100%;">
-    <i class="fa fa-link"></i></div>`,
+                            <i class="fa fa-link"></i>
+                        </div>`,
                 headerSort: false,
                 maxWidth: 40,
                 formatter: function(cell) {
@@ -175,18 +190,15 @@
                     if (isDuplicate) {
                         alert("This row already exists in the right table.");
                     } else {
-                        cell.getRow().getCells().forEach(function(cell) {
-                            cell.getElement().style.color = ''; // Resets color
-                            // cell.getElement().classList.remove('strike-through');
-                            cell.getElement().style.color = 'navy';
-                            const iconElement = cell.getElement().querySelector('.fa.fa-link');
-                            if (iconElement) {
-                                iconElement.style.border = '2px solid navy';
-                                iconElement.style.borderRadius = '5px';
-                                iconElement.style.padding = '5px';
-                            }
-                        });
+                        let row = cell.getRow();
+                        row.getElement().style.color = '';
+                        row.getElement().style.color = 'navy';
+                        const iconElement = cell.getElement().querySelector('.fa.fa-link');
+                        iconElement.style.border = '2px solid navy';
+                        iconElement.style.borderRadius = '5px';
+                        iconElement.style.padding = '5px';
                         // add to a queue. the right table should reflect the queue, not be the queue.
+                        process('link', rowData.id)
                         rightTable.addRow(rowData);
                     }
                 }
@@ -248,18 +260,29 @@
         const hashValue = rowData.hash;
     });
 
-    leftTable.on("headerClick", function() {
-        let arrowCell = document.getElementsByClassName('custom-arrow')[0]
-        arrowCell.style.setProperty('border-width', arrowCell.style.borderWidth === '6px 6px 0px' ? '6px 0px 6px 6px' : '6px 6px 0px');
-        arrowCell.style.setProperty('border-left-color', arrowCell.style.borderLeftColor === 'transparent' ? 'rgb(102, 102, 102)' : 'transparent');
-        arrowCell.style.setProperty('border-right-style', arrowCell.style.borderRightStyle === 'solid' ? 'initial' : 'solid');
-        arrowCell.style.setProperty('border-right-color', arrowCell.style.borderRightColor === 'transparent' ? 'initial' : 'transparent');
-        arrowCell.style.setProperty('border-top-color', arrowCell.style.borderTopColor === 'rgb(102, 102, 102)' ? 'transparent' : 'rgb(102, 102, 102');
-        arrowCell.style.setProperty('border-bottom-style', arrowCell.style.borderBottomStyle === 'initial' ? 'solid' : 'initial');
-        arrowCell.style.setProperty('border-bottom-color', arrowCell.style.borderBottomColor === 'initial' ? 'transparent' : 'initial');
-        leftTable.setGroupStartOpen(!leftTable.options.groupStartOpen);
-        leftTable.setGroupBy(false);
-        leftTable.setGroupBy("hash");
+    leftTable.on("cellClick", function(e, cell){
+        // console.error('e')
+        // console.error(e)
+        // console.error('cell')
+        // console.error(cell)
+        //e - the click event object
+        //cell - cell component
+    });
+
+    leftTable.on("headerClick", function(e, column) {
+        if (column._column.definition.title.includes("custom-arrow")) {
+            let arrowCell = document.getElementsByClassName('custom-arrow')[0]
+            arrowCell.style.setProperty('border-width', arrowCell.style.borderWidth === '6px 6px 0px' ? '6px 0px 6px 6px' : '6px 6px 0px');
+            arrowCell.style.setProperty('border-left-color', arrowCell.style.borderLeftColor === 'transparent' ? 'rgb(102, 102, 102)' : 'transparent');
+            arrowCell.style.setProperty('border-right-style', arrowCell.style.borderRightStyle === 'solid' ? 'initial' : 'solid');
+            arrowCell.style.setProperty('border-right-color', arrowCell.style.borderRightColor === 'transparent' ? 'initial' : 'transparent');
+            arrowCell.style.setProperty('border-top-color', arrowCell.style.borderTopColor === 'rgb(102, 102, 102)' ? 'transparent' : 'rgb(102, 102, 102');
+            arrowCell.style.setProperty('border-bottom-style', arrowCell.style.borderBottomStyle === 'initial' ? 'solid' : 'initial');
+            arrowCell.style.setProperty('border-bottom-color', arrowCell.style.borderBottomColor === 'initial' ? 'transparent' : 'initial');
+            leftTable.setGroupStartOpen(!leftTable.options.groupStartOpen);
+            leftTable.setGroupBy(false);
+            leftTable.setGroupBy("hash");
+        }
     });
 
     leftTable.on("tableBuilt", function() {

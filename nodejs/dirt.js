@@ -2,8 +2,10 @@ import express from 'express';
 import * as util from 'util';
 import * as scan from '../nodejs/scan.js';
 import {AggregateGroupByReducers, AggregateSteps, createClient, SchemaFieldTypes} from 'redis';
+import {enqueueFileAction} from "./process.js";
 
 const app = express();
+
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*'); // Allow all origins
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
@@ -19,11 +21,17 @@ app.get("/scan", async () => {
 app.get('/hash', async (req, res) => {
   try {
     const result = await findDuplicateSizes();
-    res.json(result); // Send the result back to the client
+    res.json(result);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' }); // Send error response
+    res.status(500).json({ error: 'Internal Server Error' });
   }
+});
+
+app.get("/process/:action/:src?", (req, res) => {
+  const { action, src } = req.params;
+  enqueueFileAction(action, src)
+  res.send();
 });
 
 
@@ -121,8 +129,8 @@ if (!process.argv.includes('--debug')) {
   console.debug = function() {}
 }
 const PORT = 3000;
-const settings = scan.getSettings();
-console.log(util.inspect(settings, false, null, true /* enable colors */ ));
+//const settings = scan.getSettings();
+//console.log(util.inspect(settings, false, null, true /* enable colors */ ));
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
