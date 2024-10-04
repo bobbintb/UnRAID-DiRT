@@ -3,6 +3,17 @@ import Redis from "ioredis"; // remove this
 import Queue from 'bee-queue';
 import * as test from "./hashHelper.js"
 import {createClient} from "redis";
+import {Schema, Repository} from "redis-om"
+
+const fileMetadataSchema = new Schema('FileMetadata', {
+    path: { type: 'string' },
+    ino: { type: 'string' },
+    size: { type: 'number' },
+    nlink: { type: 'number' },
+    atimeMs: { type: 'date' },
+    mtimeMs: { type: 'date' },
+    ctimeMs: { type: 'date' }
+});
 
 export const queue = new Queue('queue', {
     redis: {
@@ -18,6 +29,9 @@ export const queue = new Queue('queue', {
 const redis = await createClient()
     .on('error', err => console.log('Redis Client Error', err))
     .connect();
+
+const fileRepository = new Repository(fileMetadataSchema, redis)
+
 
 export function enqueueDeleteFile(src) {
     const jobData = {
@@ -53,26 +67,25 @@ async function dequeueCreateFile(file) {
         size: Number(stats.size),
         atimeMs: Number(stats.atimeMs),
         mtimeMs: Number(stats.mtimeMs),
-        ctimeMs: Number(stats.ctimeMs),
-        birthtimeMs: Number(stats.birthtimeMs)
+        ctimeMs: Number(stats.ctimeMs)
     };
 
-    let sameSizeFiles = await test.searchBySize(stats.size);
-    if (sameSizeFiles.length > 0) {
-        let files = sameSizeFiles;
-        files.splice(0, 0, fileInfo); // adds working file to the front of the array of same size files
-        const results = await test.hashFilesInIntervals(files);
-
-        const pipeline = redis.multi(); // 'pipeline' in node-redis is 'multi'
-
-        await pipeline.hSet(file, sameSizeFiles[0]);
-        for (const result of results) {
-            await pipeline.hSet(result.path, 'hash', result.hash);
-        }
-        await pipeline.exec();
-    } else {
-        await redis.hSet(file, fileInfo);
-    }
+    // let sameSizeFiles = await test.searchBySize(stats.size);
+    // if (sameSizeFiles.length > 0) {
+    //     let files = sameSizeFiles;
+    //     files.splice(0, 0, fileInfo); // adds working file to the front of the array of same size files
+    //     const results = await test.hashFilesInIntervals(files);
+    //
+    //     const pipeline = redis.multi(); // 'pipeline' in node-redis is 'multi'
+    //
+    //     await pipeline.hSet(file, sameSizeFiles[0]);
+    //     for (const result of results) {
+    //         await pipeline.hSet(result.path, 'hash', result.hash);
+    //     }
+    //     await pipeline.exec();
+    // } else {
+    await fileRepository.save(stats.ino.toString(), fileInfo)
+    //}
 }
 
 

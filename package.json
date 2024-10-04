@@ -11,6 +11,7 @@
     "multimap": "^1.1.0",
     "nanoid": "^5.0.7",
     "redis": "^4.7.0",
+    "redis-om": "^0.4.6",
     "rethinkdbdash": "^2.3.31"
   },
   "overrides": {
