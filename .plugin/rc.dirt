@@ -11,7 +11,7 @@ DIRT_OPTIONS=""
 start() {
       # Start daemons.
       echo -n "Starting dirt..."
-	    cd /usr/local/emhttp/plugins/bobbintb.system.dedupe
+	    cd /usr/local/emhttp/plugins/bobbintb.system.dirt
 	    nohup node nodejs/dirt.js $DIRT_OPTIONS &
       echo
 }

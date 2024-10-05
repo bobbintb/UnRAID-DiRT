@@ -75,7 +75,7 @@ async function findDuplicateSizes() {
     });
 
     const hashes = result.results.map(group => group.hash);
-    console.log('hashes', hashes);
+    // console.log('hashes', hashes);
 
     const resultsArray = await Promise.all(
         hashes.map(hash =>
@@ -90,7 +90,7 @@ async function findDuplicateSizes() {
         )
     );
 
-    console.log('resultsArray', resultsArray);
+    //console.log('resultsArray', resultsArray);
 
     // Convert the final results into an array of objects for Tabulator
     const formattedResults = resultsArray.flatMap(({ hash, documents }) =>

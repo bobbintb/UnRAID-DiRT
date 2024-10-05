@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import {enqueueCreateFile} from "./queueListener.js";
-const plugin = 'bobbintb.system.dedupe';
+const plugin = 'bobbintb.system.dirt';
 
 export function getSettings() {
     const filePath = plugin + '.json';

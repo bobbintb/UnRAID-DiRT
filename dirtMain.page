@@ -89,8 +89,8 @@ Icon="fa-search-minus"
 </script>
 <div id="main_container">
         <link href="https://unpkg.com/tabulator-tables@6.3/dist/css/tabulator.min.css" rel="stylesheet">
-        <div id="left"><?php include './plugins/bobbintb.system.dedupe/php/left.php'; ?></div>
-        <div id="right"><?php include './plugins/bobbintb.system.dedupe/php/right.php'; ?></div>
+        <div id="left"><?php include './plugins/bobbintb.system.dirt/php/left.php'; ?></div>
+        <div id="right"><?php include './plugins/bobbintb.system.dirt/php/right.php'; ?></div>
 
 </div>
 <div id="bottom_container">

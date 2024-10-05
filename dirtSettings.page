@@ -1,5 +1,5 @@
 Menu="Utilities"
-Title="Dedupe"
+Title="Deduplication in Real-Time"
 Icon="fa-search-minus"
 ---
 <?
@@ -15,7 +15,7 @@ switch ($display['theme']) {
 
 
 function loadConfig() {
-    $jsonData = file_get_contents("./plugins/bobbintb.system.dedupe/bobbintb.system.dedupe.json");
+    $jsonData = file_get_contents("./plugins/bobbintb.system.dirt/bobbintb.system.dirt.json");
     return json_decode($jsonData, true);
 }
 
@@ -85,7 +85,7 @@ $configArray = loadConfig();
 
 
 
-        $.post('/plugins/bobbintb.system.dedupe/php/config.php', JSON.stringify({ include: monitorPaths }), function(data) {
+        $.post('/plugins/bobbintb.system.dirt/php/config.php', JSON.stringify({ include: monitorPaths }), function(data) {
             console.log('Server response:', data);
         }, 'json')
             .fail(function(jqXHR, textStatus, errorThrown) {

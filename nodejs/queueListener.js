@@ -3,19 +3,9 @@ import Redis from "ioredis"; // remove this
 import Queue from 'bee-queue';
 import * as test from "./hashHelper.js"
 import {createClient} from "redis";
-import {Schema, Repository} from "redis-om"
+import { client } from "nekdis";
 
-const fileMetadataSchema = new Schema('FileMetadata', {
-    path: { type: 'string[]' },
-    // ino: { type: 'string' },
-    size: { type: 'number' },
-    nlink: { type: 'number' },
-    atimeMs: { type: 'date' },
-    mtimeMs: { type: 'date' },
-    ctimeMs: { type: 'date' }
-}, {
-    dataStructure: 'HASH'
-});
+
 
 export const queue = new Queue('queue', {
     redis: {
@@ -28,27 +18,26 @@ export const queue = new Queue('queue', {
     removeOnSuccess: true
 });
 
-const redis = await createClient()
-    .on('error', err => console.log('Redis Client Error', err))
-    .connect();
+client.redisClient = createClient();
 
-Repository.prototype.saveWithTweak = async function (entityOrId, maybeEntity) {
-    let entity;
-    let entityId;
-    if (typeof entityOrId !== "string") {
-        entity = entityOrId;
-        entityId = entity[EntityId] ?? await this.#schema.generateId();
-    } else {
-        entity = maybeEntity;
-        entityId = entityOrId;
-    }
-    const keyName = `${this.#schema.schemaName}:${entityId}`;
-    const clonedEntity = { ...entity, [EntityId]: entityId, [EntityKeyName]: keyName };
-    await this.writeEntity(clonedEntity);
-    return clonedEntity;
-}
+// We still advise to use Nekdis to connect and disconnect
+await client.connect();
 
-const fileRepository = new Repository(fileMetadataSchema, redis)
+
+const fileMetadataSchema = client.schema({
+    path: { type: 'string[]' },
+    // ino: { type: 'string' },
+    size: { type: 'number' },
+    nlink: { type: 'number' },
+    atimeMs: { type: 'date' },
+    mtimeMs: { type: 'date' },
+    ctimeMs: { type: 'date' }
+}, {
+    dataStructure: 'HASH'
+});
+
+const fileRepository = client.model("fileMetadata", fileMetadataSchema);
+
 
 export function enqueueDeleteFile(src) {
     const jobData = {
@@ -77,15 +66,15 @@ export function enqueueMoveFile(src, dest) {
 
 async function dequeueCreateFile(file) {
     const stats = fs.statSync(file, {bigint: true});
-    const fileInfo = {
-        path: push(file),  // get rid of path
+    const fileInfo = fileRepository.create({
+        path: [file],  // get rid of path
         nlink: Number(stats.nlink),
-        // ino: stats.ino.toString(),
+        ino: stats.ino.toString(),
         size: Number(stats.size),
         atimeMs: Number(stats.atimeMs),
         mtimeMs: Number(stats.mtimeMs),
         ctimeMs: Number(stats.ctimeMs)
-    };
+    });
 
     // let sameSizeFiles = await test.searchBySize(stats.size);
     // if (sameSizeFiles.length > 0) {
@@ -101,7 +90,7 @@ async function dequeueCreateFile(file) {
     //     }
     //     await pipeline.exec();
     // } else {
-    await fileRepository.saveWithTweak(stats.ino.toString(), fileInfo)
+    await fileRepository.save(fileInfo)
     //}
 }
 

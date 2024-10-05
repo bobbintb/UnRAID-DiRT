@@ -17,7 +17,7 @@
 </INLINE>
 </FILE>
 
-<FILE Name="/etc/audit/plugins.d/dedupe.conf" Mode="0640">
+<FILE Name="/etc/audit/plugins.d/dirt.conf" Mode="0640">
 <INLINE>
 <![CDATA[
 active = yes
@@ -52,7 +52,7 @@ input = "stdin"
 [auditlog]
 # Base file name for the JSONL-based log file. Set to "-" to log to stdout. In this case
 # other log file related settings will be ignored.
-file = "| /usr/local/emhttp/plugins/bobbintb.system.dedupe/auditToQueue.js"
+file = "| /usr/local/emhttp/plugins/bobbintb.system.dirt/auditToQueue.js"
 # Rotate when log file reaches this size (in bytes)
 size = 5000000
 # When rotating, keep this number of generations around
