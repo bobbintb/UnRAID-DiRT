@@ -73,9 +73,9 @@ async function findDuplicateSizes() {
         }
       ]
     });
-
+    console.error('result', result);
     const hashes = result.results.map(group => group.hash);
-    // console.log('hashes', hashes);
+    console.error('hashes', hashes);
 
     const resultsArray = await Promise.all(
         hashes.map(hash =>

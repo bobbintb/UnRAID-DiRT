@@ -3,7 +3,7 @@ import Redis from "ioredis"; // remove this
 import Queue from 'bee-queue';
 import * as test from "./hashHelper.js"
 import {createClient} from "redis";
-import { client } from "nekdis";
+import {Repository, Schema} from "redis-om";
 
 
 
@@ -18,15 +18,12 @@ export const queue = new Queue('queue', {
     removeOnSuccess: true
 });
 
-client.redisClient = createClient();
-
-// We still advise to use Nekdis to connect and disconnect
-await client.connect();
+const redis = createClient()
+await redis.connect();
 
 
-const fileMetadataSchema = client.schema({
+const fileMetadataSchema = new Schema('ino', {
     path: { type: 'string[]' },
-    // ino: { type: 'string' },
     size: { type: 'number' },
     nlink: { type: 'number' },
     atimeMs: { type: 'date' },
@@ -34,11 +31,9 @@ const fileMetadataSchema = client.schema({
     ctimeMs: { type: 'date' }
 }, {
     dataStructure: 'HASH'
-});
+})
 
-const fileRepository = client.model("fileMetadata", fileMetadataSchema);
-
-
+const fileRepository = new Repository(fileMetadataSchema, redis);
 export function enqueueDeleteFile(src) {
     const jobData = {
         task: 'delete',
@@ -66,15 +61,17 @@ export function enqueueMoveFile(src, dest) {
 
 async function dequeueCreateFile(file) {
     const stats = fs.statSync(file, {bigint: true});
-    const fileInfo = fileRepository.create({
-        path: [file],  // get rid of path
+    const fileInfo = {
+        path: [file],
         nlink: Number(stats.nlink),
-        ino: stats.ino.toString(),
+        //ino: stats.ino.toString(),
         size: Number(stats.size),
         atimeMs: Number(stats.atimeMs),
         mtimeMs: Number(stats.mtimeMs),
         ctimeMs: Number(stats.ctimeMs)
-    });
+    };
+
+    // fileInfo.$id=stats.ino.toString();
 
     // let sameSizeFiles = await test.searchBySize(stats.size);
     // if (sameSizeFiles.length > 0) {
@@ -90,65 +87,23 @@ async function dequeueCreateFile(file) {
     //     }
     //     await pipeline.exec();
     // } else {
-    await fileRepository.save(fileInfo)
+    const key = stats.ino.toString()
+    try {
+        if (await redis.exists('ino:'+key) === 1) {
+            const existingPath = await redis.hGet('ino:' + key, 'path');
+            console.log('existingPath')
+            fileInfo.path.push(existingPath);
+            console.log(existingPath)
+        }
+            await fileRepository.save(key, fileInfo);
+
+        // await fileRepository.save(stats.ino.toString(), fileInfo);
+    } catch (error) {
+        console.error('Error saving file info:', error);
+        // Handle the error as needed (e.g., rethrow, return a response, etc.)
+    }
+
     //}
-}
-
-
-function verify(result, redisresult) {
-    if (result.path == redisresult.path) {
-        console.debug('\x1b[32m%s\x1b[0m', `Paths match: ${result.path} ${redisresult.path}`);
-    } else {
-        console.debug('\x1b[31m%s\x1b[0m', `Paths DO NOT match: ${result.path} ${redisresult.path}`);
-    }
-
-    if (result.nlink == redisresult.nlink) {
-        console.debug('\x1b[32m%s\x1b[0m', `nlink match: ${result.nlink} ${redisresult.nlink}`);
-    } else {
-        console.debug('\x1b[31m%s\x1b[0m', `nlink DO NOT match: ${result.nlink} ${redisresult.nlink}`);
-    }
-
-    if (result.ino == redisresult.ino) {
-        console.debug('\x1b[32m%s\x1b[0m', `ino match: ${result.ino} ${redisresult.ino}`);
-    } else {
-        console.debug('\x1b[31m%s\x1b[0m', `ino DO NOT match: ${result.ino} ${redisresult.ino}`);
-    }
-
-    if (result.size == redisresult.size) {
-        console.debug('\x1b[32m%s\x1b[0m', `size match: ${result.size} ${redisresult.size}`);
-    } else {
-        console.debug('\x1b[31m%s\x1b[0m', `size DO NOT match: ${result.size} ${redisresult.size}`);
-    }
-
-    if (result.atimeMs == redisresult.atimeMs) {
-        console.debug('\x1b[32m%s\x1b[0m', `atimeMs match: ${result.atimeMs} ${redisresult.atimeMs}`);
-    } else {
-        console.debug('\x1b[31m%s\x1b[0m', `atimeMs DO NOT match: ${result.atimeMs} ${redisresult.atimeMs}`);
-    }
-
-    if (result.mtimeMs == redisresult.mtimeMs) {
-        console.debug('\x1b[32m%s\x1b[0m', `mtimeMs match: ${result.mtimeMs} ${redisresult.mtimeMs}`);
-    } else {
-        console.debug('\x1b[31m%s\x1b[0m', `mtimeMs DO NOT match: ${result.mtimeMs} ${redisresult.mtimeMs}`);
-    }
-
-    if (result.ctimeMs == redisresult.ctimeMs) {
-        console.debug('\x1b[32m%s\x1b[0m', `ctimeMs match: ${result.ctimeMs} ${redisresult.ctimeMs}`);
-    } else {
-        console.debug('\x1b[31m%s\x1b[0m', `ctimeMs DO NOT match: ${result.ctimeMs} ${redisresult.ctimeMs}`);
-    }
-
-    if (result.birthtimeMs == redisresult.birthtimeMs) {
-        console.debug('\x1b[32m%s\x1b[0m', `birthtimeMs match: ${result.birthtimeMs} ${redisresult.birthtimeMs}`);
-    } else {
-        console.debug('\x1b[31m%s\x1b[0m', `birthtimeMs DO NOT match: ${result.birthtimeMs} ${redisresult.birthtimeMs}`);
-    }
-
-    if (result.hash == redisresult.hash) {
-        console.debug('\x1b[32m%s\x1b[0m', `hash match: ${result.hash} ${redisresult.hash}`);
-    } else {
-        console.debug('\x1b[31m%s\x1b[0m', `hash DO NOT match: ${result.hash} ${redisresult.hash}`);
-    }
 }
 
 async function dequeueDeleteFile(file) {
