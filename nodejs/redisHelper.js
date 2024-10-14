@@ -13,19 +13,17 @@ export const queue = new Queue('queue', {
     removeOnSuccess: true
 });
 
-export const redis = await createClient()
-    .on('error', err => console.log('Redis Client Error', err))
-    .connect();
 
-// export const redis = await (async () => {
-//     const client = await createClient();
-//     await client.connect();
-//     return client;
-// })();
+export const redis = await (async () => {
+    const client = await createClient();
+    await client.connect();
+    return client;
+})();
+
 
 export const fileMetadataSchema = new Schema('ino', {
     path: { type: 'string[]' },
-    size: { type: 'number', indexed: false },
+    size: { type: 'number' },
     nlink: { type: 'number' },
     atimeMs: { type: 'date' },
     mtimeMs: { type: 'date' },
@@ -40,9 +38,8 @@ export const fileRepository = await (async () => {
     return repo;
 })();
 
-
 export async function filesOfSize(size) {
-    await fileRepository.search()
+    return await fileRepository.search()
         .where('size').equals(size)
         .return.all()
 }

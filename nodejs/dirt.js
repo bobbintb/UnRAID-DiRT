@@ -1,8 +1,8 @@
 import express from 'express';
-import * as util from 'util';
 import * as scan from '../nodejs/scan.js';
-import {AggregateGroupByReducers, AggregateSteps, createClient, SchemaFieldTypes} from 'redis';
+import {AggregateGroupByReducers, AggregateSteps, SchemaFieldTypes} from 'redis';
 import {enqueueFileAction} from "./process.js";
+import {fileRepository} from "./redisHelper.js";
 
 const app = express();
 
@@ -20,15 +20,15 @@ app.get("/scan", async () => {
 });
 
 // called from dirtSettings.page
-app.get('/hash', async (req, res) => {
-  try {
-    const result = await findDuplicateSizes();
-    res.json(result);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+// app.get('/hash', async (req, res) => {
+//   try {
+//     const result = await findDuplicateSizes();
+//     res.json(result);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'Internal Server Error' });
+//   }
+// });
 
 // called from left.php
 app.get("/process/:action/:src?", (req, res) => {
@@ -40,42 +40,14 @@ app.get("/process/:action/:src?", (req, res) => {
 
 async function findDuplicateSizes() {
   try {
-    const result = await redis.ft.aggregate('idx:files', '*', {
-      LOAD: ['@hash'],
-      STEPS: [
-        {
-          type: AggregateSteps.FILTER,
-          expression: 'exists(@hash)'
-        },
-        {
-          type: AggregateSteps.GROUPBY,
-          properties: ['@hash'],
-          REDUCE: [
-            {
-              type: AggregateGroupByReducers.COUNT,
-              property: '@hash',
-              AS: 'nb_of_files'
-            }
-          ]
-        },
-        {
-          type: AggregateSteps.SORTBY,
-          BY: {
-            BY: '@nb_of_files',
-            DIRECTION: 'DESC'
-          }
-        },
-        {
-          type: AggregateSteps.FILTER,
-          expression: '@nb_of_files > 1'
-        },
-        {
-          type: AggregateSteps.LIMIT,
-          from: 0,
-          size: 10000
-        }
-      ]
-    });
+    const sizes = await fileRepository
+        .search()
+        .groupBy('size')
+        .count()
+        .returnFields('size', 'count')
+        .execute();
+
+    const result =
     console.error('result', result);
     const hashes = result.results.map(group => group.hash);
     console.error('hashes', hashes);
@@ -114,20 +86,6 @@ async function findDuplicateSizes() {
 
 
 // MAIN
-const redis = await createClient()
-    .on('error', err => console.log('Redis Client Error', err))
-    .connect();
-
-const indexList = await redis.ft._list();
-
-if (!indexList.includes('idx:files')) {
-  await redis.ft.create('idx:files', {
-    size: {type: SchemaFieldTypes.NUMERIC, SORTABLE: true},
-    hash: {type: SchemaFieldTypes.TEXT}
-  }, {ON: 'HASH'});
-};
-
-
 if (!process.argv.includes('--debug')) {
   console.debug = function() {}
 }

@@ -1,10 +1,7 @@
 import fs from 'fs';
 import blake3 from 'blake3';
-import { createClient } from 'redis';
+import {redis} from "./redisHelper.js";
 
-const redis = await createClient()
-    .on('error', err => console.log('Redis Client Error', err))
-    .connect();
 
 const CHUNK_SIZE = 1048576; // 1MB chunk size
 
@@ -43,7 +40,7 @@ export async function hashFilesInIntervals(files) {
                             chunkResolve(null);
                         } else {
                             // Read the next 1MB chunk from the file
-                            const stream = fs.createReadStream(file.path, {
+                            const stream = fs.createReadStream(file.path[0], {
                                 start: processedBytes[index],
                                 end: Math.min(processedBytes[index] + CHUNK_SIZE - 1, file.size - 1)
                             });
@@ -57,7 +54,7 @@ export async function hashFilesInIntervals(files) {
                                 chunkResolve(true);
                             });
                             stream.on('error', (error) => {
-                                console.error(`Error processing file: ${file.path}`, error);
+                                console.error(`Error processing file: ${file.path[0]}`, error);
                                 chunkReject(error);  // Reject if there's a stream error
                             });
                         }

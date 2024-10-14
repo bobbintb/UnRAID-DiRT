@@ -1,23 +1,5 @@
-import {createClient} from "redis";
-import {Repository, Schema} from "redis-om";
+import {fileRepository} from "./redisHelper.js";
 
-const redis = await createClient()
-    .on('error', err => console.log('Redis Client Error', err))
-    .connect();
-
-
-const fileMetadataSchema = new Schema('ino', {
-    path: { type: 'string[]' },
-    size: { type: 'number' },
-    nlink: { type: 'number' },
-    atimeMs: { type: 'date' },
-    mtimeMs: { type: 'date' },
-    ctimeMs: { type: 'date' }
-}, {
-    dataStructure: 'HASH'
-})
-const fileRepository = new Repository(fileMetadataSchema, redis);
-fileRepository.createIndex()
 // const fileInfo = {
 //     path: ["/mnt/user/downloads/aaaaa2.mkv"],  // get rid of path
 //     nlink: Number(3),
@@ -33,7 +15,7 @@ fileRepository.createIndex()
 // const key = '649362771271510040'
 
 const query = await fileRepository.search()
-    .where('size').equals(0)
+    .where('size').equals(16384)
     .return.all()
 
 // const result = await redis.hGetAll("ino:649362771271510040")
