@@ -114,6 +114,7 @@ async function dequeueMoveFile(src, dest) {
     await redis.rename(src, dest);
 }
 
+// Must be called to process the queue
 queue.process(async (job) => {
     switch (job.data.task) {
         case 'create':

@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import {enqueueCreateFile} from "./queueListener.js";
+
 const plugin = 'bobbintb.system.dirt';
 
 export function getSettings() {
@@ -20,6 +21,7 @@ export function getSettings() {
     }
 }
 
+// Recursively scans a directory and adds each file to the queue
 export function getAllFiles(dirPath) {
     function traverseDir(currentPath) {
         try {

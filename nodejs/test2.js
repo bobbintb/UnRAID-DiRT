@@ -17,26 +17,24 @@ const fileMetadataSchema = new Schema('ino', {
     dataStructure: 'HASH'
 })
 const fileRepository = new Repository(fileMetadataSchema, redis);
+fileRepository.createIndex()
+// const fileInfo = {
+//     path: ["/mnt/user/downloads/aaaaa2.mkv"],  // get rid of path
+//     nlink: Number(3),
+//     //ino: stats.ino.toString(),
+//     size: Number(12779642545),
+//     atimeMs: Number(1651538358526),
+//     mtimeMs: Number(1651539803854),
+//     ctimeMs: Number(1725219303278)
+// };
+// for (const [key, value] of Object.entries(fileInfo)) {
+//     console.log(`${key}: ${typeof value}`);
+// }
+// const key = '649362771271510040'
 
-const fileInfo = {
-    path: ["/mnt/user/downloads/aaaaa2.mkv"],  // get rid of path
-    nlink: Number(3),
-    //ino: stats.ino.toString(),
-    size: Number(12779642545),
-    atimeMs: Number(1651538358526),
-    mtimeMs: Number(1651539803854),
-    ctimeMs: Number(1725219303278)
-};
-for (const [key, value] of Object.entries(fileInfo)) {
-    console.log(`${key}: ${typeof value}`);
-}
-const key = '649362771271510040'
-const exists = await redis.exists("ino:" + key, fileInfo);
-if (await redis.exists('ino:' + key) === 1) {
-    console.log(exists)
-    const existingPath = await redis.hGet('ino:' + key, 'path');
-    console.log(existingPath)
-}
+const query = await fileRepository.search()
+    .where('size').equals(0)
+    .return.all()
 
 // const result = await redis.hGetAll("ino:649362771271510040")
-// console.log(result)
+console.log(query)

@@ -12,12 +12,14 @@ app.use((req, res, next) => {
   next();
 });
 
+// called from dirtSettings.page
 app.get("/scan", async () => {
   scan.getAllFiles('/mnt/user/downloads'); // need to eventually fix this
   console.debug("Saving files to database.")
   console.debug("Done saving files to database.")
 });
 
+// called from dirtSettings.page
 app.get('/hash', async (req, res) => {
   try {
     const result = await findDuplicateSizes();
@@ -28,6 +30,7 @@ app.get('/hash', async (req, res) => {
   }
 });
 
+// called from left.php
 app.get("/process/:action/:src?", (req, res) => {
   const { action, src } = req.params;
   enqueueFileAction(action, src)
@@ -132,5 +135,5 @@ const PORT = 3000;
 //const settings = scan.getSettings();
 //console.log(util.inspect(settings, false, null, true /* enable colors */ ));
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`dirt is running on port ${PORT}`);
 });
