@@ -1,18 +1,67 @@
-<FILE Name="/boot/config/plugins/&name;/&name;.json" Mode="0770">
+<FILE Name="/boot/config/plugins/&name;/&name;.json" Mode="0775">
 <INLINE>
 <![CDATA[
-{
-  "dbfile": "/mnt/cache",
-  "hardlinks": false,
-  "include": [
-    "/mnt/user/downloads",
-    "/mnt/user/server"
-  ],
-  "exclude": [
-    "/mnt/user/downloads",
-    "/mnt/user/server"
-  ]
+#!/bin/sh
+#
+# /etc/rc.d/rc.dirt
+#      This shell script takes care of starting and stopping
+#      the DiRT service
+#
+
+# Put the command line options here that you want to pass to dirt:
+DIRT_OPTIONS=""
+
+start() {
+      # Start daemons.
+      echo -n "Starting dirt..."
+	    cd /usr/local/emhttp/plugins/bobbintb.system.dirt
+	    nohup node nodejs/dirt.js $DIRT_OPTIONS &
+      echo
 }
+stop() {
+      # Stop daemons.
+      echo -n "Shutting down dirt..."
+      if kill -TERM $(pgrep -f "node nodejs/dirt.js"); then
+          echo "Process terminated successfully."
+      else
+          echo "Failed to terminate the process."
+      fi
+      echo
+}
+status() {
+  PIDS=$(pgrep -f "node nodejs/dirt.js")
+  if [ "$PIDS" == "" ]; then
+    echo "dirt is not running!"
+  else
+    echo "dirt is running at pid(s) ${PIDS}."
+  fi
+}
+restart() {
+      stop
+      start
+}
+
+# See how we were called.
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart)
+        stop
+        start
+        ;;
+  status)
+        status
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|status|restart}"
+        ;;
+esac
+
+exit 0
 ]]>
 </INLINE>
 </FILE>
