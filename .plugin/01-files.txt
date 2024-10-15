@@ -1,4 +1,4 @@
-<FILE Name="/boot/config/plugins/&name;/&name;.json" Mode="0775">
+<FILE Name="/etc/rc.d/rc.dirt" Mode="0775">
 <INLINE>
 <![CDATA[
 #!/bin/sh
