@@ -28,14 +28,12 @@ export async function hashFilesInIntervals(files) {
     // Create a hasher and track processed bytes for each file
     let hashers = files.map(() => blake3.createHash());
     let processedBytes = files.map(() => 0);
-    console.log('hashFilesInIntervals 1')
     return new Promise(async (resolve, reject) => {
         try {
             // Continue processing while there's more than one file
             while (files.length > 1) {
                 const fileChunkPromises = files.map((file, index) => {
                     return new Promise((chunkResolve, chunkReject) => {
-                        console.log('hashFilesInIntervals 2')
                         if (processedBytes[index] >= file.size) {
                             // File fully processed
                             chunkResolve(null);

@@ -42,31 +42,23 @@ export async function dequeueCreateFile(file) {
 
     let sameSizeFiles = await filesOfSize(size)
     if (sameSizeFiles.length > 0) {
-        console.log('checkpoint 3 - sameSizeFiles')
-        console.log(sameSizeFiles)
         let files = sameSizeFiles;
         files.splice(0, 0, fileInfo); // adds working file to the front of the array of same size files
         console.log('checkpoint 4')
         console.log(files)
         const results = await hashFilesInIntervals(files);
         console.log('checkpoint 5')
-        // console.log(results[1])
-        // console.log(results[1][Object.getOwnPropertySymbols(results[1])[1]]);
-        const entityKeyNameSymbol = Object.getOwnPropertySymbols(results[1].find(sym => sym.description === 'entityKeyName'));
-        console.log(results[1][entityKeyNameSymbol])
-        const pipeline = redis.multi(); // 'pipeline' in node-redis is 'multi'
-        console.log('checkpoint 6')
-        await pipeline.hSet(file, sameSizeFiles[0]);
-
-        for (const result of results) {
-            await pipeline.hSet(result.path, 'hash', result.hash);
+        const entityKeyNameSymbol = Object.getOwnPropertySymbols(results[1]).find(sym => sym.description === 'entityKeyName');
+        console.log(results[1][Object.getOwnPropertySymbols(results[1]).find(sym => sym.description === 'entityKeyName')])
+        const pipeline = redis.multi();
+        await pipeline.hSet(file, sameSizeFiles[0]);    // add the new file first
+        for (const result of results) {     //then update the hashes in the existing files
+            await pipeline.hSet(result[Object.getOwnPropertySymbols(results[1]).find(sym => sym.description === 'entityKeyName')], 'hash', result.hash);
         }
+        console.log('checkpoint 6')
         await pipeline.exec();
+        console.log('checkpoint 7')
 
-        const items = [{ key: 'hash1', fields: { field1: 'value1', field2: 'value2' } }, { key: 'hash2', fields: { field1: 'value3', field2: 'value4' } }];
-        results.forEach(result => {
-            redis.hSet(result[Symbol.for('entityKeyName')], "hash", result.hash);
-        });
 
     } else {
         const key = stats.ino.toString()
