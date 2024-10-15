@@ -44,20 +44,16 @@ export async function dequeueCreateFile(file) {
     if (sameSizeFiles.length > 0) {
         let files = sameSizeFiles;
         files.splice(0, 0, fileInfo); // adds working file to the front of the array of same size files
-        console.log('checkpoint 4')
-        console.log(files)
         const results = await hashFilesInIntervals(files);
-        console.log('checkpoint 5')
-        const entityKeyNameSymbol = Object.getOwnPropertySymbols(results[1]).find(sym => sym.description === 'entityKeyName');
-        console.log(results[1][Object.getOwnPropertySymbols(results[1]).find(sym => sym.description === 'entityKeyName')])
-        const pipeline = redis.multi();
-        await pipeline.hSet(file, sameSizeFiles[0]);    // add the new file first
-        for (const result of results) {     //then update the hashes in the existing files
-            await pipeline.hSet(result[Object.getOwnPropertySymbols(results[1]).find(sym => sym.description === 'entityKeyName')], 'hash', result.hash);
-        }
+        // let pipeline = redis.multi();
         console.log('checkpoint 6')
-        // await pipeline.exec();
+        await redis.hSet(file, sameSizeFiles[0]);    // add the new file first
+        for (const result of results.slice(1)) {
+            await redis.hSet(result[Object.getOwnPropertySymbols(result).find(sym => sym.description === 'entityKeyName')], 'hash', result.hash);
+        }
         console.log('checkpoint 7')
+        // await pipeline.exec();
+        console.log('checkpoint 8')
 
 
     } else {
