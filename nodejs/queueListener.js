@@ -56,7 +56,7 @@ export async function dequeueCreateFile(file) {
             await pipeline.hSet(result[Object.getOwnPropertySymbols(results[1]).find(sym => sym.description === 'entityKeyName')], 'hash', result.hash);
         }
         console.log('checkpoint 6')
-        await pipeline.exec();
+        // await pipeline.exec();
         console.log('checkpoint 7')
 
 
