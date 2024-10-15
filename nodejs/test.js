@@ -12,10 +12,12 @@ const result = await redis.ft.aggregate('idx:files', '*', {
             type: AggregateSteps.FILTER,
             expression: 'exists(@hash)'
         },
-        {   type: AggregateSteps.GROUPBY,
+        {
+            type: AggregateSteps.GROUPBY,
             properties: ['@hash'],
             REDUCE: [
-                {   type: AggregateGroupByReducers.COUNT,
+                {
+                    type: AggregateGroupByReducers.COUNT,
                     property: '@hash',
                     AS: 'nb_of_files'
                 }
@@ -61,7 +63,7 @@ const resultsArray = await Promise.all(
 console.log('resultsArray')
 console.log(resultsArray)
 
-const groupedResults = resultsArray.reduce((acc, { hash, documents }) => {
+const groupedResults = resultsArray.reduce((acc, {hash, documents}) => {
     acc[hash] = documents; // Group documents by hash
     return acc;
 }, {});

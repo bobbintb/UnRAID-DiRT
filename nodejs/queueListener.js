@@ -1,5 +1,5 @@
 import fs from "fs";
-import * as test from "./hashHelper.js"
+import {hashFilesInIntervals} from "./hashHelper.js"
 import {fileRepository, filesOfSize, queue, redis} from "./redisHelper.js";
 
 
@@ -28,7 +28,7 @@ export function enqueueMoveFile(src, dest) {
     queue.createJob(jobData).save();
 }
 
-async function dequeueCreateFile(file) {
+export async function dequeueCreateFile(file) {
     const stats = fs.statSync(file, {bigint: true});
     const size = Number(stats.size)
     const fileInfo = {
@@ -47,9 +47,13 @@ async function dequeueCreateFile(file) {
         let files = sameSizeFiles;
         files.splice(0, 0, fileInfo); // adds working file to the front of the array of same size files
         console.log('checkpoint 4')
-        const results = await test.hashFilesInIntervals(files);
+        console.log(files)
+        const results = await hashFilesInIntervals(files);
         console.log('checkpoint 5')
-
+        // console.log(results[1])
+        // console.log(results[1][Object.getOwnPropertySymbols(results[1])[1]]);
+        const entityKeyNameSymbol = Object.getOwnPropertySymbols(results[1].find(sym => sym.description === 'entityKeyName'));
+        console.log(results[1][entityKeyNameSymbol])
         const pipeline = redis.multi(); // 'pipeline' in node-redis is 'multi'
         console.log('checkpoint 6')
         await pipeline.hSet(file, sameSizeFiles[0]);
@@ -58,23 +62,24 @@ async function dequeueCreateFile(file) {
             await pipeline.hSet(result.path, 'hash', result.hash);
         }
         await pipeline.exec();
+
+        const items = [{ key: 'hash1', fields: { field1: 'value1', field2: 'value2' } }, { key: 'hash2', fields: { field1: 'value3', field2: 'value4' } }];
+        results.forEach(result => {
+            redis.hSet(result[Symbol.for('entityKeyName')], "hash", result.hash);
+        });
+
     } else {
-    const key = stats.ino.toString()
-    try {
-        if (await redis.exists('ino:'+key) === 1) {
-            const existingPath = await redis.hGet('ino:' + key, 'path');
-            console.log('existingPath')
-            fileInfo.path.push(existingPath);
-            console.log(existingPath)
-        }
+        const key = stats.ino.toString()
+        try {
+            // Good enough for now but inefficient. Checks if the inode exists first (hardlink) and adds it to `path`.
+            if (await redis.exists('ino:' + key) === 1) {
+                const existingPath = await redis.hGet('ino:' + key, 'path');
+                fileInfo.path.push(existingPath);
+            }
             await fileRepository.save(key, fileInfo);
-
-        // await fileRepository.save(stats.ino.toString(), fileInfo);
-    } catch (error) {
-        console.error('Error saving file info:', error);
-        // Handle the error as needed (e.g., rethrow, return a response, etc.)
-    }
-
+        } catch (error) {
+            console.error('Error saving file info:', error);
+        }
     }
 }
 

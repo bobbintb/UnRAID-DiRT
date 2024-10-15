@@ -1,5 +1,5 @@
-import { createHash, load } from 'blake3';
-import { open } from 'node:fs/promises';
+import {createHash, load} from 'blake3';
+import {open} from 'node:fs/promises';
 import path from 'path';
 
 const CHUNK_SIZE = 1048576; // 1MB
@@ -7,7 +7,7 @@ const CHUNK_SIZE = 1048576; // 1MB
 async function hashFileChunk(fileHandle, hash, offset, filePath) {
     try {
         const buffer = Buffer.alloc(CHUNK_SIZE);
-        const { bytesRead } = await fileHandle.read(buffer, 0, CHUNK_SIZE, offset);
+        const {bytesRead} = await fileHandle.read(buffer, 0, CHUNK_SIZE, offset);
 
         if (bytesRead > 0) {
             hash.update(buffer.slice(0, bytesRead)); // Update the hash with the read bytes
@@ -26,16 +26,16 @@ async function hashFileChunk(fileHandle, hash, offset, filePath) {
 }
 
 function compareHashesAndFilter(filesWithHashes, fileHandles) {
-    if (filesWithHashes.length === 0) return { filteredFiles: filesWithHashes, remainingFileHandles: fileHandles };
+    if (filesWithHashes.length === 0) return {filteredFiles: filesWithHashes, remainingFileHandles: fileHandles};
 
     const referenceHash = filesWithHashes[0].hash;
-    const filteredFiles = filesWithHashes.filter(({ hash }) => hash === referenceHash);
+    const filteredFiles = filesWithHashes.filter(({hash}) => hash === referenceHash);
 
     const remainingFileHandles = fileHandles.filter((_, index) => filesWithHashes[index].hash === referenceHash);
     const closedFileHandles = fileHandles.filter((_, index) => filesWithHashes[index].hash !== referenceHash);
     closedFileHandles.forEach(fileHandle => fileHandle.close());
 
-    return { filteredFiles, remainingFileHandles };
+    return {filteredFiles, remainingFileHandles};
 }
 
 export async function processFiles(filePaths) {
@@ -74,9 +74,9 @@ export async function processFiles(filePaths) {
                 hash: hashes[index].digest('hex') // Get current hash state without affecting ongoing hashing
             }));
 
-            const { filteredFiles, remainingFileHandles } = compareHashesAndFilter(filesWithHashes, fileHandles);
+            const {filteredFiles, remainingFileHandles} = compareHashesAndFilter(filesWithHashes, fileHandles);
 
-            filePaths = filteredFiles.map(({ file }) => file);
+            filePaths = filteredFiles.map(({file}) => file);
             fileHandles = remainingFileHandles;
 
             allFilesProcessed = fileHandles.length === 1 || bytesRead.every(bytes => bytes === 0);

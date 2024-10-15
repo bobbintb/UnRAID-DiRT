@@ -21,7 +21,7 @@
         try {
             const response = await Promise.race([
                 fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/process/${encodeURIComponent(action)}/${encodeURIComponent(src)}`)
-        ]);
+            ]);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -85,10 +85,10 @@
         // groupBy: ["hash", "ino"],
         groupBy: "hash",
         setGroupStartOpen: true,
-        rowSelectableCheck: function(row) {
+        rowSelectableCheck: function (row) {
             return !row.getElement().classList.contains('disabled');
         },
-        groupHeader: function(value, count) {
+        groupHeader: function (value, count) {
             return `<div class="tabulator-cell" role="gridcell" style="margin-left: 4px; border-left: 1px solid #aaa; height: 24px; width: 41px;">
                         <div style="display: flex; font-size: large; align-items: center; justify-content: center; height: 100%;">
                             <i class="fa fa-trash"></i></div></div>
@@ -96,12 +96,13 @@
                         <div style="display: flex; font-size: large; align-items: center; justify-content: center; height: 100%;">
                             <i class="fa fa-link"></i></div></div>
                     ${value}
-                    <span style='color:#d00; margin-left:10px;'>(${count-1} duplicate files)</span>`;},
+                    <span style='color:#d00; margin-left:10px;'>(${count - 1} duplicate files)</span>`;
+        },
         footerElement: `<div>Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}</div>`,
         columns: [
             {
-            // Radio button column
-            title: `<div class="custom-arrow" style="display: inline-flex; font-size: large; align-items: center; justify-content: center; height: 100%; cursor: pointer;
+                // Radio button column
+                title: `<div class="custom-arrow" style="display: inline-flex; font-size: large; align-items: center; justify-content: center; height: 100%; cursor: pointer;
                         border-width: 6px 6px 0px;
                         border-left-style: solid;
                         border-left-color: transparent;
@@ -112,27 +113,27 @@
                         border-bottom-style: initial;
                         border-bottom-color: initial;">
                     </div>`,
-            headerHozAlign: "center",
-            headerSort: false,
-            maxWidth: 40,
-            formatter: function(cell) {
-                let rowData = cell.getRow().getData();
-                return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><input type='radio' name='rowSelection-${rowData.hash}'></div>`;
-            },
-            cellClick: function(e, cell) {
-                if (e.target.type !== 'radio') {
-                    return;
+                headerHozAlign: "center",
+                headerSort: false,
+                maxWidth: 40,
+                formatter: function (cell) {
+                    let rowData = cell.getRow().getData();
+                    return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><input type='radio' name='rowSelection-${rowData.hash}'></div>`;
+                },
+                cellClick: function (e, cell) {
+                    if (e.target.type !== 'radio') {
+                        return;
+                    }
+                    let row = cell.getRow();
+                    let group = row.getGroup();
+                    group.getRows().forEach(function (row) {
+                        row.getElement().classList.remove('disabled');
+                    });
+                    row.getElement().classList.add('disabled');
+                    row.getElement().style.color = '';
+                    row.getElement().querySelector('.fa.fa-trash').style.border = 'initial';
+                    row.getElement().querySelector('.fa.fa-link').style.border = 'initial';
                 }
-                let row = cell.getRow();
-                let group = row.getGroup();
-                group.getRows().forEach(function(row) {
-                    row.getElement().classList.remove('disabled');
-                });
-                row.getElement().classList.add('disabled');
-                row.getElement().style.color = '';
-                row.getElement().querySelector('.fa.fa-trash').style.border = 'initial';
-                row.getElement().querySelector('.fa.fa-link').style.border = 'initial';
-            }
             },
             {
                 // Trash column
@@ -141,15 +142,15 @@
                         </div>`,
                 headerSort: false,
                 maxWidth: 40,
-                formatter: function(cell) {
+                formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
                     return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><i class='fa fa-trash' style='text-align: center; width: 15px; margin: 0; padding: 0; border: none; background: none;' ${disabled}></i></div>`;
                 },
-                cellClick: function(e, cell) {
+                cellClick: function (e, cell) {
                     let rowData = cell.getRow().getData();
                     rowData.action = "delete";
                     let rightTableData = rightTable.getData();
-                    let isDuplicate = rightTableData.some(function(row) {
+                    let isDuplicate = rightTableData.some(function (row) {
                         return row.id === rowData.id;
                     });
                     if (isDuplicate) {
@@ -176,15 +177,15 @@
                         </div>`,
                 headerSort: false,
                 maxWidth: 40,
-                formatter: function(cell) {
+                formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
                     return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><i class='fa fa-link' style='text-align: center; width: 15px; margin: 0; padding: 0; border: none; background: none;' ${disabled}></i></div>`;
                 },
-                cellClick: function(e, cell) {
+                cellClick: function (e, cell) {
                     let rowData = cell.getRow().getData();
                     rowData.action = "link";
                     let rightTableData = rightTable.getData();
-                    let isDuplicate = rightTableData.some(function(row) {
+                    let isDuplicate = rightTableData.some(function (row) {
                         return row.id === rowData.id;
                     });
                     if (isDuplicate) {
@@ -244,7 +245,7 @@
                 formatter: dateFormatter
             }
         ],
-        rowFormatter: function(row) {
+        rowFormatter: function (row) {
             let group = row.getGroup();
             if (group && group.getRows()[0] === row) {
                 let rowElement = row.getElement();
@@ -255,12 +256,12 @@
         },
     });
 
-    leftTable.on("rowSelected", function(row) {
+    leftTable.on("rowSelected", function (row) {
         const rowData = row.getData("");
         const hashValue = rowData.hash;
     });
 
-    leftTable.on("cellClick", function(e, cell){
+    leftTable.on("cellClick", function (e, cell) {
         // console.error('e')
         // console.error(e)
         // console.error('cell')
@@ -269,7 +270,7 @@
         //cell - cell component
     });
 
-    leftTable.on("headerClick", function(e, column) {
+    leftTable.on("headerClick", function (e, column) {
         if (column._column.definition.title.includes("custom-arrow")) {
             let arrowCell = document.getElementsByClassName('custom-arrow')[0]
             arrowCell.style.setProperty('border-width', arrowCell.style.borderWidth === '6px 6px 0px' ? '6px 0px 6px 6px' : '6px 6px 0px');
@@ -285,7 +286,7 @@
         }
     });
 
-    leftTable.on("tableBuilt", function() {
+    leftTable.on("tableBuilt", function () {
         groups = leftTable.getGroups()
         groupCount = leftTable.getGroups().length;
         document.querySelector('.tabulator-footer').innerText = `Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}`;
@@ -293,7 +294,7 @@
 
     function toggleGroups() {
         const groups = leftTable.getGroups();
-        groups.forEach(function(group) {
+        groups.forEach(function (group) {
             group.show();
         });
         console.log(groups);

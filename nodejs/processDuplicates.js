@@ -1,4 +1,4 @@
-import { queue } from "./redisHelper.js"
+import {queue} from "./redisHelper.js"
 
 export function enqueueFileAction(action, src) {
     const jobData = {

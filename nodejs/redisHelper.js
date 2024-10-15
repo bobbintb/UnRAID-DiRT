@@ -22,12 +22,12 @@ export const redis = await (async () => {
 
 
 export const fileMetadataSchema = new Schema('ino', {
-    path: { type: 'string[]' },
-    size: { type: 'number' },
-    nlink: { type: 'number' },
-    atimeMs: { type: 'date' },
-    mtimeMs: { type: 'date' },
-    ctimeMs: { type: 'date' }
+    path: {type: 'string[]'},
+    size: {type: 'number'},
+    nlink: {type: 'number'},
+    atimeMs: {type: 'date'},
+    mtimeMs: {type: 'date'},
+    ctimeMs: {type: 'date'}
 }, {
     dataStructure: 'HASH'
 })

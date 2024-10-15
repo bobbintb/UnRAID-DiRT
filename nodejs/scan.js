@@ -25,7 +25,7 @@ export function getSettings() {
 export function getAllFiles(dirPath) {
     function traverseDir(currentPath) {
         try {
-            const entries = fs.readdirSync(currentPath, { withFileTypes: true });
+            const entries = fs.readdirSync(currentPath, {withFileTypes: true});
             for (const entry of entries) {
                 const fullPath = path.join(currentPath, entry.name);
                 if (entry.isFile()) {
@@ -38,6 +38,7 @@ export function getAllFiles(dirPath) {
             console.error(`Error processing directory ${currentPath}:`, err);
         }
     }
+
     try {
         traverseDir(dirPath);
     } catch (err) {

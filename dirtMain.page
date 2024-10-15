@@ -8,7 +8,7 @@ Icon="fa-search-minus"
 <style>
     #main_container {
         --main_container_height: 65vh;
-        //border:1px solid black;
+    / / border: 1 px solid black;
         height: var(--main_container_height);
         display: flex;
         flex-direction: row;
@@ -19,7 +19,8 @@ Icon="fa-search-minus"
         background-color: #ccc !important;
         color: #888 !important;
         cursor: default !important;
-        pointer-events: none !important;    }
+        pointer-events: none !important;
+    }
 
     .strike-through {
         text-decoration: line-through red;
@@ -41,6 +42,7 @@ Icon="fa-search-minus"
         font-size: 12px;
         background-color: unset;
     }
+
     .tabulator-row.tabulator-group {
         padding: 0px 5px 0px 10px !important;
     }
@@ -48,7 +50,6 @@ Icon="fa-search-minus"
     .tabulator-group-toggle {
         width: 15px;
     }
-
 
 
     #right {
@@ -60,23 +61,24 @@ Icon="fa-search-minus"
 
     #bottom_container {
         --bottom_container_height: 10vh;
-    /*border:1px solid black;*/
+        /*border:1px solid black;*/
         height: var(--bottom_container_height);
         display: flex;
         flex-direction: row;
     }
+
     #bleft {
-        border:1px solid red;
+        border: 1px solid red;
         resize: horizontal;
         overflow: auto;
         width: 70%;
     }
 
     #bright {
-    border:1px solid blue;
+        border: 1px solid blue;
         flex: 1;
         margin-left: 5px;
-    //margin-right: 10px;
+    / / margin-right: 10 px;
     }
 </style>
 
@@ -88,12 +90,12 @@ Icon="fa-search-minus"
 
 </script>
 <div id="main_container">
-        <link href="https://unpkg.com/tabulator-tables@6.3/dist/css/tabulator.min.css" rel="stylesheet">
-        <div id="left"><?php include './plugins/bobbintb.system.dirt/php/left.php'; ?></div>
-        <div id="right"><?php include './plugins/bobbintb.system.dirt/php/right.php'; ?></div>
+    <link href="https://unpkg.com/tabulator-tables@6.3/dist/css/tabulator.min.css" rel="stylesheet">
+    <div id="left"><?php include './plugins/bobbintb.system.dirt/php/left.php'; ?></div>
+    <div id="right"><?php include './plugins/bobbintb.system.dirt/php/right.php'; ?></div>
 
 </div>
 <div id="bottom_container">
-<div id="bleft"></div>
-<div id="bright"></div>
+    <div id="bleft"></div>
+    <div id="bright"></div>
 </div>

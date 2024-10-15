@@ -2,7 +2,8 @@
   "dbfile": "/mnt/cache",
   "hardlinks": false,
   "include": [
-    "/mnt/user/downloads"],
+    "/mnt/user/downloads"
+  ],
   "exclude": [
     "/mnt/user/downloads",
     "/mnt/user/server"

@@ -1,4 +1,5 @@
 import {fileRepository} from "./redisHelper.js";
+import {dequeueCreateFile} from "./queueListener.js";
 
 // const fileInfo = {
 //     path: ["/mnt/user/downloads/aaaaa2.mkv"],  // get rid of path
@@ -14,9 +15,7 @@ import {fileRepository} from "./redisHelper.js";
 // }
 // const key = '649362771271510040'
 
-const query = await fileRepository.search()
-    .where('size').equals(16384)
-    .return.all()
+
 
 // const result = await redis.hGetAll("ino:649362771271510040")
-console.log(query)
+console.log(await dequeueCreateFile('/mnt/user/downloads/New Text Document.txt'))

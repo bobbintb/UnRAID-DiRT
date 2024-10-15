@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $decodedData = json_decode($validJson, true);
 
     if (json_last_error() === JSON_ERROR_NONE) {
-         file_put_contents($jsonFilePath, json_encode($decodedData, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+        file_put_contents($jsonFilePath, json_encode($decodedData, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
     } else {
         error_log("JSON Decode Error: " . json_last_error_msg());
         echo json_encode(['error' => 'JSON Decode Error: ' . json_last_error_msg()]);

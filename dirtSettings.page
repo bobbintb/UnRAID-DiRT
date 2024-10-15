@@ -7,14 +7,31 @@ $docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 require_once "$docroot/plugins/dynamix.vm.manager/include/libvirt_helpers.php";
 
 switch ($display['theme']) {
-    case 'gray' : $bgcolor = '#121510'; $border = '#606e7f'; $top = -44; break;
-    case 'azure': $bgcolor = '#edeaef'; $border = '#606e7f'; $top = -44; break;
-    case 'black': $bgcolor = '#212121'; $border = '#2b2b2b'; $top = -58; break;
-    default     : $bgcolor = '#ededed'; $border = '#e3e3e3'; $top = -58; break;
+    case 'gray' :
+        $bgcolor = '#121510';
+        $border = '#606e7f';
+        $top = -44;
+        break;
+    case 'azure':
+        $bgcolor = '#edeaef';
+        $border = '#606e7f';
+        $top = -44;
+        break;
+    case 'black':
+        $bgcolor = '#212121';
+        $border = '#2b2b2b';
+        $top = -58;
+        break;
+    default     :
+        $bgcolor = '#ededed';
+        $border = '#e3e3e3';
+        $top = -58;
+        break;
 }
 
 
-function loadConfig() {
+function loadConfig()
+{
     $jsonData = file_get_contents("./plugins/bobbintb.system.dirt/bobbintb.system.dirt.json");
     return json_decode($jsonData, true);
 }
@@ -24,57 +41,86 @@ $configArray = loadConfig();
 
 ?>
 
-<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>">
-<link type="text/css" rel="stylesheet" href="<?autov('/plugins/dynamix.vm.manager/sheets/UpdateVM.css')?>">
+<link type="text/css" rel="stylesheet" href="<? autov('/webGui/styles/jquery.filetree.css') ?>">
+<link type="text/css" rel="stylesheet" href="<? autov('/plugins/dynamix.vm.manager/sheets/UpdateVM.css') ?>">
 <style>
-    .fileTree{background:<?= $bgcolor ?>;width:300px;max-height:150px;overflow-y:scroll;overflow-x:hidden;position:relative;z-index:100;display:none}
-    #vmform table tr td:nth-child(odd){width:150px;text-align:right}
-    #sb-wrapper {width: 500px !important;position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important;}
-    #sb-wrapper-inner {height: 400px !important}
+    .fileTree {
+        background: <?= $bgcolor ?>;
+        width: 300px;
+        max-height: 150px;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        position: relative;
+        z-index: 100;
+        display: none
+    }
+
+    #vmform table tr td:nth-child(odd) {
+        width: 150px;
+        text-align: right
+    }
+
+    #sb-wrapper {
+        width: 500px !important;
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+    }
+
+    #sb-wrapper-inner {
+        height: 400px !important
+    }
 </style>
 <div class="domain">
     <form id="vmform" method="POST">
         <div id="form_content">
             <dl>
-            <div class="formview">
-                <?
-                foreach ($configArray['include'] as $i => $arrShare) {
-                    $strLabel = ($i > 0) ? appendOrdinalSuffix($i + 1) : '';
-                    ?>
-                    <table  data-category="Monitor" data-multiple="true" data-minimum="1" data-index="<?= $i ?>" data-prefix="<?= $strLabel ?>">
-                        <tr>
-                            <td>
-                                <text id="monitor[<?= $i ?>]" > _(Monitor Path)_: </text>
-                            </td>
-                            <td>
-                                <input type="text" id="monitor[<?= $i ?>]" name="monitor[<?= $i ?>]" autocomplete="off" data-pickfolders="true" data-pickfilter="NO_FILES_FILTER" data-pickroot="/mnt/" value="<?= htmlspecialchars(
-                                    $arrShare
-                                ) ?>" placeholder="_(e.g.)_ /mnt/user/..." title="_(path to monitor)_" />
-                            </td>
-                        </tr>
-                    </table>
-                <?}?>
-                <script type="text/html" id="tmplMonitor">
-                    <table>
-                        <tr>
-                            <td>_(Monitor Path)_:</td>
-                            <td>
-                                <input type="text" name="monitor[{{INDEX}}]" id="monitor[{{INDEX}}]" autocomplete="off" spellcheck="false" data-pickfolders="true" data-pickfilter="NO_FILES_FILTER" data-pickroot="/mnt/" value="" placeholder="_(e.g.)_ /mnt/user/..." title="_(path to monitor)_" />
-                            </td>
-                        </tr>
-                    </table>
-                </script>
-                <input type="hidden" name="updatevm" value="1" />
-                <button type="submit" id="save-button" disabled="true">Save</button>
-            </div>
+                <div class="formview">
+                    <?
+                    foreach ($configArray['include'] as $i => $arrShare) {
+                        $strLabel = ($i > 0) ? appendOrdinalSuffix($i + 1) : '';
+                        ?>
+                        <table data-category="Monitor" data-multiple="true" data-minimum="1" data-index="<?= $i ?>"
+                               data-prefix="<?= $strLabel ?>">
+                            <tr>
+                                <td>
+                                    <text id="monitor[<?= $i ?>]"> _(Monitor Path)_:</text>
+                                </td>
+                                <td>
+                                    <input type="text" id="monitor[<?= $i ?>]" name="monitor[<?= $i ?>]"
+                                           autocomplete="off" data-pickfolders="true" data-pickfilter="NO_FILES_FILTER"
+                                           data-pickroot="/mnt/" value="<?= htmlspecialchars(
+                                        $arrShare
+                                    ) ?>" placeholder="_(e.g.)_ /mnt/user/..." title="_(path to monitor)_"/>
+                                </td>
+                            </tr>
+                        </table>
+                    <? } ?>
+                    <script type="text/html" id="tmplMonitor">
+                        <table>
+                            <tr>
+                                <td>_(Monitor Path)_:</td>
+                                <td>
+                                    <input type="text" name="monitor[{{INDEX}}]" id="monitor[{{INDEX}}]"
+                                           autocomplete="off" spellcheck="false" data-pickfolders="true"
+                                           data-pickfilter="NO_FILES_FILTER" data-pickroot="/mnt/" value=""
+                                           placeholder="_(e.g.)_ /mnt/user/..." title="_(path to monitor)_"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </script>
+                    <input type="hidden" name="updatevm" value="1"/>
+                    <button type="submit" id="save-button" disabled="true">Save</button>
+                </div>
             </dl>
         </div>
     </form>
 </div>
 
-<script src="<?autov('/webGui/javascript/jquery.filedrop.js')?>"></script>
-<script src="<?autov('/webGui/javascript/jquery.filetree.js')?>" charset="utf-8"></script>
-<script src="<?autov('/plugins/dynamix.vm.manager/javascript/dynamix.vm.manager.js')?>"></script>
+<script src="<? autov('/webGui/javascript/jquery.filedrop.js') ?>"></script>
+<script src="<? autov('/webGui/javascript/jquery.filetree.js') ?>" charset="utf-8"></script>
+<script src="<? autov('/plugins/dynamix.vm.manager/javascript/dynamix.vm.manager.js') ?>"></script>
 <script type="text/javascript">
     $("#vmform .formview #save-button").click(function frmSubmit() {
         const monitorInputs = document.querySelectorAll('input[name^="monitor["]');
@@ -84,11 +130,10 @@ $configArray = loadConfig();
         const addedPaths = monitorPaths.filter(path => !oldPaths.includes(path));
 
 
-
-        $.post('/plugins/bobbintb.system.dirt/php/config.php', JSON.stringify({ include: monitorPaths }), function(data) {
+        $.post('/plugins/bobbintb.system.dirt/php/config.php', JSON.stringify({include: monitorPaths}), function (data) {
             console.log('Server response:', data);
         }, 'json')
-            .fail(function(jqXHR, textStatus, errorThrown) {
+            .fail(function (jqXHR, textStatus, errorThrown) {
                 console.error('Error:', textStatus, errorThrown);
             });
     });
@@ -97,7 +142,7 @@ $configArray = loadConfig();
         return true;
     }
 
-    $(function() {
+    $(function () {
         $("#vmform table[data-category]").each(function () {
             var category = $(this).data('category');
             updatePrefixLabels(category);
@@ -145,19 +190,21 @@ $configArray = loadConfig();
                 });
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const saveButton = document.getElementById('save-button');
             const form = document.getElementById('vmform');
+
             function attachInputListeners() {
                 const formInputs = document.querySelectorAll('#vmform input');
                 formInputs.forEach(input => {
-                    input.addEventListener('input', function() {
+                    input.addEventListener('input', function () {
                         saveButton.disabled = false;
                     });
                 });
             }
+
             attachInputListeners();
-            const observer = new MutationObserver(function(mutationsList) {
+            const observer = new MutationObserver(function (mutationsList) {
                 for (let mutation of mutationsList) {
                     if (mutation.type === 'childList') {
                         attachInputListeners();
@@ -169,7 +216,7 @@ $configArray = loadConfig();
                     }
                 }
             });
-            observer.observe(form, { childList: true, subtree: true });
+            observer.observe(form, {childList: true, subtree: true});
         });
     </script>
     <dl>
