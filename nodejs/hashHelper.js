@@ -1,27 +1,7 @@
 import fs from 'fs';
 import blake3 from 'blake3';
-import {redis} from "./redisHelper.js";
-
 
 const CHUNK_SIZE = 1048576; // 1MB chunk size
-
-export async function searchBySize(size) {
-    try {
-        const result = await redis.ft.search('idx:files', `@size:[${size} ${size}]`, {
-            LIMIT: {from: 0, size: 10000},
-            RETURN: ['id', 'size']
-        });
-
-        return result.documents.map(doc => ({
-            path: doc.id,
-            size: doc.value.size
-        }));
-    } catch (err) {
-        console.error('Search error:', err);
-        throw err;
-    }
-}
-
 await blake3.load();
 
 export async function hashFilesInIntervals(files) {
@@ -30,7 +10,7 @@ export async function hashFilesInIntervals(files) {
     let processedBytes = files.map(() => 0);
     return new Promise(async (resolve, reject) => {
         try {
-            // Continue processing while there's more than one file
+            // Continue processing as long as there's more than one file
             while (files.length > 1) {
                 const fileChunkPromises = files.map((file, index) => {
                     return new Promise((chunkResolve, chunkReject) => {
@@ -85,7 +65,7 @@ export async function hashFilesInIntervals(files) {
                 if (processedBytes[0] >= files[0].size) {
                     files.forEach((file, index) => {
                         file.hash = hashers[index].digest('hex');
-                        //console.debug(file);
+                        console.log(file);
                     });
                     return resolve(files);  // Resolve once all files are hashed
                 }

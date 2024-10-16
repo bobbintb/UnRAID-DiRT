@@ -27,7 +27,8 @@ export const fileMetadataSchema = new Schema('ino', {
     nlink: {type: 'number'},
     atimeMs: {type: 'date'},
     mtimeMs: {type: 'date'},
-    ctimeMs: {type: 'date'}
+    ctimeMs: {type: 'date'},
+    hash: {type: 'string'}
 }, {
     dataStructure: 'HASH'
 })
