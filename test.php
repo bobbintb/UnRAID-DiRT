@@ -1,10 +1,18 @@
-Menu="Utilities"
-Title="Deduplication in Real-Time"
-Icon="fa-search-minus"
+Menu="Share:1"
+Title="Share Settings"
+Tag="share-alt-square"
 ---
-<?
-$width = [123,300];
-?>
+
+
+<div class="clone1">
+    <span class="clone">_(Read settings from)_</span><i class="fa fa-arrow-left fa-fw"></i>
+    <span class="wrap"><select name="readshare" class="clone" onchange="toggleButton('readshare',false)">
+	<option disabled selected>_(select)_...</option>
+	<?
+    foreach ($shares as $list) if ($list['name']!=$name || !$name) echo mk_option("", $list['name'], compress($list['name']));
+    ?>
+	</select></span><input type="button" id="readshare" value="_(Read)_" class="clone" onclick="readShare()" disabled>
+</div>
 
 <form markdown="1" name="share_edit" method="POST" action="/update.htm" target="progressFrame" onsubmit="return prepareEdit()"<?=$name?:">"?>
 <div markdown="1" class="shade-<?=$display['theme']?>">
@@ -34,6 +42,7 @@ $width = [123,300];
 <script>
 
 
+    let checkRequiredPrimary = false;
 
     function initializeDropdown(selector, emptyText, width, firstItemChecksAll = false) {
         try {
