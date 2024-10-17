@@ -31,6 +31,7 @@ export function enqueueMoveFile(src, dest) {
 export async function dequeueCreateFile(file) {
     const stats = fs.statSync(file, {bigint: true});
     const size = Number(stats.size)
+    const key = stats.ino.toString()
     const fileInfo = {
         path: [file],
         nlink: Number(stats.nlink),
@@ -40,34 +41,28 @@ export async function dequeueCreateFile(file) {
         ctimeMs: Number(stats.ctimeMs)
     };
 
+        // Good enough for now but inefficient. Checks if the inode exists first (hardlink) and adds it to `path`.
+    if (await redis.exists('ino:' + key) === 1) {
+        const existingPath = await redis.hGet('ino:' + key, 'path');
+        fileInfo.path.push(existingPath);
+        await fileRepository.save(key, fileInfo);
+        return
+    }
+
     let sameSizeFiles = await filesOfSize(size)
     if (sameSizeFiles.length > 0) {
         let files = sameSizeFiles;
         files.splice(0, 0, fileInfo); // adds working file to the front of the array of same size files
         const results = await hashFilesInIntervals(files);
-        // let pipeline = redis.multi();
-        console.log('checkpoint 6')
-        await redis.hSet(file, sameSizeFiles[0]);    // add the new file first
+        await fileRepository.save(key, results[0])    // add the new file first
+        console.log(results[0])
+        console.log('---------------')
         for (const result of results.slice(1)) {
-            await redis.hSet(result[Object.getOwnPropertySymbols(result).find(sym => sym.description === 'entityKeyName')], 'hash', result.hash);
+            await fileRepository.save(result)
+            console.log(result)
         }
-        console.log('checkpoint 7')
-        // await pipeline.exec();
-        console.log('checkpoint 8')
-
-
     } else {
-        const key = stats.ino.toString()
-        try {
-            // Good enough for now but inefficient. Checks if the inode exists first (hardlink) and adds it to `path`.
-            if (await redis.exists('ino:' + key) === 1) {
-                const existingPath = await redis.hGet('ino:' + key, 'path');
-                fileInfo.path.push(existingPath);
-            }
-            await fileRepository.save(key, fileInfo);
-        } catch (error) {
-            console.error('Error saving file info:', error);
-        }
+        await fileRepository.save(key, fileInfo);
     }
 }
 
