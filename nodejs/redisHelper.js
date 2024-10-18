@@ -57,6 +57,19 @@ export async function filesOfSize(size) {
         .return.all()
 }
 
+async function findDuplicateHashes() {
+    const result = await redis.call(
+        'FT.AGGREGATE',
+        'ino:index', '*',
+        'GROUPBY', '1', '@hash',
+        'REDUCE', 'COUNT', '0', 'AS', 'nb_of_files',
+        'FILTER', '@nb_of_files > 1',
+        'SORTBY', '2', '@nb_of_files', 'ASC',
+        'LIMIT', '0', '10000'
+    );
+    console.log(result);
+}
+
 export async function findEntitiesWithNonUniqueHashOptimized() {
 
     // Step 1: Define the Lua script

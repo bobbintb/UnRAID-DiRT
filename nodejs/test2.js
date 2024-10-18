@@ -1,21 +1,40 @@
-import {fileRepository} from "./redisHelper.js";
+import {fileRepository, redis} from "./redisHelper.js";
 import {dequeueCreateFile} from "./queueListener.js";
 
-// const fileInfo = {
-//     path: ["/mnt/user/downloads/aaaaa2.mkv"],  // get rid of path
-//     nlink: Number(3),
-//     //ino: stats.ino.toString(),
-//     size: Number(12779642545),
-//     atimeMs: Number(1651538358526),
-//     mtimeMs: Number(1651539803854),
-//     ctimeMs: Number(1725219303278)
-// };
-// for (const [key, value] of Object.entries(fileInfo)) {
-//     console.log(`${key}: ${typeof value}`);
-// }
-// const key = '649362771271510040'
+async function findNonUniqueHashes() {
 
+    const hashField = 'hash'; // The field you're interested in
+    const hashOccurrences = {}; // To track occurrences of each hash value
+    const nonUniqueHashes = []; // To store keys with non-unique hash values
 
+    let cursor = '0';
 
-// const result = await redis.hGetAll("ino:649362771271510040")
-console.log(await dequeueCreateFile('/mnt/user/downloads/New Text Document.txt'))
+    do {
+        const result = await redis.scan(cursor);
+        cursor = result[0]; // New cursor position
+        const keys = result[1]; // List of keys
+
+        for (const key of keys) {
+            const keyType = await redis.type(key);
+            if (keyType !== 'hash') continue;
+            const hashValue = await redis.hget(key, hashField);
+            if (hashValue) {
+                if (hashOccurrences[hashValue]) {
+                    hashOccurrences[hashValue].push(key);
+                } else {
+                    hashOccurrences[hashValue] = [key];
+                }
+            }
+        }
+    } while (cursor !== '0'); // Continue scanning until the cursor wraps around
+    for (const [hashValue, keys] of Object.entries(hashOccurrences)) {
+        if (keys.length > 1) {
+            nonUniqueHashes.push({
+                hashValue,
+                keys
+            });
+        }
+    }
+    return nonUniqueHashes;
+}
+console.log(findNonUniqueHashes())
