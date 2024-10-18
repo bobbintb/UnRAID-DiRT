@@ -33,6 +33,18 @@ export const fileMetadataSchema = new Schema('ino', {
     dataStructure: 'HASH'
 })
 
+export const configSchema = new Schema('dirt:settings', {
+    shares: {type: 'string[]'},
+    size: {type: 'number'},
+    nlink: {type: 'number'},
+    atimeMs: {type: 'date'},
+    mtimeMs: {type: 'date'},
+    ctimeMs: {type: 'date'},
+    hash: {type: 'string'}
+}, {
+    dataStructure: 'HASH'
+})
+
 export const fileRepository = await (async () => {
     const repo = new Repository(fileMetadataSchema, redis);
     await repo.createIndex();

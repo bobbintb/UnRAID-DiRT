@@ -43,26 +43,38 @@ export async function dequeueCreateFile(file) {
 
         // Good enough for now but inefficient. Checks if the inode exists first (hardlink) and adds it to `path`.
     if (await redis.exists('ino:' + key) === 1) {
-        const existingPath = await redis.hGet('ino:' + key, 'path');
-        fileInfo.path.push(existingPath);
-        await fileRepository.save(key, fileInfo);
+        const existingFile = await redis.hGetAll('ino:' + key);
+        fileInfo.path.push(existingFile.path);
+        fileInfo.hash = existingFile.hash
+        let linkedfile = await fileRepository.save(key, fileInfo);
+        console.log('---------------------------------------------------------------------------')
+        console.log('Hardlinked file of existing file:')
+        console.log(linkedfile)
+        console.log('---------------------------------------------------------------------------')
         return
     }
 
     let sameSizeFiles = await filesOfSize(size)
     if (sameSizeFiles.length > 0) {
-        let files = sameSizeFiles;
-        files.splice(0, 0, fileInfo); // adds working file to the front of the array of same size files
-        const results = await hashFilesInIntervals(files);
-        await fileRepository.save(key, results[0])    // add the new file first
-        console.log(results[0])
-        console.log('---------------')
+        sameSizeFiles.splice(0, 0, fileInfo); // adds working file to the front of the array of same size files
+        const results = await hashFilesInIntervals(sameSizeFiles);
+        let newfile = await fileRepository.save(key, results[0])    // add the new file first
+        console.log('---------------------------------------------------------------------------')
+        console.log('New file after comparing same size files:')
+        console.log(newfile)
+        console.log('---------------------------------------------------------------------------')
         for (const result of results.slice(1)) {
-            await fileRepository.save(result)
-            console.log(result)
-        }
+            const updatedfile = await fileRepository.save(result)
+            console.log('---------------------------------------------------------------------------')
+            console.log('Updated file after comparing same size files:')
+            console.log(updatedfile)
+            console.log('---------------------------------------------------------------------------')        }
     } else {
-        await fileRepository.save(key, fileInfo);
+        let newfile = await fileRepository.save(key, fileInfo);
+        console.log('---------------------------------------------------------------------------')
+        console.log('New file:')
+        console.log(newfile)
+        console.log('---------------------------------------------------------------------------')
     }
 }
 

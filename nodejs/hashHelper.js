@@ -65,7 +65,6 @@ export async function hashFilesInIntervals(files) {
                 if (processedBytes[0] >= files[0].size) {
                     files.forEach((file, index) => {
                         file.hash = hashers[index].digest('hex');
-                        console.log(file);
                     });
                     return resolve(files);  // Resolve once all files are hashed
                 }
