@@ -1,6 +1,7 @@
 import express from 'express';
 import * as scan from '../nodejs/scan.js';
 import {enqueueFileAction} from "./processDuplicates.js";
+import {findEntitiesWithNonUniqueHashOptimized} from "./redisHelper.js";
 
 const app = express();
 
@@ -18,15 +19,15 @@ app.get("/scan", async () => {
 });
 
 // called from dirtSettings.page
-// app.get('/hash', async (req, res) => {
-//   try {
-//     const result = await findDuplicateSizes();
-//     res.json(result);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// });
+app.get('/hash', async (req, res) => {
+  try {
+    const result = await findEntitiesWithNonUniqueHashOptimized();
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 // called from left.php
 app.get("/process/:action/:src?", (req, res) => {

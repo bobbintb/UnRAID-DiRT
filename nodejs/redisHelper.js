@@ -56,3 +56,54 @@ export async function filesOfSize(size) {
         .where('size').equals(size)
         .return.all()
 }
+
+export async function findEntitiesWithNonUniqueHashOptimized() {
+
+    // Step 1: Define the Lua script
+    const luaScript = `
+        local cursor = 0
+        local result = {}
+        local seen = {}
+
+        repeat
+            local res = redis.call('SCAN', cursor, 'MATCH', ARGV[1])
+            cursor = tonumber(res[1])
+            local keys = res[2]
+
+            for i, key in ipairs(keys) do
+                local hash = redis.call('HGET', key, ARGV[2])
+                if hash then
+                    if seen[hash] then
+                        seen[hash] = seen[hash] + 1
+                    else
+                        seen[hash] = 1
+                    end
+                end
+            end
+        until cursor == 0
+
+        for hash, count in pairs(seen) do
+            if count > 1 then
+                table.insert(result, hash)
+            end
+        end
+
+        return result
+    `;
+
+    // Step 2: Execute the Lua script using node-redis `eval` method
+    const nonUniqueHashes = await redis.eval(luaScript, {
+        keys: [],
+        arguments: ['*', 'hash']  // '*' scans all keys, 'hash' is the field name
+    });
+
+    // Step 3: Search for all entities with those non-unique 'hash' values
+    const pipeline = redis.multi(); // Create a Redis pipeline (multi-exec)
+    nonUniqueHashes.forEach(hash => {
+        pipeline.call('FT.SEARCH', repository.schema.indexName, `@hash:{${hash}}`);
+    });
+
+    const result = await pipeline.exec(); // Execute all pipeline commands
+    await redis.disconnect(); // Close Redis connection
+    return result.flat();  // Flatten the results of the pipeline
+}
