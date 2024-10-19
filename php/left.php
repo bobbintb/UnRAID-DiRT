@@ -9,8 +9,7 @@
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const data = await response.json();
-            return data;
+            return await response.json();
         } catch (error) {
             console.error('Error fetching data:', error);
             return null;
@@ -78,6 +77,8 @@
 
     let groupCount = 0;
     let groups = {};
+
+    console.error(matchingObjects)
 
     const leftTable = new Tabulator("#left", {
         selectableRows: 1,
@@ -229,13 +230,13 @@
             {
                 title: "Last Accessed",
                 field: "atimeMs",
-                sorter: "date",
+                sorter: "datetime",
                 formatter: dateFormatter
             },
             {
                 title: "Last Modified",
                 field: "mtimeMs",
-                sorter: "date",
+                sorter: "datetime",
                 formatter: dateFormatter
             },
             {

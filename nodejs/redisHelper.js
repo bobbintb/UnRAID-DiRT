@@ -1,5 +1,5 @@
 import Queue from "bee-queue";
-import {createClient} from "redis";
+import {AggregateGroupByReducers, AggregateSteps, createClient} from "redis";
 import {Repository, Schema} from "redis-om";
 
 export const queue = new Queue('queue', {
@@ -25,9 +25,9 @@ export const fileMetadataSchema = new Schema('ino', {
     path: {type: 'string[]'},
     size: {type: 'number'},
     nlink: {type: 'number'},
-    atimeMs: {type: 'date'},
-    mtimeMs: {type: 'date'},
-    ctimeMs: {type: 'date'},
+    atimeMs: {type: 'number'},
+    mtimeMs: {type: 'number'},
+    ctimeMs: {type: 'number'},
     hash: {type: 'string'}
 }, {
     dataStructure: 'HASH'
@@ -37,9 +37,9 @@ export const configSchema = new Schema('dirt:settings', {
     shares: {type: 'string[]'},
     size: {type: 'number'},
     nlink: {type: 'number'},
-    atimeMs: {type: 'date'},
-    mtimeMs: {type: 'date'},
-    ctimeMs: {type: 'date'},
+    atimeMs: {type: 'number'},
+    mtimeMs: {type: 'number'},
+    ctimeMs: {type: 'number'},
     hash: {type: 'string'}
 }, {
     dataStructure: 'HASH'
@@ -57,66 +57,75 @@ export async function filesOfSize(size) {
         .return.all()
 }
 
-async function findDuplicateHashes() {
-    const result = await redis.call(
-        'FT.AGGREGATE',
-        'ino:index', '*',
-        'GROUPBY', '1', '@hash',
-        'REDUCE', 'COUNT', '0', 'AS', 'nb_of_files',
-        'FILTER', '@nb_of_files > 1',
-        'SORTBY', '2', '@nb_of_files', 'ASC',
-        'LIMIT', '0', '10000'
-    );
-    console.log(result);
-}
+export async function findDuplicateHashes() {
+    try {
+        const result = await redis.ft.aggregate('ino:index', '*', {
+            LOAD: ['@hash'],
+            STEPS: [
+                {
+                    type: AggregateSteps.FILTER,
+                    expression: 'exists(@hash)'
+                },
+                {
+                    type: AggregateSteps.GROUPBY,
+                    properties: ['@hash'],
+                    REDUCE: [
+                        {
+                            type: AggregateGroupByReducers.COUNT,
+                            property: '@hash',
+                            AS: 'nb_of_files'
+                        }
+                    ]
+                },
+                {
+                    type: AggregateSteps.SORTBY,
+                    BY: {
+                        BY: '@nb_of_files',
+                        DIRECTION: 'DESC'
+                    }
+                },
+                {
+                    type: AggregateSteps.FILTER,
+                    expression: '@nb_of_files > 1'
+                },
+                {
+                    type: AggregateSteps.LIMIT,
+                    from: 0,
+                    size: 10000
+                }
+            ]
+        });
 
-export async function findEntitiesWithNonUniqueHashOptimized() {
+        const hashes = result.results.map(group => group.hash); // Assuming group.hash contains an object
 
-    // Step 1: Define the Lua script
-    const luaScript = `
-        local cursor = 0
-        local result = {}
-        local seen = {}
+        const resultsArray = await Promise.all(
+            hashes.map(hash =>
+                fileRepository
+                    .search()
+                    .where('hash')
+                    .eq(hash)
+                    .return.all()
+                    .then(entities => ({
+                        hash,
+                        documents: entities.map(entity => {
+                            return {
+                                id: entity.entityId,
+                                ...entity // Spread the properties of the entity
+                            };
+                        })
+                    }))
+            )
+        );
 
-        repeat
-            local res = redis.call('SCAN', cursor, 'MATCH', ARGV[1])
-            cursor = tonumber(res[1])
-            local keys = res[2]
-
-            for i, key in ipairs(keys) do
-                local hash = redis.call('HGET', key, ARGV[2])
-                if hash then
-                    if seen[hash] then
-                        seen[hash] = seen[hash] + 1
-                    else
-                        seen[hash] = 1
-                    end
-                end
-            end
-        until cursor == 0
-
-        for hash, count in pairs(seen) do
-            if count > 1 then
-                table.insert(result, hash)
-            end
-        end
-
-        return result
-    `;
-
-    // Step 2: Execute the Lua script using node-redis `eval` method
-    const nonUniqueHashes = await redis.eval(luaScript, {
-        keys: [],
-        arguments: ['*', 'hash']  // '*' scans all keys, 'hash' is the field name
-    });
-
-    // Step 3: Search for all entities with those non-unique 'hash' values
-    const pipeline = redis.multi(); // Create a Redis pipeline (multi-exec)
-    nonUniqueHashes.forEach(hash => {
-        pipeline.call('FT.SEARCH', repository.schema.indexName, `@hash:{${hash}}`);
-    });
-
-    const result = await pipeline.exec(); // Execute all pipeline commands
-    await redis.disconnect(); // Close Redis connection
-    return result.flat();  // Flatten the results of the pipeline
+        // const formattedResults = resultsArray.flatMap(({ hash, documents }) =>
+        //     documents.map(doc => ({
+        //         ...doc,    // Spread document properties (e.g., id, path, size, etc.)
+        //         hash      // Add the hash as a separate field for grouping in Tabulator
+        //     }))
+        // );
+        return resultsArray.flatMap(result => result.documents); // Return array format suitable for Tabulator
+    } catch (error) {
+        console.error('Error running aggregation:', error);
+        throw error;
+    }
 }

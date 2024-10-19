@@ -1,7 +1,7 @@
 import express from 'express';
 import * as scan from '../nodejs/scan.js';
 import {enqueueFileAction} from "./processDuplicates.js";
-import {findEntitiesWithNonUniqueHashOptimized} from "./redisHelper.js";
+import {findDuplicateHashes} from "./redisHelper.js";
 
 const app = express();
 
@@ -21,7 +21,7 @@ app.get("/scan", async () => {
 // called from dirtSettings.page
 app.get('/hash', async (req, res) => {
   try {
-    const result = await findEntitiesWithNonUniqueHashOptimized();
+    const result = await findDuplicateHashes();
     res.json(result);
   } catch (error) {
     console.error(error);
