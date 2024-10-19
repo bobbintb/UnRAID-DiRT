@@ -45,6 +45,7 @@ Icon="fa-search-minus"
 
     .tabulator-row.tabulator-group {
         padding: 0px 5px 0px 10px !important;
+        background: #b4ecb3 !important;
     }
 
     .tabulator-group-toggle {

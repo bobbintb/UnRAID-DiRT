@@ -13,6 +13,16 @@ export const queue = new Queue('queue', {
     removeOnSuccess: true
 });
 
+export const process = new Queue('process', {
+    redis: {
+        host: '127.0.0.1',
+        port: 6379,
+        db: 0,
+        options: {},
+    },
+    prefix: 'dirt',
+    removeOnSuccess: true
+});
 
 export const redis = await (async () => {
     const client = await createClient();

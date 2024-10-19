@@ -78,8 +78,6 @@
     let groupCount = 0;
     let groups = {};
 
-    console.error(matchingObjects)
-
     const leftTable = new Tabulator("#left", {
         selectableRows: 1,
         data: matchingObjects,
@@ -103,16 +101,22 @@
         columns: [
             {
                 // Radio button column
-                title: `<div class="custom-arrow" style="display: inline-flex; font-size: large; align-items: center; justify-content: center; height: 100%; cursor: pointer;
-                        border-width: 6px 6px 0px;
-                        border-left-style: solid;
-                        border-left-color: transparent;
-                        border-right-style: solid;
-                        border-right-color: transparent;
-                        border-top-style: solid;
-                        border-top-color: rgb(102, 102, 102);
-                        border-bottom-style: initial;
-                        border-bottom-color: initial;">
+                title: `<div class="custom-arrow"
+                             style="display: inline-flex;
+                                    font-size: large;
+                                    align-items: center;
+                                    justify-content: center;
+                                    height: 100%;
+                                    cursor: pointer;
+                                    border-width: 6px 6px 0px;
+                                    border-left-style: solid;
+                                    border-left-color: transparent;
+                                    border-right-style: solid;
+                                    border-right-color: transparent;
+                                    border-top-style: solid;
+                                    border-top-color: rgb(102, 102, 102);
+                                    border-bottom-style: initial;
+                                    border-bottom-color: initial;">
                     </div>`,
                 headerHozAlign: "center",
                 headerSort: false,
@@ -134,40 +138,57 @@
                     row.getElement().style.color = '';
                     row.getElement().querySelector('.fa.fa-trash').style.border = 'initial';
                     row.getElement().querySelector('.fa.fa-link').style.border = 'initial';
+                    // need to remove row from queue
                 }
             },
             {
                 // Trash column
-                title: `<div style="display: flex; font-size: large; align-items: center; justify-content: center; height: 100%;">
+                title: `<div style="display: flex;
+                                    font-size: large;
+                                    align-items: center;
+                                    justify-content: center;
+                                    height: 100%;">
                             <i class="fa fa-trash"></i>
                         </div>`,
                 headerSort: false,
                 maxWidth: 40,
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
-                    return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><i class='fa fa-trash' style='text-align: center; width: 15px; margin: 0; padding: 0; border: none; background: none;' ${disabled}></i></div>`;
+                    return `<div style='display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        height: 100%;'>
+                                <i class='fa fa-trash' style='text-align: center;
+                                                              width: 15px;
+                                                              margin: 0;
+                                                              padding: 0;
+                                                              border: none;
+                                                              background: none;' ${disabled}></i></div>`;
                 },
                 cellClick: function (e, cell) {
-                    let rowData = cell.getRow().getData();
-                    rowData.action = "delete";
-                    let rightTableData = rightTable.getData();
-                    let isDuplicate = rightTableData.some(function (row) {
-                        return row.id === rowData.id;
-                    });
-                    if (isDuplicate) {
-                        alert("This row already exists in the right table.");
-                    } else {
-                        let row = cell.getRow();
-                        console.error(rowData)
+                    let row = cell.getRow();
+                    let rowData = row.getData();
+                    const iconElement = cell.getElement().querySelector('.fa.fa-trash');
+                    const otherIcon = row.getElement().querySelector('.fa.fa-link');
+                    if (rowData.action === "delete") {
+                        rowData.action = ""
+                        iconElement.style.color = '';
+                        iconElement.style.border = '';
+                        iconElement.style.borderRadius = '';
+                        iconElement.style.padding = '';
                         row.getElement().style.color = '';
-                        row.getElement().style.color = 'maroon';
-                        const iconElement = cell.getElement().querySelector('.fa.fa-trash');
-                        iconElement.style.border = '2px solid maroon';
+                    } else {
+                        rowData.action = "delete";
+                        row.getElement().style.color = '';
+                        row.getElement().style.color = 'red';
+                        otherIcon.style.border = '';
+                        otherIcon.style.borderRadius = '';
+                        otherIcon.style.padding = '';
+                        iconElement.style.border = '2px solid red';
                         iconElement.style.borderRadius = '5px';
                         iconElement.style.padding = '5px';
                         // add to a queue. the right table should reflect the queue, not be the queue.
                         process('del', rowData.id)
-                        rightTable.addRow(rowData);
                     }
                 }
             },
@@ -180,28 +201,41 @@
                 maxWidth: 40,
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
-                    return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><i class='fa fa-link' style='text-align: center; width: 15px; margin: 0; padding: 0; border: none; background: none;' ${disabled}></i></div>`;
+                    return `<div style='display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        height: 100%;'>
+                                <i class='fa fa-link' style='text-align: center;
+                                                             width: 15px;
+                                                             margin: 0;
+                                                             padding: 0;
+                                                             border: none;
+                                                             background: none;' ${disabled}></i></div>`;
                 },
                 cellClick: function (e, cell) {
-                    let rowData = cell.getRow().getData();
-                    rowData.action = "link";
-                    let rightTableData = rightTable.getData();
-                    let isDuplicate = rightTableData.some(function (row) {
-                        return row.id === rowData.id;
-                    });
-                    if (isDuplicate) {
-                        alert("This row already exists in the right table.");
-                    } else {
-                        let row = cell.getRow();
+                    let row = cell.getRow();
+                    let rowData = row.getData();
+                    const iconElement = cell.getElement().querySelector('.fa.fa-link');
+                    const otherIcon = row.getElement().querySelector('.fa.fa-trash');
+                    if (rowData.action === "link") {
+                        rowData.action = ""
+                        iconElement.style.color = '';
+                        iconElement.style.border = '';
+                        iconElement.style.borderRadius = '';
+                        iconElement.style.padding = '';
                         row.getElement().style.color = '';
-                        row.getElement().style.color = 'navy';
-                        const iconElement = cell.getElement().querySelector('.fa.fa-link');
-                        iconElement.style.border = '2px solid navy';
+                    } else {
+                        rowData.action = "link";
+                        row.getElement().style.color = '';
+                        row.getElement().style.color = 'blue';
+                        otherIcon.style.border = '';
+                        otherIcon.style.borderRadius = '';
+                        otherIcon.style.padding = '';
+                        iconElement.style.border = '2px solid blue';
                         iconElement.style.borderRadius = '5px';
                         iconElement.style.padding = '5px';
                         // add to a queue. the right table should reflect the queue, not be the queue.
                         process('link', rowData.id)
-                        rightTable.addRow(rowData);
                     }
                 }
             },
