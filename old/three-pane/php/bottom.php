@@ -70,7 +70,7 @@
             {title: "Directory", field: "path", sorter: "string"},
             {title: "File Name", field: "file", sorter: "number"},
             {title: "Links", field: "nlink"},
-            {title: "Size", field: "size", formatter: convertFileSize},
+            {title: "Size", field: "size", formatter: convertCellFileSize},
             {title: "Last Accessed", field: "atimeMs", sorter: "date", formatter: dateFormatter},
             {title: "Last Modified", field: "mtimeMs", sorter: "date", formatter: dateFormatter},
             {title: "Last Metadata Change", field: "ctimeMs", sorter: "date", formatter: dateFormatter},

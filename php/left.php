@@ -46,14 +46,21 @@
             hour12: false
         });
     }
-
+    Tabulator.extendModule("columnCalcs", "calculations", {
+        "recoverableSize":function(values, data, calcParams){
+            return (values.length - 1) * values[0];
+        }
+    });
     function sizeFormatter(cell) {
         const date = new Date(cell.getValue(0));
         return date.toDateString();
     }
 
-    function convertFileSize(cell) {
-        let size = cell.getValue(0);
+    function convertCellFileSize(cell) {
+        return convertFileSize(cell.getValue(0))
+    }
+
+    function convertFileSize(size) {
         if (typeof size !== 'undefined' && size !== null) {
             const units = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
             let unitIndex = 0;
@@ -69,9 +76,9 @@
 
     let totalSum = 0;
     matchingObjects.forEach(row => {
-        totalSum += row.size;
+        totalSum += row.bottom;
     });
-    let totalSumFormatted = convertFileSize({
+    let totalSumFormatted = convertCellFileSize({
         getValue: () => totalSum
     });
 
@@ -188,7 +195,7 @@
                         iconElement.style.borderRadius = '5px';
                         iconElement.style.padding = '5px';
                         // add to a queue. the right table should reflect the queue, not be the queue.
-                        process('del', rowData.id)
+                        process('del', rowData.path)
                     }
                 }
             },
@@ -235,7 +242,7 @@
                         iconElement.style.borderRadius = '5px';
                         iconElement.style.padding = '5px';
                         // add to a queue. the right table should reflect the queue, not be the queue.
-                        process('link', rowData.id)
+                        process('link', rowData.path)
                     }
                 }
             },
@@ -256,9 +263,9 @@
                 title: "Size",
                 field: "size",
                 sorter: "number",
-                formatter: convertFileSize,
-                bottomCalc: "sum",
-                bottomCalcFormatter: convertFileSize
+                formatter: convertCellFileSize,
+                bottomCalc: "recoverableSize",
+                bottomCalcFormatter: convertCellFileSize
             },
             //{title: "Recoverable", field: "recoverable", sorter: "number", formatter: convertFileSize},
             {
@@ -323,8 +330,39 @@
 
     leftTable.on("tableBuilt", function () {
         groups = leftTable.getGroups()
-        groupCount = leftTable.getGroups().length;
-        document.querySelector('.tabulator-footer').innerText = `Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}`;
+        let total = 0;
+        groups.forEach(group => {
+            total += Number(group["_group"].calcs.bottom.data.size);
+        });
+        document.querySelector('.tabulator-footer').innerText = `Recoverable Space: ${convertFileSize(total)}, Total Groups: ${groups.length}`;
+    });
+
+    function simulateClicksOnGroupCells(group, id) {
+        const rows = group.getRows();
+        rows.forEach(row => {
+            if (!row.getElement().classList.contains('disabled')) {
+
+                const cell = row.getElement().querySelector(`.${id[0]}.${id[1]}`);
+            if (cell) {
+                const event = new MouseEvent('click', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window
+                });
+                cell.dispatchEvent(event);
+            }
+            }
+        });
+    }
+
+    leftTable.on("groupClick", function(e, group) {
+        simulateClicksOnGroupCells(group, e.target.classList);
+    });
+
+    leftTable.on("groupDblClick", function(e, group) {
+        console.error("Specific cell clicked in group header:", e.target.classList.value);
+        console.error("Specific cell clicked in group header:", e.target.classList);
+        simulateClicksOnGroupCells(group, e.target.classList);
     });
 
     function toggleGroups() {
@@ -334,7 +372,6 @@
         });
         console.log(groups);
     }
-
 
     // TODO:
     // fix color of scroll bars so it is more visible
