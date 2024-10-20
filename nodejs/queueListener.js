@@ -79,7 +79,7 @@ export async function dequeueCreateFile(file) {
 }
 
 async function dequeueDeleteFile(file) {
-    redis.delete(file);
+    // await fileRepository.remove(file);
 }
 
 async function dequeueMoveFile(src, dest) {
@@ -96,7 +96,7 @@ queue.process(async (job) => {
             await dequeueMoveFile(job.data.src, job.data.dest)
             break;
         case 'delete':
-            await dequeueDeleteFile(job.data.src)
+            await dequeueDeleteFile(job.data)
             break;
     }
     return job.data.x + job.data.y;
