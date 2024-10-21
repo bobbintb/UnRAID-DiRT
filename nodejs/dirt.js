@@ -5,11 +5,16 @@ import {findDuplicateHashes} from "./redisHelper.js";
 
 const app = express();
 
+app.use(express.json()); // Middleware to parse JSON bodies
+
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*'); // Allow all origins
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    res.header('Access-Control-Allow-Methods', 'POST'); // Ensure POST is included
+
     next();
 });
+
 
 // called from dirtSettings.page
 app.get("/scan", async () => {
@@ -30,9 +35,10 @@ app.get('/hash', async (req, res) => {
 });
 
 // called from left.php
-app.get("/process/:action/:src?", (req, res) => {
-    const {action, src} = req.params;
-    enqueueFileAction(action, src)
+app.post("/process/", (req, res) => {
+    console.error('test')
+    console.error(req.body)
+    enqueueFileAction(req.body)
     res.send();
 });
 

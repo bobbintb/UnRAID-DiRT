@@ -9,28 +9,45 @@
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            return await response.json();
+            let results =await response.json()
+            // for (let i = 0; i < results.length; i++) {
+            //     if (results[i].path.length > 1) {
+            //         let originalPath = [results[i].path[0]];
+            //         let newPath = results[i].path.slice(1);
+            //
+            //         let newObject = { ...results[i], path: newPath };
+            //         results[i].path = originalPath;
+            //
+            //         results.splice(i + 1, 0, newObject);
+            //         i++;
+            //     }
+            // }
+            // console.error(results)
+            return results;
         } catch (error) {
             console.error('Error fetching data:', error);
             return null;
         }
     }
 
-    async function process(action, src) {
+    async function process(dataObj) {
         try {
-            const response = await Promise.race([
-                fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/process/${encodeURIComponent(action)}/${encodeURIComponent(src)}`)
-            ]);
+            const response = await fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/process/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dataObj)
+            });
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            // const data = await response.json();
-            // return data;
         } catch (error) {
             console.error('Error fetching data:', error);
             return null;
         }
     }
+
 
     matchingObjects = await hash();
 
@@ -130,7 +147,11 @@
                 maxWidth: 40,
                 formatter: function (cell) {
                     let rowData = cell.getRow().getData();
-                    return `<div style='display: flex; align-items: center; justify-content: center; height: 100%;'><input type='radio' name='rowSelection-${rowData.hash}'></div>`;
+                    return `<div style='display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        height: 100%;'>
+                            <input type='radio' name='rowSelection-${rowData.hash}'></div>`;
                 },
                 cellClick: function (e, cell) {
                     if (e.target.type !== 'radio') {
@@ -195,7 +216,8 @@
                         iconElement.style.borderRadius = '5px';
                         iconElement.style.padding = '5px';
                         // add to a queue. the right table should reflect the queue, not be the queue.
-                        process('del', rowData.path)
+                        console.error(rowData)
+                        process(rowData)
                     }
                 }
             },
@@ -242,7 +264,7 @@
                         iconElement.style.borderRadius = '5px';
                         iconElement.style.padding = '5px';
                         // add to a queue. the right table should reflect the queue, not be the queue.
-                        process('link', rowData.path)
+                        process(rowData)
                     }
                 }
             },
@@ -256,7 +278,8 @@
                 title: "File",
                 field: "path",
                 sorter: "string",
-                width: "-webkit-fill-available"
+                width: "-webkit-fill-available",
+                formatter:"textarea"
             },
             //{title: "#", field: "count", sorter: "number"},
             {
@@ -329,6 +352,7 @@
     });
 
     leftTable.on("tableBuilt", function () {
+        // need to load saved session and apply to table
         groups = leftTable.getGroups()
         let total = 0;
         groups.forEach(group => {
