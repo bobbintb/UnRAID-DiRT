@@ -27,9 +27,8 @@ install_package() {
         if ! wget --spider "$URL" 2>/dev/null; then
             echo "  File $FILE not found. Searching for"
             echo "  .txz files in $BASE_URL..."
-            TEMP_HTML=$(TXZ_PATH)
-            wget -q -O "$TEMP_HTML" "$BASE_URL"
-            FIRST_FILE=$(awk -F'href="' '/\.txz"/ {print $2; exit}' "$TEMP_HTML" | awk -F'"' '{print $1}')
+            wget -q -O "$TXZ_PATH" "$BASE_URL"
+            FIRST_FILE=$(awk -F'href="' '/\.txz"/ {print $2; exit}' "$TXZ_PATH" | awk -F'"' '{print $1}')
             if [ -n "$FIRST_FILE" ]; then
                 echo "  $FILE was not found but $FIRST_FILE was."
                 echo "  The package was likely updated and the old file removed."
@@ -40,7 +39,7 @@ install_package() {
                 echo "  $FILE was not found, nor any other package files at that URL."
                 echo "  Please alert the plugin author of this error."
             fi
-            rm "$TEMP_HTML"
+            rm "$TXZ_PATH"
         else
             wget "$URL" -O "$TXZ_PATH"
         fi
