@@ -27,7 +27,7 @@ install_package() {
         if ! wget --spider "$URL" 2>/dev/null; then
             echo "  File $FILE not found. Searching for"
             echo "  .txz files in $BASE_URL..."
-            TEMP_HTML=$(mktemp)
+            TEMP_HTML=$(TXZ_PATH)
             wget -q -O "$TEMP_HTML" "$BASE_URL"
             FIRST_FILE=$(awk -F'href="' '/\.txz"/ {print $2; exit}' "$TEMP_HTML" | awk -F'"' '{print $1}')
             if [ -n "$FIRST_FILE" ]; then
@@ -109,5 +109,7 @@ mkdir -p "/opt/keydb/lib/"
 install_package "redisearch" \
 "https://github.com/bobbintb/Slackware_Packages/raw/main/redisearch/2.10.7/redisearch.so" \
 "/opt/keydb/lib/"
+
+chmod +x /opt/keydb/lib/redisearch.so
 
 echo "Done."
