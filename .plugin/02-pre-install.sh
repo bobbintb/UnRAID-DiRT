@@ -67,8 +67,8 @@ install_package() {
 install_package "audit" \
 "https://slackers.it/repository/slackware64-current/audit/audit-4.0.2-x86_64-1cf.txz"
 
-install_package "keydb" \
-"https://github.com/bobbintb/Slackware_Packages/raw/main/keydb/keydb-6.3.4-x86_64-1loom.txz"
+#install_package "keydb" \
+#"https://github.com/bobbintb/Slackware_Packages/raw/main/keydb/keydb-6.3.4-x86_64-1loom.txz"
 
 NAME="laurel"
 URL="https://github.com/threathunters-io/laurel/releases/download/v0.6.3/laurel-v0.6.3-x86_64-glibc.tar.gz"
@@ -101,14 +101,14 @@ install_package "openssl" \
 install_package "protobuf" \
 "https://ftp.sotirov-bg.net/pub/contrib/slackware/packages/slackware64-15.0/protobuf-3.19.6-x86_64-1gds.txz"
 
-# install_package "redis"\
-# "https://github.com/bobbintb/Slackware_Packages/raw/main/${NAME}/redis-7.4.0-x86_64-1loom.txz"
+install_package "redis"\
+"https://github.com/bobbintb/Slackware_Packages/raw/main/${NAME}/redis-7.4.0-x86_64-1loom.txz"
 
-mkdir -p "/opt/keydb/lib/"
+mkdir -p "/opt/redis/lib/"
 install_package "redisearch" \
 "https://github.com/bobbintb/Slackware_Packages/raw/main/redisearch/2.10.7/redisearch.so" \
-"/opt/keydb/lib/"
+"/opt/redis/lib/"
 
-chmod +x /opt/keydb/lib/redisearch.so
+chmod +x /opt/redis/lib/redisearch.so
 
 echo "Done."
