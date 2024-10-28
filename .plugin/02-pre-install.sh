@@ -1,8 +1,7 @@
-echo "-----------------------------------------------------------"
-echo "Checking dependencies..."
-echo "-----------------------------------------------------------"
-
 PLUGIN_NAME="&name;"
+echo "-----------------------------------------------------------"
+echo "Checking dependencies for $PLUGIN_NAME..."
+echo "-----------------------------------------------------------"
 
 # The first three arguments MUST be supplied in the order of NAME, FILE, and URL. For example:
 # install_package "nodejs" \
