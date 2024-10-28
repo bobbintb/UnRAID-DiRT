@@ -26,7 +26,7 @@ install_package() {
         if ! wget --spider "$URL" 2>/dev/null; then
             echo "  File $FILE not found. Searching for"
             echo "  .txz files in $BASE_URL..."
-            curl "$BASE_URL" --create-dirs -o "$TXZ_PATH"
+            curl "$URL" --create-dirs -o "$TXZ_PATH"
             #wget -q -O "$TXZ_PATH" "$BASE_URL"
             FIRST_FILE=$(awk -F'href="' '/\.txz"/ {print $2; exit}' "$TXZ_PATH" | awk -F'"' '{print $1}')
             if [ -n "$FIRST_FILE" ]; then
