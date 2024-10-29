@@ -30,7 +30,7 @@ install_package() {
             fi
             rm "$TXZ_PATH"
         else
-            curl "$URL" --create-dirs -o "$TXZ_PATH"
+            curl -L "$URL" --create-dirs -o "$TXZ_PATH"
             #wget "$URL" -O "$TXZ_PATH"
         fi
     fi
