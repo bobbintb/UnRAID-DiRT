@@ -12,7 +12,8 @@ install_package() {
     FILE_BASE="${FILE%.*}"
     if [ ! -f "$TXZ_PATH" ]; then
         echo "-----------------------------------------------------------"
-        echo "$FILE not cached. Downloading $NAME..."
+        echo "$FILE not cached."
+        echo "Downloading $NAME..."
         echo "-----------------------------------------------------------"
         if ! wget --spider "$URL" 2>/dev/null; then
             echo "  File $FILE not found. Searching for"
@@ -43,7 +44,8 @@ install_package() {
 
     if eval "$condition"; then
         echo "-----------------------------------------------------------"
-        echo "$NAME is not installed. Installing $NAME..."
+        echo "$NAME is not installed."
+        echo "Installing $NAME..."
         echo "-----------------------------------------------------------"
 
         if [ -n "$3" ]; then
