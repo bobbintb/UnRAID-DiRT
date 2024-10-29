@@ -69,8 +69,8 @@ install_package "openssl" \
 install_package "protobuf" \
 "https://ftp.sotirov-bg.net/pub/contrib/slackware/packages/slackware64-15.0/protobuf-3.19.6-x86_64-1gds.txz"
 
-install_package "redis"\
-"https://github.com/bobbintb/Slackware_Packages/raw/main/${NAME}/redis-7.4.0-x86_64-1loom.txz"
+install_package "redis" \
+"https://github.com/bobbintb/Slackware_Packages/raw/main/redis/redis-7.4.0-x86_64-1loom.txz"
 
 mkdir -p "/opt/redis/lib/"
 install_package "redisearch" \
