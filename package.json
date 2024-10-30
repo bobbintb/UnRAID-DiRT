@@ -8,8 +8,7 @@
     "fs": "^0.0.1-security",
     "jquery": "^3.6.0",
     "redis": "^4.7.0",
-    "redis-om": "^0.4.6",
-    "rethinkdbdash": "^2.3.31"
+    "redis-om": "^0.4.6"
   },
   "overrides": {
     "blake3-wasm": "^3.0.0",

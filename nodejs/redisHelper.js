@@ -69,6 +69,7 @@ export async function filesOfSize(size) {
 
 export async function findDuplicateHashes() {
     try {
+        await fileRepository.createIndex();
         const result = await redis.ft.aggregate('ino:index', '*', {
             LOAD: ['@hash'],
             STEPS: [
