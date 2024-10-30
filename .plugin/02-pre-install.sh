@@ -49,6 +49,7 @@ install_package() {
         echo "-----------------------------------------------------------"
 
         if [ -n "$3" ]; then
+                mkdir -p "$3"
                 cp "/boot/config/plugins/${PLUGIN_NAME}/$FILE" "$3"
             else
                 installpkg "$TXZ_PATH"
@@ -71,15 +72,18 @@ install_package "openssl" \
 install_package "protobuf" \
 "https://ftp.sotirov-bg.net/pub/contrib/slackware/packages/slackware64-15.0/protobuf-3.19.6-x86_64-1gds.txz"
 
-install_package "redis" \
-"https://github.com/bobbintb/Slackware_Packages/raw/main/redis/redis-7.4.0-x86_64-1loom.txz"
+# install_package "redis" \
+# "https://github.com/bobbintb/Slackware_Packages/raw/main/redis/redis-7.4.0-x86_64-1loom.txz"
+
+install_package "valkey" \
+"https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/valkey/valkey-8.0.1-x86_64-1_SBo.tgz"
 
 mkdir -p "/opt/redis/lib/"
 install_package "redisearch" \
 "https://github.com/bobbintb/Slackware_Packages/raw/main/redisearch/2.10.7/redisearch.so" \
-"/opt/redis/lib/"
+"/usr/bin/valkey-modules/"
 
-chmod +x /opt/redis/lib/redisearch.so
+chmod +x /usr/bin/valkey-modules/redisearch.so
 
 NAME="laurel"
 URL="https://github.com/threathunters-io/laurel/releases/download/v0.6.3/laurel-v0.6.3-x86_64-glibc.tar.gz"
