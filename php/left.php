@@ -199,12 +199,14 @@
                     const iconElement = cell.getElement().querySelector('.fa.fa-trash');
                     const otherIcon = row.getElement().querySelector('.fa.fa-link');
                     if (rowData.action === "delete") {
-                        rowData.action = ""
+                        rowData.action = "remove"
                         iconElement.style.color = '';
                         iconElement.style.border = '';
                         iconElement.style.borderRadius = '';
                         iconElement.style.padding = '';
                         row.getElement().style.color = '';
+                        process(rowData)
+                        rowData.action = ""
                     } else {
                         rowData.action = "delete";
                         row.getElement().style.color = '';
@@ -247,12 +249,14 @@
                     const iconElement = cell.getElement().querySelector('.fa.fa-link');
                     const otherIcon = row.getElement().querySelector('.fa.fa-trash');
                     if (rowData.action === "link") {
-                        rowData.action = ""
+                        rowData.action = "remove"
                         iconElement.style.color = '';
                         iconElement.style.border = '';
                         iconElement.style.borderRadius = '';
                         iconElement.style.padding = '';
                         row.getElement().style.color = '';
+                        process(rowData)
+                        rowData.action = ""
                     } else {
                         rowData.action = "link";
                         row.getElement().style.color = '';

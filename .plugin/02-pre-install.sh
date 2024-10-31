@@ -78,12 +78,15 @@ install_package "protobuf" \
 install_package "valkey" \
 "https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/valkey/valkey-8.0.1-x86_64-1_SBo.tgz"
 
-mkdir -p "/opt/redis/lib/"
 install_package "redisearch" \
 "https://github.com/bobbintb/Slackware_Packages/raw/main/redisearch/2.10.7/redisearch.so" \
 "/usr/bin/valkey-modules/"
-
 chmod +x /usr/bin/valkey-modules/redisearch.so
+
+install_package "redisjson" \
+"https://github.com/bobbintb/Slackware_Packages/raw/main/redisjson/2.8.4/librejson.so" \
+"/usr/bin/valkey-modules/"
+chmod +x /usr/bin/valkey-modules/librejson.so
 
 NAME="laurel"
 URL="https://github.com/threathunters-io/laurel/releases/download/v0.6.3/laurel-v0.6.3-x86_64-glibc.tar.gz"

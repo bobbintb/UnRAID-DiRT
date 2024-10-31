@@ -1,17 +1,27 @@
 import {process, queue} from "./redisHelper.js"
 import fs from "fs";
-import CryptoJS from 'crypto-js';
+import crypto from 'crypto';
 
 export function enqueueFileAction(obj) {
-    console.error(obj)
-    process.createJob(obj)
-        .setId(CryptoJS.MD5(obj.path).toString())
-        .save()
-        .then(() => {
-        })
-        .catch(err => {
-            console.error(`Failed to add job ${jobId}:`, err);
-        });
+    const jobID = crypto.createHash('md5').update(obj.path.toString()).digest('hex');
+    if (obj.action === "remove") {
+        process.removeJob(jobID)
+    } else {
+        console.log(obj)
+        process.createJob(obj)
+            .setId(jobID)
+            .save()
+            .then(job => {
+                if (job.data === obj) {
+                    console.log('Job data matches:', job.data);
+                } else {
+                    console.log('Job data does not match or is new:', job.data);
+                }
+            })
+            .catch(err => {
+                console.error(`Failed to add job ${jobID}:`, err);
+            });
+    }
 }
 // export function enqueueFileAction(action, src) {
 //     const jobData = {

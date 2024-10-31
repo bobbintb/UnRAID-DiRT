@@ -36,8 +36,6 @@ app.get('/hash', async (req, res) => {
 
 // called from left.php
 app.post("/process/", (req, res) => {
-    console.error('test')
-    console.error(req.body)
     enqueueFileAction(req.body)
     res.send();
 });
