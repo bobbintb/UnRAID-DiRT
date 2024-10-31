@@ -103,6 +103,21 @@
     let groups = {};
 
     const leftTable = new Tabulator("#left", {
+        persistenceWriterFunc:function(id, type, data){
+            //id - tables persistence id
+            //type - type of data being persisted ("sort", "filter", "group", "page" or "columns")
+            //data - array or object of data
+
+            localStorage.setItem(id + "-" + type, JSON.stringify(data));
+        },
+        persistenceReaderFunc:function(id, type){
+            //id - tables persistence id
+            //type - type of data being persisted ("sort", "filter", "group", "page" or "columns")
+
+            const data = localStorage.getItem(id + "-" + type);
+
+            return data ? JSON.parse(data) : false;
+        },
         selectableRows: 1,
         data: matchingObjects,
         // groupBy: ["hash", "ino"],

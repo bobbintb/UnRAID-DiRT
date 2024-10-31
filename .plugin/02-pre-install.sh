@@ -49,31 +49,29 @@ install_package() {
         echo "-----------------------------------------------------------"
 
         if [ -n "$3" ]; then
+            if [[ "$3" == *.tar.gz || "$3" == *.tar.xz ]]; then
+                tar --one-top-level="$FILE" -xf "$FILE" -C /tmp
                 mkdir -p "$3"
-                cp "/boot/config/plugins/${PLUGIN_NAME}/$FILE" "$3"
+                mv /tmp/"$FILE"/ "$3"
+                chmod -R 755 "$3"
+                rm -dr /tmp/"$FILE"/
             else
-                installpkg "$TXZ_PATH"
+                install -Dm755 "/boot/config/plugins/${PLUGIN_NAME}/$FILE" "$3"
             fi
+          else
+              installpkg "$TXZ_PATH"
+          fi
     fi
 }
 
 install_package "audit" \
 "https://slackers.it/repository/slackware64-current/audit/audit-4.0.2-x86_64-1cf.txz"
 
-#install_package "keydb" \
-#"https://github.com/bobbintb/Slackware_Packages/raw/main/keydb/keydb-6.3.4-x86_64-1loom.txz"
-
 install_package "nodejs" \
 "https://github.com/UnRAIDES/unRAID-NerdTools/raw/main/packages/pkgs/nodejs-20.11.0-x86_64-1_SBo_UES.txz"
 
-#install_package "openssl" \
-#"https://slackware.uk/slackware/slackware64-15.0/slackware64/n/openssl-1.1.1m-x86_64-1.txz"
-
 install_package "protobuf" \
 "https://ftp.sotirov-bg.net/pub/contrib/slackware/packages/slackware64-15.0/protobuf-3.19.6-x86_64-1gds.txz"
-
-# install_package "redis" \
-# "https://github.com/bobbintb/Slackware_Packages/raw/main/redis/redis-7.4.0-x86_64-1loom.txz"
 
 install_package "valkey" \
 "https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/valkey/valkey-8.0.1-x86_64-1_SBo.tgz"
@@ -81,34 +79,36 @@ install_package "valkey" \
 install_package "redisearch" \
 "https://github.com/bobbintb/Slackware_Packages/raw/main/redisearch/2.10.7/redisearch.so" \
 "/usr/bin/valkey-modules/"
-chmod +x /usr/bin/valkey-modules/redisearch.so
 
 install_package "redisjson" \
 "https://github.com/bobbintb/Slackware_Packages/raw/main/redisjson/2.8.4/librejson.so" \
 "/usr/bin/valkey-modules/"
-chmod +x /usr/bin/valkey-modules/librejson.so
 
-NAME="laurel"
-URL="https://github.com/threathunters-io/laurel/releases/download/v0.6.3/laurel-v0.6.3-x86_64-glibc.tar.gz"
-FILE=$(basename "$URL")
-BIN_PATH="/boot/config/plugins/${PLUGIN_NAME}/${NAME}"
-TAR_GZ_PATH="/boot/config/plugins/${PLUGIN_NAME}/${FILE}"
+install_package "laurel" \
+"https://github.com/threathunters-io/laurel/releases/download/v0.6.3/laurel-v0.6.3-x86_64-glibc.tar.gz" \
+"/usr/local/sbin/laurel"
 
-if [ ! -f "$BIN_PATH" ]; then
-  echo "-----------------------------------------------------------"
-  echo "Downloading $NAME..."
-  echo "-----------------------------------------------------------"
-  curl "$URL" --create-dirs -o "$TXZ_PATH"
-  #wget "$URL" -O "$TAR_GZ_PATH"
-  tar -xzf "/boot/config/plugins/${PLUGIN_NAME}/${FILE}" $NAME
-  rm "$TAR_GZ_PATH"
-fi
-
-if [ ! -f "/var/log/packages/${FILE_BASE}" ] >/dev/null 2>&amp;1; then
-  echo "-----------------------------------------------------------"
-  echo "Installing $NAME..."
-  echo "-----------------------------------------------------------"
-  install -m755 "/boot/config/plugins/${PLUGIN_NAME}/${NAME}" /usr/local/sbin/${NAME}
-fi
+#NAME="laurel"
+#URL="https://github.com/threathunters-io/laurel/releases/download/v0.6.3/laurel-v0.6.3-x86_64-glibc.tar.gz"
+#FILE=$(basename "$URL")
+#BIN_PATH="/boot/config/plugins/${PLUGIN_NAME}/${NAME}"
+#TAR_GZ_PATH="/boot/config/plugins/${PLUGIN_NAME}/${FILE}"
+#
+#if [ ! -f "$BIN_PATH" ]; then
+#  echo "-----------------------------------------------------------"
+#  echo "Downloading $NAME..."
+#  echo "-----------------------------------------------------------"
+#  curl "$URL" --create-dirs -o "$TXZ_PATH"
+#  #wget "$URL" -O "$TAR_GZ_PATH"
+#  tar -xzf "/boot/config/plugins/${PLUGIN_NAME}/${FILE}" $NAME
+#  rm "$TAR_GZ_PATH"
+#fi
+#
+#if [ ! -f "/var/log/packages/${FILE_BASE}" ] >/dev/null 2>&amp;1; then
+#  echo "-----------------------------------------------------------"
+#  echo "Installing $NAME..."
+#  echo "-----------------------------------------------------------"
+#  install -m755 "/boot/config/plugins/${PLUGIN_NAME}/${NAME}" /usr/local/sbin/${NAME}
+#fi
 
 echo "Done."

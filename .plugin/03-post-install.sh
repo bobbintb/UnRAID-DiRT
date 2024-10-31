@@ -17,7 +17,4 @@ sed -i 's/^write_logs.*/write_logs = no/' /etc/audit/auditd.conf
 # sed -i '54 i\loadmodule /opt/redis/lib/redisearch.so' /etc/redis/redis.conf
 sed -i '54 i\loadmodule /usr/bin/valkey-modules/redisearch.so' /etc/valkey/valkey.conf
 sysctl vm.overcommit_memory=1
-alias dirt='/etc/rc.d/rc.dirt'
-#alias redis='/etc/rc.d/rc.redis'
-alias valkey='/etc/rc.d/rc.valkey'
 echo "Done."
