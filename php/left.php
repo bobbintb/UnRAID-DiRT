@@ -103,21 +103,25 @@
     let groups = {};
 
     const leftTable = new Tabulator("#left", {
-        persistenceWriterFunc:function(id, type, data){
-            //id - tables persistence id
-            //type - type of data being persisted ("sort", "filter", "group", "page" or "columns")
-            //data - array or object of data
-
-            localStorage.setItem(id + "-" + type, JSON.stringify(data));
+        persistenceMode:"local",
+        persistence:{
+            columns: ["action"], //persist changes to the width, visible and frozen properties
         },
-        persistenceReaderFunc:function(id, type){
-            //id - tables persistence id
-            //type - type of data being persisted ("sort", "filter", "group", "page" or "columns")
-
-            const data = localStorage.getItem(id + "-" + type);
-
-            return data ? JSON.parse(data) : false;
-        },
+        // persistenceWriterFunc:function(id, type, data){
+        //     //id - tables persistence id
+        //     //type - type of data being persisted ("sort", "filter", "group", "page" or "columns")
+        //     //data - array or object of data
+        //
+        //     localStorage.setItem(id + "-" + type, JSON.stringify(data));
+        // },
+        // persistenceReaderFunc:function(id, type){
+        //     //id - tables persistence id
+        //     //type - type of data being persisted ("sort", "filter", "group", "page" or "columns")
+        //
+        //     const data = localStorage.getItem(id + "-" + type);
+        //
+        //     return data ? JSON.parse(data) : false;
+        // },
         selectableRows: 1,
         data: matchingObjects,
         // groupBy: ["hash", "ino"],
@@ -190,9 +194,11 @@
                                     font-size: large;
                                     align-items: center;
                                     justify-content: center;
-                                    height: 100%;">
+                                    height: 100%;"
+                            id="trash">
                             <i class="fa fa-trash"></i>
                         </div>`,
+                // action: 'delete',
                 headerSort: false,
                 maxWidth: 40,
                 formatter: function (cell) {
@@ -422,5 +428,34 @@
     // fix total size on left table
     // need a delete all/link all for groups and everything
     // maybe red number of items on left decreases as each duplicate is addressed until it reaches 1 and turns green
+
+
+    // $('trash').on('change', '#select-all-products', function () {
+    //     var productData = $("#gridCatalogProducts").tabulator("getData");
+    //     var dataUpdate = [];
+    //     if ($(this).is(":checked")) {
+    //         $.each(productData, function (i, item) {
+    //             if (item.cdeSelected == false) {
+    //                 var obj = {
+    //                     proCode: item.proCode,
+    //                     cdeSelected: true
+    //                 }
+    //                 dataUpdate.push(obj);
+    //             }
+    //         });
+    //     }
+    //     else {
+    //         $.each(productData, function (i, item) {
+    //             var obj = {
+    //                 proCode: item.proCode,
+    //                 cdeSelected: false
+    //             }
+    //             dataUpdate.push(obj);
+    //         });
+    //     }
+    //     $("#gridCatalogProducts").tabulator("updateData", dataUpdate);
+    // });
+
+
 </script>
 

@@ -12,7 +12,7 @@ install_package() {
     FILE_BASE="${FILE%.*}"
     if [ ! -f "$TXZ_PATH" ]; then
         echo "-----------------------------------------------------------"
-        echo "$FILE not cached."
+        echo "$FILE is not cached."
         echo "Downloading $NAME..."
         echo "-----------------------------------------------------------"
         if ! wget --spider "$URL" 2>/dev/null; then
