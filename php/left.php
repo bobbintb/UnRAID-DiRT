@@ -1,5 +1,4 @@
 <script type="module">
-
     async function process(dataObj) {
         try {
             const response = await fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/process/`, {
@@ -17,7 +16,6 @@
             return null;
         }
     }
-
 
     function dateFormatter(cell) {
         const date = new Date(Number(cell.getValue()));
@@ -100,11 +98,27 @@
             return !row.getElement().classList.contains('disabled');
         },
         groupHeader: function (value, count) {
-            return `<div class="tabulator-cell" role="gridcell" style="margin-left: 4px; border-left: 1px solid #aaa; height: 24px; width: 41px;">
-                        <div style="display: flex; font-size: large; align-items: center; justify-content: center; height: 100%;">
+            return `<div class="tabulator-cell"
+                         role="gridcell"
+                         style="margin-left: 4px;
+                                border-left: 1px solid #aaa;
+                                height: 24px;
+                                width: 41px;">
+                        <div style="display: flex;
+                                    font-size: large;
+                                    align-items: center;
+                                    justify-content: center;
+                                    height: 100%;">
                             <i class="fa fa-trash"></i></div></div>
-                    <div class="tabulator-cell" role="gridcell" style="height: 24px; width: 37px;">
-                        <div style="display: flex; font-size: large; align-items: center; justify-content: center; height: 100%;">
+                    <div class="tabulator-cell"
+                         role="gridcell"
+                         style="height: 24px;
+                         width: 37px;">
+                        <div style="display: flex;
+                                    font-size: large;
+                                    align-items: center;
+                                    justify-content: center;
+                                    height: 100%;">
                             <i class="fa fa-link"></i></div></div>
                     ${value}
                     <span style='color:#d00; margin-left:10px;'>(${count - 1} duplicate files)</span>`;
@@ -158,6 +172,8 @@
                     // need to remove row from queue
                 }
             },
+            // { title:"<input id='select-all' type='checkbox'/>",
+            // field: "action"},
             {
                 // Trash column
                 title: `<div style="display: flex;
@@ -168,29 +184,34 @@
                             id="trash">
                             <i class="fa fa-trash"></i>
                         </div>`,
-                // action: 'delete',
                 headerSort: false,
                 maxWidth: 40,
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
-                    return `<div style='display: flex;
+                    return `<input style='display: flex;
                                         align-items: center;
                                         justify-content: center;
-                                        height: 100%;'>
-                                <i class='fa fa-trash' style='text-align: center;
-                                                              width: 15px;
-                                                              margin: 0;
-                                                              padding: 0;
-                                                              border: none;
-                                                              background: none;' ${disabled}></i></div>`;
+                                        height: 100%;'
+type="checkbox">
+                                <i class='fa fa-trash'
+                                   style='text-align: center;
+                                          width: 15px;
+                                          margin: 0;
+                                          padding: 0;
+                                          border: none;
+                                          background: none;' ${disabled}></i></input>`;
                 },
                 cellClick: function (e, cell) {
-                    iconChange(e,cell)
+                    actionChange(e,cell)
                 }
             },
             {
                 // Link column
-                title: `<div style="display: flex; font-size: large; align-items: center; justify-content: center; height: 100%;">
+                title: `<div style="display: flex;
+                                    font-size: large;
+                                    align-items: center;
+                                    justify-content: center;
+                                    height: 100%;">
                             <i class="fa fa-link"></i>
                         </div>`,
                 headerSort: false,
@@ -201,15 +222,16 @@
                                         align-items: center;
                                         justify-content: center;
                                         height: 100%;'>
-                                <i class='fa fa-link' style='text-align: center;
-                                                             width: 15px;
-                                                             margin: 0;
-                                                             padding: 0;
-                                                             border: none;
-                                                             background: none;' ${disabled}></i></div>`;
+                                <i class='fa fa-link'
+                                   style='text-align: center;
+                                          width: 15px;
+                                          margin: 0;
+                                          padding: 0;
+                                          border: none;
+                                          background: none;' ${disabled}></i></div>`;
                 },
                 cellClick: function (e, cell) {
-                    iconChange(e, cell)
+                    actionChange(e, cell)
                 }
             },
             {
@@ -309,8 +331,9 @@
         const rows = group.getRows();
         rows.forEach(row => {
             if (!row.getElement().classList.contains('disabled')) {
-
                 const cell = row.getElement().querySelector(`.${id[0]}.${id[1]}`);
+                console.error(row)
+                    console.error(id)
             if (cell) {
                 const event = new MouseEvent('click', {
                     bubbles: true,
@@ -341,7 +364,7 @@
         console.log(groups);
     }
 
-    function iconChange(e, cell) {
+    function actionChange(e, cell) {
         let row = cell.getRow();
         let rowData = row.getData();
         const iconType = cell.getElement().querySelector('.fa.fa-link') ? 'link' : 'delete';
