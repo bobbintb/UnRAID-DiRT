@@ -1,34 +1,4 @@
 <script type="module">
-    let matchingObjects;
-
-    async function hash() {
-        try {
-            const response = await Promise.race([
-                fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/hash`)
-            ]);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            let results =await response.json()
-            // for (let i = 0; i < results.length; i++) {
-            //     if (results[i].path.length > 1) {
-            //         let originalPath = [results[i].path[0]];
-            //         let newPath = results[i].path.slice(1);
-            //
-            //         let newObject = { ...results[i], path: newPath };
-            //         results[i].path = originalPath;
-            //
-            //         results.splice(i + 1, 0, newObject);
-            //         i++;
-            //     }
-            // }
-            // console.error(results)
-            return results;
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            return null;
-        }
-    }
 
     async function process(dataObj) {
         try {
@@ -48,8 +18,6 @@
         }
     }
 
-
-    matchingObjects = await hash();
 
     function dateFormatter(cell) {
         const date = new Date(Number(cell.getValue()));
@@ -91,13 +59,13 @@
         }
     }
 
-    let totalSum = 0;
-    matchingObjects.forEach(row => {
-        totalSum += row.bottom;
-    });
-    let totalSumFormatted = convertCellFileSize({
-        getValue: () => totalSum
-    });
+    // let totalSum = 0;
+    // matchingObjects.forEach(row => {
+    //     totalSum += row.bottom;
+    // });
+    // let totalSumFormatted = convertCellFileSize({
+    //     getValue: () => totalSum
+    // });
 
     let groupCount = 0;
     let groups = {};
@@ -119,7 +87,9 @@
             return data ? JSON.parse(data) : false;
         },
         selectableRows: 1,
-        data: matchingObjects,
+        // data: matchingObjects,
+        ajaxURL: `http://192.168.1.2:3000/hash`,
+        ajaxConfig: { method: "GET" },
         // groupBy: ["hash", "ino"],
         groupBy: "hash",
         setGroupStartOpen: true,
@@ -136,11 +106,12 @@
                     ${value}
                     <span style='color:#d00; margin-left:10px;'>(${count - 1} duplicate files)</span>`;
         },
-        footerElement: `<div>Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}</div>`,
+        // footerElement: `<div>Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}</div>`,
         columns: [
             {
                 // Radio button column
                 title: `<div class="custom-arrow"
+                             id='radio-og'
                              style="display: inline-flex;
                                     font-size: large;
                                     align-items: center;
@@ -209,33 +180,7 @@
                                                               background: none;' ${disabled}></i></div>`;
                 },
                 cellClick: function (e, cell) {
-                    let row = cell.getRow();
-                    let rowData = row.getData();
-                    const iconElement = cell.getElement().querySelector('.fa.fa-trash');
-                    const otherIcon = row.getElement().querySelector('.fa.fa-link');
-                    if (rowData.action === "delete") {
-                        rowData.action = "remove"
-                        iconElement.style.color = '';
-                        iconElement.style.border = '';
-                        iconElement.style.borderRadius = '';
-                        iconElement.style.padding = '';
-                        row.getElement().style.color = '';
-                        process(rowData)
-                        rowData.action = ""
-                    } else {
-                        rowData.action = "delete";
-                        row.getElement().style.color = '';
-                        row.getElement().style.color = 'red';
-                        otherIcon.style.border = '';
-                        otherIcon.style.borderRadius = '';
-                        otherIcon.style.padding = '';
-                        iconElement.style.border = '2px solid red';
-                        iconElement.style.borderRadius = '5px';
-                        iconElement.style.padding = '5px';
-                        // add to a queue. the right table should reflect the queue, not be the queue.
-                        console.error(rowData)
-                        process(rowData)
-                    }
+                    iconChange(e,cell)
                 }
             },
             {
@@ -259,32 +204,7 @@
                                                              background: none;' ${disabled}></i></div>`;
                 },
                 cellClick: function (e, cell) {
-                    let row = cell.getRow();
-                    let rowData = row.getData();
-                    const iconElement = cell.getElement().querySelector('.fa.fa-link');
-                    const otherIcon = row.getElement().querySelector('.fa.fa-trash');
-                    if (rowData.action === "link") {
-                        rowData.action = "remove"
-                        iconElement.style.color = '';
-                        iconElement.style.border = '';
-                        iconElement.style.borderRadius = '';
-                        iconElement.style.padding = '';
-                        row.getElement().style.color = '';
-                        process(rowData)
-                        rowData.action = ""
-                    } else {
-                        rowData.action = "link";
-                        row.getElement().style.color = '';
-                        row.getElement().style.color = 'blue';
-                        otherIcon.style.border = '';
-                        otherIcon.style.borderRadius = '';
-                        otherIcon.style.padding = '';
-                        iconElement.style.border = '2px solid blue';
-                        iconElement.style.borderRadius = '5px';
-                        iconElement.style.padding = '5px';
-                        // add to a queue. the right table should reflect the queue, not be the queue.
-                        process(rowData)
-                    }
+                    iconChange(e, cell)
                 }
             },
             {
@@ -415,6 +335,62 @@
         });
         console.log(groups);
     }
+
+    function iconChange(e, cell) {
+        let row = cell.getRow();
+        let rowData = row.getData();
+        const iconType = cell.getElement().querySelector('.fa.fa-link') ? 'link' : 'delete';
+        const iconElement = cell.getElement().querySelector(iconType === 'link' ? '.fa.fa-link' : '.fa.fa-trash');
+        const otherIcon = row.getElement().querySelector(iconType === 'link' ? '.fa.fa-trash' : '.fa.fa-link');
+        rowData.action = rowData.action === iconType ? "remove" : iconType;
+        const isActive = rowData.action === iconType;
+        iconElement.style.border = isActive ? `2px solid ${iconType === 'link' ? 'blue' : 'red'}` : '';
+        iconElement.style.borderRadius = isActive ? '5px' : '';
+        iconElement.style.padding = isActive ? '5px' : '';
+        row.getElement().style.color = isActive ? (iconType === 'link' ? 'blue' : 'red') : '';
+        otherIcon.style.border = otherIcon.style.borderRadius = otherIcon.style.padding = '';
+        process(rowData);
+    }
+
+
+    // $("#radio-og").on("change", function(){
+    //     var productData = $("#gridCatalogProducts").tabulator("getData");
+    //     var dataUpdate = [];
+    //     if ($(this).is(":checked")) {
+    //         $.each(productData, function (i, item) {
+    //             if (item.cdeSelected == false) {
+    //                 var obj = {
+    //                     proCode: item.proCode,
+    //                     cdeSelected: true
+    //                 }
+    //                 dataUpdate.push(obj);
+    //             }
+    //         });
+    //     }
+    //     else {
+    //         $.each(productData, function (i, item) {
+    //             var obj = {
+    //                 proCode: item.proCode,
+    //                 cdeSelected: false
+    //             }
+    //             dataUpdate.push(obj);
+    //         });
+    //     }
+    //     $("#gridCatalogProducts").tabulator("updateData", dataUpdate);
+    // });
+    //
+    //
+    //     let row = cell.getRow();
+    //     let group = row.getGroup();
+    //     group.getRows().forEach(function (row) {
+    //         row.getElement().classList.remove('disabled');
+    //     });
+    //     row.getElement().classList.add('disabled');
+    //     row.getElement().style.color = '';
+    //     row.getElement().querySelector('.fa.fa-trash').style.border = 'initial';
+    //     row.getElement().querySelector('.fa.fa-link').style.border = 'initial';
+    //     // need to remove row from queue
+    // }
 
     // TODO:
     // fix color of scroll bars so it is more visible

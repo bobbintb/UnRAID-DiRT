@@ -1,0 +1,6 @@
+Network security audit. Check http and https. Check orgins allowed.
+simplify icon columns changing styles
+simplify check-all logic
+    https://jsfiddle.net/cemmons/6fghegn4/2
+    https://jsfiddle.net/m3jpghb8/
+radiobutton is purely visual right now. Doesn't actually set anything.
