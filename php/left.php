@@ -188,18 +188,12 @@
                 maxWidth: 40,
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
-                    return `<input style='display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        height: 100%;'
-type="checkbox">
-                                <i class='fa fa-trash'
-                                   style='text-align: center;
-                                          width: 15px;
-                                          margin: 0;
-                                          padding: 0;
-                                          border: none;
-                                          background: none;' ${disabled}></i></input>`;
+                    return `<label class="icon-checkbox trash-checkbox" ${disabled}>
+                                <input type="checkbox" id="trash-cell">
+                                <span class="icon">
+                                    <i class="fa fa-trash"></i>
+                                </span>
+                            </label>`;
                 },
                 cellClick: function (e, cell) {
                     actionChange(e,cell)
@@ -218,17 +212,24 @@ type="checkbox">
                 maxWidth: 40,
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
-                    return `<div style='display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        height: 100%;'>
-                                <i class='fa fa-link'
-                                   style='text-align: center;
-                                          width: 15px;
-                                          margin: 0;
-                                          padding: 0;
-                                          border: none;
-                                          background: none;' ${disabled}></i></div>`;
+                    return `<label class="icon-checkbox link-checkbox" ${disabled}>
+                                <input type="checkbox" id="link-cell">
+                                <span class="icon">
+                                    <i class="fa fa-link"></i>
+                                </span>
+                            </label>`;
+                    // return `<input style='display: flex;
+                    //                     align-items: center;
+                    //                     justify-content: center;
+                    //                     height: 100%;'
+                    //                type="checkbox">
+                    //             <i class='fa fa-link'
+                    //                style='text-align: center;
+                    //                       width: 15px;
+                    //                       margin: 0;
+                    //                       padding: 0;
+                    //                       border: none;
+                    //                       background: none;' ${disabled}></i></input>`;
                 },
                 cellClick: function (e, cell) {
                     actionChange(e, cell)

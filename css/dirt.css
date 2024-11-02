@@ -1,0 +1,130 @@
+#main_container {
+    --main_container_height: 65vh;
+    /*border: 1 px solid black;*/
+    height: var(--main_container_height);
+    display: flex;
+    flex-direction: row;
+    margin-top: -30px;
+}
+
+.disabled {
+    background-color: #ccc !important;
+    color: #888 !important;
+    cursor: default !important;
+    pointer-events: none !important;
+}
+
+.strike-through {
+    text-decoration: line-through red;
+}
+
+#left {
+    /*border:1px solid red;*/
+    resize: horizontal;
+    width: 70%;
+    min-width: 20%;
+    max-width: 80%;
+    overflow: auto;
+    /*margin-left: 10px;*/
+    margin-right: 5px;
+}
+
+
+#left.tabulator {
+    font-size: 12px;
+    background-color: unset;
+}
+
+.tabulator-row.tabulator-group {
+    padding: 0px 5px 0px 10px !important;
+    background: #b4ecb3 !important;
+}
+
+.tabulator-group-toggle {
+    width: 15px;
+}
+
+
+#right {
+    /*border:1px solid blue;*/
+    flex: 1;
+    margin-left: 5px;
+    /*margin-right: 10px;*/
+}
+
+#bottom_container {
+    --bottom_container_height: 10vh;
+    /*border:1px solid black;*/
+    height: var(--bottom_container_height);
+    display: flex;
+    flex-direction: row;
+}
+
+#bleft {
+    border: 1px solid red;
+    resize: horizontal;
+    overflow: auto;
+    width: 70%;
+}
+
+#bright {
+    border: 1px solid blue;
+    flex: 1;
+    margin-left: 5px;
+    /*margin-right: 10 px;*/
+}
+
+.custom-arrow {
+    display: inline-flex;
+    font-size: large;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    cursor: pointer;
+    border-width: 6px 6px 0px;
+    border-left-style: solid;
+    border-left-color: transparent;
+    border-right-style: solid;
+    border-right-color: transparent;
+    border-top-style: solid;
+    border-top-color: rgb(102, 102, 102);
+    border-bottom-style: initial;
+    border-bottom-color: initial;
+}
+
+
+.icon-checkbox {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    width: 100%; /* Size of the checkbox */
+    height: 100%;
+    font-size: 15px;
+    background-color: #eee; /* Background color when unchecked */
+    border-radius: 3px; /* Rounded corners */
+    justify-content: center;
+}
+
+.icon-checkbox input {
+    display: none; /* Hide the default checkbox */
+}
+
+.icon-checkbox i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.trash-checkbox input:checked + .icon {
+    color: red; /* Color for checked state */
+}
+
+.link-checkbox input:checked + .icon {
+    color: blue; /* Color for checked state */
+}
+
+.custom-checkbox input:disabled + i {
+    color: initial; /* Color for disabled state */
+    cursor: not-allowed; /* Change cursor to indicate it's disabled */
+}
