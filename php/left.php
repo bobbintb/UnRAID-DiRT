@@ -91,7 +91,6 @@
         //     return data ? JSON.parse(data) : false;
         // },
         selectableRows: 1,
-        // data: matchingObjects,
         ajaxURL: `http://192.168.1.2:3000/hash`,
         ajaxConfig: { method: "GET" },
         // groupBy: ["hash", "ino"],
