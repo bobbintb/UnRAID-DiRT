@@ -3,9 +3,9 @@ import {dequeueCreateFile} from "./queueListener.js";
 
 process.getJobs('waiting').then((jobs) => {
     jobs.forEach((job) => {
-        console.log(`Job ID: ${job.id}, Data: ${JSON.stringify(job.data)}`);
+        // console.log(`Job ID: ${job.id}, Data: ${JSON.stringify(job.data)}`);
         console.log(`action: ${JSON.stringify(job.data.action)}`);
-        console.log(`src: ${JSON.stringify(job.data.src)}`);
+        console.log(`path: ${JSON.stringify(job.data.path)}`);
     });
 }).catch((err) => {
     console.error('Error fetching jobs:', err);
