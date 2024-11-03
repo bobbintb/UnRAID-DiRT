@@ -175,6 +175,28 @@
             // { title:"<input id='select-all' type='checkbox'/>",
             // field: "action"},
             {
+                title: "Option 1",
+                formatter: (cell) => {
+                    const rowId = cell.getRow().getData().path;
+                    // console.error(cell.getRow()._row)
+                    return `<input type="radio" name="row-${rowId}" value="option1">`;
+                },
+                cellClick: function (e, cell) {
+                    const rowId = cell.getRow().getData()
+                    console.error(e.target.checked)
+                }
+            },
+            {
+                title: "Option 2",
+                formatter: (cell) => {
+                    const rowId = cell.getRow().getData().path;
+                    return `<input type="radio" name="row-${rowId}" value="option2">`;
+                },
+                cellClick: function (e, cell) {
+                    console.error(e.target.checked)
+                }
+            },
+            {
                 // Trash column
                 title: `<div style="display: flex;
                                     font-size: large;
@@ -189,7 +211,7 @@
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
                     return `<label class="icon-checkbox trash-checkbox" ${disabled}>
-                                <input type="checkbox" id="trash-cell">
+                                <input type="radio" id="trash-cell">
                                 <span class="icon">
                                     <i class="fa fa-trash"></i>
                                 </span>
@@ -213,7 +235,7 @@
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
                     return `<label class="icon-checkbox link-checkbox" ${disabled}>
-                                <input type="checkbox" id="link-cell">
+                                <input type="radio" id="link-cell">
                                 <span class="icon">
                                     <i class="fa fa-link"></i>
                                 </span>
@@ -327,6 +349,8 @@
         });
         document.querySelector('.tabulator-footer').innerText = `Recoverable Space: ${convertFileSize(total)}, Total Groups: ${groups.length}`;
     });
+
+
 
     function simulateClicksOnGroupCells(group, id) {
         const rows = group.getRows();
@@ -454,6 +478,50 @@
     //     }
     //     $("#gridCatalogProducts").tabulator("updateData", dataUpdate);
     // });
+    // <table>
+    //     <tr>
+    //         <td>
+    //             <input type="radio" name="row-select" value="row1" onchange="updateRowSelection(this)"> Row 1
+    //         </td>
+    //         <td>
+    //             <input type="radio" name="option1-row1" value="option1" onchange="updateColumnSelection(this, 'option1-row1', 'option2-row1')"> Option 1
+    //         </td>
+    //         <td>
+    //             <input type="radio" name="option2-row1" value="option2" onchange="updateColumnSelection(this, 'option2-row1', 'option1-row1')"> Option 2
+    //         </td>
+    //     </tr>
+    //     <tr>
+    //         <td>
+    //             <input type="radio" name="row-select" value="row2" onchange="updateRowSelection(this)"> Row 2
+    //         </td>
+    //         <td>
+    //             <input type="radio" name="option1-row2" value="option1" onchange="updateColumnSelection(this, 'option1-row2', 'option2-row2')"> Option 1
+    //         </td>
+    //         <td>
+    //             <input type="radio" name="option2-row2" value="option2" onchange="updateColumnSelection(this, 'option2-row2', 'option1-row2')"> Option 2
+    //         </td>
+    //     </tr>
+    // </table>
+    //
+    // <script>
+    //     function updateRowSelection(selected) {
+    //     const rowName = selected.name;
+    //     const rows = document.querySelectorAll(`input[name="${rowName}"]`);
+    //     rows.forEach(row => {
+    //     if (row !== selected) {
+    //     row.checked = false;
+    // }
+    // });
+    // }
+    //
+    //     function updateColumnSelection(selected, group1, group2) {
+    //     const other = selected.name === group1 ? group2 : group1;
+    //     const otherInput = document.querySelector(`input[name="${other}"]`);
+    //     if (otherInput) {
+    //     otherInput.checked = false;
+    // }
+    // }
+</script>
 
 
 </script>
