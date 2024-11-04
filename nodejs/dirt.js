@@ -34,7 +34,7 @@ app.get('/hash', async (req, res) => {
   }
 });
 
-// called from left.php
+// called from dirt.php
 app.post("/process/", (req, res) => {
     enqueueFileAction(req.body)
     res.send();

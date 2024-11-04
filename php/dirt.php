@@ -60,7 +60,7 @@
     let groupCount = 0;
     let groups = {};
 
-    const leftTable = new Tabulator("#left", {
+    const leftTable = new Tabulator("#dirt", {
         selectableRows: 1,
         ajaxURL: `http://192.168.1.2:3000/hash`,
         ajaxConfig: { method: "GET" },
@@ -100,22 +100,7 @@
             {
                 // Radio button column
                 title: `<div class="custom-arrow"
-                             id='radio-og'
-                             style="display: inline-flex;
-                                    font-size: large;
-                                    align-items: center;
-                                    justify-content: center;
-                                    height: 100%;
-                                    cursor: pointer;
-                                    border-width: 6px 6px 0px;
-                                    border-left-style: solid;
-                                    border-left-color: transparent;
-                                    border-right-style: solid;
-                                    border-right-color: transparent;
-                                    border-top-style: solid;
-                                    border-top-color: rgb(102, 102, 102);
-                                    border-bottom-style: initial;
-                                    border-bottom-color: initial;">
+                             id='radio-og'>
                     </div>`,
                 headerHozAlign: "center",
                 headerSort: false,
@@ -129,9 +114,6 @@
                             <input type='radio' name='rowSelection-${rowData.hash}'></div>`;
                 },
                 cellClick: function (e, cell) {
-                    if (e.target.type !== 'radio') {
-                        return;
-                    }
                     let row = cell.getRow();
                     let group = row.getGroup();
                     group.getRows().forEach(function (row) {
@@ -259,10 +241,14 @@
 
     function actionChange(e, cell) {
         const checkbox = cell.getElement().querySelector('input[type="checkbox"]');
-        const row = cell.getRow();
+        let row = cell.getRow();
+        let rowData = row.getData();
+
         const targetId = checkbox.id === "trash-cell" ? "link-cell" : "trash-cell";
         const targetCheckbox = row.getElement().querySelector(`input[type="checkbox"]#${targetId}`);
         targetCheckbox.checked = false;
+        console.error(rowData)
+        process(rowData);
     }
 
 

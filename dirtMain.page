@@ -13,7 +13,7 @@ Icon="fa-search-minus"
 </head>
 <body>
 <div id="main_container">
-    <div id="left"><?php include './plugins/bobbintb.system.dirt/php/left.php'; ?></div>
+    <div id="dirt"><?php include './plugins/bobbintb.system.dirt/php/dirt.php'; ?></div>
     <div id="right"><?php include './plugins/bobbintb.system.dirt/php/right.php'; ?></div>
 </div>
 <div id="bottom_container">
