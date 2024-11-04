@@ -57,41 +57,13 @@
         }
     }
 
-    // let totalSum = 0;
-    // matchingObjects.forEach(row => {
-    //     totalSum += row.bottom;
-    // });
-    // let totalSumFormatted = convertCellFileSize({
-    //     getValue: () => totalSum
-    // });
-
     let groupCount = 0;
     let groups = {};
 
     const leftTable = new Tabulator("#left", {
-        persistenceMode:"local",
-        persistence:{
-            columns: ["action"], //persist changes to the width, visible and frozen properties
-        },
-        // persistenceWriterFunc:function(id, type, data){
-        //     //id - tables persistence id
-        //     //type - type of data being persisted ("sort", "filter", "group", "page" or "columns")
-        //     //data - array or object of data
-        //
-        //     localStorage.setItem(id + "-" + type, JSON.stringify(data));
-        // },
-        // persistenceReaderFunc:function(id, type){
-        //     //id - tables persistence id
-        //     //type - type of data being persisted ("sort", "filter", "group", "page" or "columns")
-        //
-        //     const data = localStorage.getItem(id + "-" + type);
-        //
-        //     return data ? JSON.parse(data) : false;
-        // },
         selectableRows: 1,
         ajaxURL: `http://192.168.1.2:3000/hash`,
         ajaxConfig: { method: "GET" },
-        // groupBy: ["hash", "ino"],
         groupBy: "hash",
         setGroupStartOpen: true,
         rowSelectableCheck: function (row) {
@@ -172,30 +144,6 @@
                     // need to remove row from queue
                 }
             },
-            // { title:"<input id='select-all' type='checkbox'/>",
-            // field: "action"},
-            {
-                title: "Option 1",
-                formatter: (cell) => {
-                    const rowId = cell.getRow().getData().path;
-                    // console.error(cell.getRow()._row)
-                    return `<input type="radio" name="row-${rowId}" value="option1">`;
-                },
-                cellClick: function (e, cell) {
-                    const rowId = cell.getRow().getData()
-                    console.error(e.target.checked)
-                }
-            },
-            {
-                title: "Option 2",
-                formatter: (cell) => {
-                    const rowId = cell.getRow().getData().path;
-                    return `<input type="radio" name="row-${rowId}" value="option2">`;
-                },
-                cellClick: function (e, cell) {
-                    console.error(e.target.checked)
-                }
-            },
             {
                 // Trash column
                 title: `<div style="display: flex;
@@ -211,15 +159,13 @@
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
                     return `<label class="icon-checkbox trash-checkbox" ${disabled}>
-                                <input type="radio" id="trash-cell">
+                                <input type="checkbox" id="trash-cell">
                                 <span class="icon">
                                     <i class="fa fa-trash"></i>
                                 </span>
                             </label>`;
                 },
-                cellClick: function (e, cell) {
-                    actionChange(e,cell)
-                }
+                cellClick: actionChange
             },
             {
                 // Link column
@@ -235,27 +181,13 @@
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
                     return `<label class="icon-checkbox link-checkbox" ${disabled}>
-                                <input type="radio" id="link-cell">
+                                <input type="checkbox" id="link-cell">
                                 <span class="icon">
                                     <i class="fa fa-link"></i>
                                 </span>
                             </label>`;
-                    // return `<input style='display: flex;
-                    //                     align-items: center;
-                    //                     justify-content: center;
-                    //                     height: 100%;'
-                    //                type="checkbox">
-                    //             <i class='fa fa-link'
-                    //                style='text-align: center;
-                    //                       width: 15px;
-                    //                       margin: 0;
-                    //                       padding: 0;
-                    //                       border: none;
-                    //                       background: none;' ${disabled}></i></input>`;
                 },
-                cellClick: function (e, cell) {
-                    actionChange(e, cell)
-                }
+                cellClick: actionChange
             },
             {
                 title: "Hash",
@@ -270,7 +202,6 @@
                 width: "-webkit-fill-available",
                 formatter:"textarea"
             },
-            //{title: "#", field: "count", sorter: "number"},
             {
                 title: "Size",
                 field: "size",
@@ -279,7 +210,6 @@
                 bottomCalc: "recoverableSize",
                 bottomCalcFormatter: convertCellFileSize
             },
-            //{title: "Recoverable", field: "recoverable", sorter: "number", formatter: convertFileSize},
             {
                 title: "Last Accessed",
                 field: "atimeMs",
@@ -310,20 +240,6 @@
         },
     });
 
-    leftTable.on("rowSelected", function (row) {
-        const rowData = row.getData("");
-        const hashValue = rowData.hash;
-    });
-
-    leftTable.on("cellClick", function (e, cell) {
-        // console.error('e')
-        // console.error(e)
-        // console.error('cell')
-        // console.error(cell)
-        //e - the click event object
-        //cell - cell component
-    });
-
     leftTable.on("headerClick", function (e, column) {
         if (column._column.definition.title.includes("custom-arrow")) {
             let arrowCell = document.getElementsByClassName('custom-arrow')[0]
@@ -340,188 +256,14 @@
         }
     });
 
-    leftTable.on("tableBuilt", function () {
-        // need to load saved session and apply to table
-        groups = leftTable.getGroups()
-        let total = 0;
-        groups.forEach(group => {
-            total += Number(group["_group"].calcs.bottom.data.size);
-        });
-        document.querySelector('.tabulator-footer').innerText = `Recoverable Space: ${convertFileSize(total)}, Total Groups: ${groups.length}`;
-    });
-
-
-
-    function simulateClicksOnGroupCells(group, id) {
-        const rows = group.getRows();
-        rows.forEach(row => {
-            if (!row.getElement().classList.contains('disabled')) {
-                const cell = row.getElement().querySelector(`.${id[0]}.${id[1]}`);
-                console.error(row)
-                    console.error(id)
-            if (cell) {
-                const event = new MouseEvent('click', {
-                    bubbles: true,
-                    cancelable: true,
-                    view: window
-                });
-                cell.dispatchEvent(event);
-            }
-            }
-        });
-    }
-
-    leftTable.on("groupClick", function(e, group) {
-        simulateClicksOnGroupCells(group, e.target.classList);
-    });
-
-    leftTable.on("groupDblClick", function(e, group) {
-        console.error("Specific cell clicked in group header:", e.target.classList.value);
-        console.error("Specific cell clicked in group header:", e.target.classList);
-        simulateClicksOnGroupCells(group, e.target.classList);
-    });
-
-    function toggleGroups() {
-        const groups = leftTable.getGroups();
-        groups.forEach(function (group) {
-            group.show();
-        });
-        console.log(groups);
-    }
 
     function actionChange(e, cell) {
-        let row = cell.getRow();
-        let rowData = row.getData();
-        const iconType = cell.getElement().querySelector('.fa.fa-link') ? 'link' : 'delete';
-        const iconElement = cell.getElement().querySelector(iconType === 'link' ? '.fa.fa-link' : '.fa.fa-trash');
-        const otherIcon = row.getElement().querySelector(iconType === 'link' ? '.fa.fa-trash' : '.fa.fa-link');
-        rowData.action = rowData.action === iconType ? "remove" : iconType;
-        const isActive = rowData.action === iconType;
-        iconElement.style.border = isActive ? `2px solid ${iconType === 'link' ? 'blue' : 'red'}` : '';
-        iconElement.style.borderRadius = isActive ? '5px' : '';
-        iconElement.style.padding = isActive ? '5px' : '';
-        row.getElement().style.color = isActive ? (iconType === 'link' ? 'blue' : 'red') : '';
-        otherIcon.style.border = otherIcon.style.borderRadius = otherIcon.style.padding = '';
-        process(rowData);
+        const checkbox = cell.getElement().querySelector('input[type="checkbox"]');
+        const row = cell.getRow();
+        const targetId = checkbox.id === "trash-cell" ? "link-cell" : "trash-cell";
+        const targetCheckbox = row.getElement().querySelector(`input[type="checkbox"]#${targetId}`);
+        targetCheckbox.checked = false;
     }
-
-
-    // $("#radio-og").on("change", function(){
-    //     var productData = $("#gridCatalogProducts").tabulator("getData");
-    //     var dataUpdate = [];
-    //     if ($(this).is(":checked")) {
-    //         $.each(productData, function (i, item) {
-    //             if (item.cdeSelected == false) {
-    //                 var obj = {
-    //                     proCode: item.proCode,
-    //                     cdeSelected: true
-    //                 }
-    //                 dataUpdate.push(obj);
-    //             }
-    //         });
-    //     }
-    //     else {
-    //         $.each(productData, function (i, item) {
-    //             var obj = {
-    //                 proCode: item.proCode,
-    //                 cdeSelected: false
-    //             }
-    //             dataUpdate.push(obj);
-    //         });
-    //     }
-    //     $("#gridCatalogProducts").tabulator("updateData", dataUpdate);
-    // });
-    //
-    //
-    //     let row = cell.getRow();
-    //     let group = row.getGroup();
-    //     group.getRows().forEach(function (row) {
-    //         row.getElement().classList.remove('disabled');
-    //     });
-    //     row.getElement().classList.add('disabled');
-    //     row.getElement().style.color = '';
-    //     row.getElement().querySelector('.fa.fa-trash').style.border = 'initial';
-    //     row.getElement().querySelector('.fa.fa-link').style.border = 'initial';
-    //     // need to remove row from queue
-    // }
-
-    // TODO:
-    // fix color of scroll bars so it is more visible
-    // removing file from actions list does not un-strike it from dupes list
-    // fix total size on left table
-    // need a delete all/link all for groups and everything
-    // maybe red number of items on left decreases as each duplicate is addressed until it reaches 1 and turns green
-
-
-    // $('trash').on('change', '#select-all-products', function () {
-    //     var productData = $("#gridCatalogProducts").tabulator("getData");
-    //     var dataUpdate = [];
-    //     if ($(this).is(":checked")) {
-    //         $.each(productData, function (i, item) {
-    //             if (item.cdeSelected == false) {
-    //                 var obj = {
-    //                     proCode: item.proCode,
-    //                     cdeSelected: true
-    //                 }
-    //                 dataUpdate.push(obj);
-    //             }
-    //         });
-    //     }
-    //     else {
-    //         $.each(productData, function (i, item) {
-    //             var obj = {
-    //                 proCode: item.proCode,
-    //                 cdeSelected: false
-    //             }
-    //             dataUpdate.push(obj);
-    //         });
-    //     }
-    //     $("#gridCatalogProducts").tabulator("updateData", dataUpdate);
-    // });
-    // <table>
-    //     <tr>
-    //         <td>
-    //             <input type="radio" name="row-select" value="row1" onchange="updateRowSelection(this)"> Row 1
-    //         </td>
-    //         <td>
-    //             <input type="radio" name="option1-row1" value="option1" onchange="updateColumnSelection(this, 'option1-row1', 'option2-row1')"> Option 1
-    //         </td>
-    //         <td>
-    //             <input type="radio" name="option2-row1" value="option2" onchange="updateColumnSelection(this, 'option2-row1', 'option1-row1')"> Option 2
-    //         </td>
-    //     </tr>
-    //     <tr>
-    //         <td>
-    //             <input type="radio" name="row-select" value="row2" onchange="updateRowSelection(this)"> Row 2
-    //         </td>
-    //         <td>
-    //             <input type="radio" name="option1-row2" value="option1" onchange="updateColumnSelection(this, 'option1-row2', 'option2-row2')"> Option 1
-    //         </td>
-    //         <td>
-    //             <input type="radio" name="option2-row2" value="option2" onchange="updateColumnSelection(this, 'option2-row2', 'option1-row2')"> Option 2
-    //         </td>
-    //     </tr>
-    // </table>
-    //
-    // <script>
-    //     function updateRowSelection(selected) {
-    //     const rowName = selected.name;
-    //     const rows = document.querySelectorAll(`input[name="${rowName}"]`);
-    //     rows.forEach(row => {
-    //     if (row !== selected) {
-    //     row.checked = false;
-    // }
-    // });
-    // }
-    //
-    //     function updateColumnSelection(selected, group1, group2) {
-    //     const other = selected.name === group1 ? group2 : group1;
-    //     const otherInput = document.querySelector(`input[name="${other}"]`);
-    //     if (otherInput) {
-    //     otherInput.checked = false;
-    // }
-    // }
-</script>
 
 
 </script>

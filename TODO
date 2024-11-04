@@ -4,3 +4,5 @@ simplify check-all logic
     https://jsfiddle.net/cemmons/6fghegn4/2
     https://jsfiddle.net/m3jpghb8/
 radiobutton is purely visual right now. Doesn't actually set anything.
+setup valkey persistence
+fix issue with del/link cellclick event triggering twice because of label in return

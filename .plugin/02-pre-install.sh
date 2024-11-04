@@ -49,9 +49,9 @@ install_package() {
         echo "-----------------------------------------------------------"
 
         if [ -n "$3" ]; then
-            if [[ "$3" == *.tar.gz || "$3" == *.tar.xz ]]; then
+          mkdir -p "$3"
+            if [[ "$FILE" == *.tar.gz || "$FILE" == *.tar.xz ]]; then
                 tar --one-top-level="$FILE" -xf "$FILE" -C /tmp
-                mkdir -p "$3"
                 mv /tmp/"$FILE"/ "$3"
                 chmod -R 755 "$3"
                 rm -dr /tmp/"$FILE"/
@@ -69,6 +69,9 @@ install_package "audit" \
 
 install_package "nodejs" \
 "https://github.com/UnRAIDES/unRAID-NerdTools/raw/main/packages/pkgs/nodejs-20.11.0-x86_64-1_SBo_UES.txz"
+
+install_package "openssl 1.x" \
+"https://slackware.uk/slackware/slackware64-15.0/patches/packages/openssl-1.1.1zb-x86_64-1_slack15.0.txz"
 
 install_package "protobuf" \
 "https://ftp.sotirov-bg.net/pub/contrib/slackware/packages/slackware64-15.0/protobuf-3.19.6-x86_64-1gds.txz"
