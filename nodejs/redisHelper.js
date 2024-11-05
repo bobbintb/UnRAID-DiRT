@@ -35,21 +35,22 @@ export const fileMetadataSchema = new Schema('ino', {
     path: {type: 'string[]'},
     size: {type: 'number'},
     nlink: {type: 'number'},
-    atimeMs: {type: 'number'},
-    mtimeMs: {type: 'number'},
-    ctimeMs: {type: 'number'},
-    hash: {type: 'string'}
+    atime: {type: 'date'},
+    mtime: {type: 'date'},
+    ctime: {type: 'date'},
+    hash: {type: 'string'},
+    action: {type: 'string'}
 }, {
     dataStructure: 'HASH'
 })
 
 export const configSchema = new Schema('dirt:settings', {
     shares: {type: 'string[]'},
-    size: {type: 'number'},
-    nlink: {type: 'number'},
-    atimeMs: {type: 'number'},
-    mtimeMs: {type: 'number'},
-    ctimeMs: {type: 'number'},
+    dateFormat: {type: 'number'},
+    saveLocation: {type: 'number'},
+    atime: {type: 'number'},
+    mtime: {type: 'number'},
+    ctime: {type: 'number'},
     hash: {type: 'string'}
 }, {
     dataStructure: 'HASH'

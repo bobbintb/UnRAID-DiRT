@@ -1,27 +1,33 @@
-import {process, queue} from "./redisHelper.js"
+import {fileRepository, process, queue, redis} from "./redisHelper.js"
 import fs from "fs";
 import crypto from 'crypto';
 
-export function enqueueFileAction(obj) {
-    const jobID = crypto.createHash('md5').update(obj.path.toString()).digest('hex');
-    if (obj.action === "remove") {
-        process.removeJob(jobID)
-    } else {
-        console.log(obj)
-        process.createJob(obj)
-            .setId(jobID)
-            .save()
-            .then(job => {
-                if (job.data === obj) {
-                    console.log('Job data matches:', job.data);
-                } else {
-                    console.log('Job data does not match or is new:', job.data);
-                }
-            })
-            .catch(err => {
-                console.error(`Failed to add job ${jobID}:`, err);
-            });
-    }
+export async function enqueueFileAction(obj) {
+    console.log(obj[Object.getOwnPropertySymbols(obj)[0]])
+    console.log(obj)
+    // await redis.hSet(obj[Object.getOwnPropertySymbols(obj)[0]], 'action', obj.action, (err, res) => {
+    //     if (err) console.error(err);
+    //     console.log('Property updated:', res);
+    // });
+    // const jobID = crypto.createHash('md5').update(obj.path.toString()).digest('hex');
+    // if (obj.action === "remove") {
+    //     process.removeJob(jobID)
+    // } else {
+    //     console.log(obj)
+    //     process.createJob(obj)
+    //         .setId(jobID)
+    //         .save()
+    //         .then(job => {
+    //             if (job.data === obj) {
+    //                 console.log('Job data matches:', job.data);
+    //             } else {
+    //                 console.log('Job data does not match or is new:', job.data);
+    //             }
+    //         })
+    //         .catch(err => {
+    //             console.error(`Failed to add job ${jobID}:`, err);
+    //         });
+    // }
 }
 // export function enqueueFileAction(action, src) {
 //     const jobData = {

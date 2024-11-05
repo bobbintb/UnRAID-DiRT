@@ -36,9 +36,9 @@ export async function dequeueCreateFile(file) {
         path: [file],
         nlink: Number(stats.nlink),
         size: size,
-        atimeMs: Number(stats.atimeMs),
-        mtimeMs: Number(stats.mtimeMs),
-        ctimeMs: Number(stats.ctimeMs)
+        atime: stats.atime,
+        mtime: stats.mtime,
+        ctime: stats.ctime
     };
 
         // Good enough for now but inefficient. Checks if the inode exists first (hardlink) and adds it to `path`.

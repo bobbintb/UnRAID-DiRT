@@ -10,10 +10,15 @@ $width = [123,300];
 <div markdown="1" class="shade-<?=$display['theme']?>">
 _(Included share(s))_:
 : <select id="s1" name="shareInclude1" multiple>
-  <?foreach ($shares as $list):?>
-  <?=mk_option("", $list['name'], compress($list['name']))?>
+<?$blacklist = ['system', 'server'];
+  foreach ($shares as $list):?>
+	  <?=mk_option("", $list['name'], compress($list['name']), in_array($list['name'], $blacklist) ? '' : 'selected')?>
   <?endforeach;?>
   </select>
+
+_(Datetime format)_:
+: <input name="display_date" type="text" onchange="presetTime(this.form)">
+
 
 :share_edit_included_disks_help:
 </div>

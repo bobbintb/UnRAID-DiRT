@@ -111,20 +111,9 @@
                                         align-items: center;
                                         justify-content: center;
                                         height: 100%;'>
-                            <input type='radio' name='rowSelection-${rowData.hash}'></div>`;
+                            <input type='radio' name=${rowData.hash}></div>`;
                 },
-                cellClick: function (e, cell) {
-                    let row = cell.getRow();
-                    let group = row.getGroup();
-                    group.getRows().forEach(function (row) {
-                        row.getElement().classList.remove('disabled');
-                    });
-                    row.getElement().classList.add('disabled');
-                    row.getElement().style.color = '';
-                    row.getElement().querySelector('.fa.fa-trash').style.border = 'initial';
-                    row.getElement().querySelector('.fa.fa-link').style.border = 'initial';
-                    // need to remove row from queue
-                }
+                cellClick: actionChange
             },
             {
                 // Trash column
@@ -141,7 +130,7 @@
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
                     return `<label class="icon-checkbox trash-checkbox" ${disabled}>
-                                <input type="checkbox" id="trash-cell">
+                                <input type="checkbox" id="delete">
                                 <span class="icon">
                                     <i class="fa fa-trash"></i>
                                 </span>
@@ -163,7 +152,7 @@
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
                     return `<label class="icon-checkbox link-checkbox" ${disabled}>
-                                <input type="checkbox" id="link-cell">
+                                <input type="checkbox" id="link">
                                 <span class="icon">
                                     <i class="fa fa-link"></i>
                                 </span>
@@ -194,23 +183,39 @@
             },
             {
                 title: "Last Accessed",
-                field: "atimeMs",
+                field: "atime",
                 sorter: "datetime",
-                formatter: dateFormatter
+                formatter: "datetime",
+                formatterParams:{
+                    inputFormat: "iso",
+                    outputFormat:"f",
+                    invalidPlaceholder:"(invalid date)",
+                }
             },
             {
                 title: "Last Modified",
-                field: "mtimeMs",
+                field: "mtime",
                 sorter: "datetime",
-                formatter: dateFormatter
+                formatter: "datetime",
+                formatterParams:{
+                    inputFormat: "iso",
+                    outputFormat:"f",
+                    invalidPlaceholder:"(invalid date)",
+                }
             },
             {
                 title: "Last Metadata Change",
-                field: "ctimeMs",
+                field: "ctime",
                 sorter: "date",
-                formatter: dateFormatter
+                formatter: "datetime",
+                formatterParams:{
+                    inputFormat: "iso",
+                    outputFormat:"f",
+                    invalidPlaceholder:"(invalid date)",
+                }
             }
         ],
+        // This selects the first radio button
         rowFormatter: function (row) {
             let group = row.getGroup();
             if (group && group.getRows()[0] === row) {
@@ -240,15 +245,34 @@
 
 
     function actionChange(e, cell) {
-        const checkbox = cell.getElement().querySelector('input[type="checkbox"]');
-        let row = cell.getRow();
-        let rowData = row.getData();
-
-        const targetId = checkbox.id === "trash-cell" ? "link-cell" : "trash-cell";
-        const targetCheckbox = row.getElement().querySelector(`input[type="checkbox"]#${targetId}`);
-        targetCheckbox.checked = false;
-        console.error(rowData)
-        process(rowData);
+        if (e.target.type === 'radio') {    // needed if you click in the cell but miss the button
+            let row = cell.getRow();
+            let group = row.getGroup();
+            group.getRows().forEach(function (row) {
+                row.getElement().classList.remove('disabled');
+            });
+            row.getElement().classList.add('disabled');
+            row.getElement().style.color = '';
+            row.getElement().querySelector('.fa.fa-trash').style.border = 'initial';
+            row.getElement().querySelector('.fa.fa-link').style.border = 'initial';
+            const trashCheckbox = row.getElement().querySelector(`input[type="checkbox"]#delete`);
+            const linkCheckbox = row.getElement().querySelector(`input[type="checkbox"]#link`);
+            trashCheckbox.checked = false;
+            linkCheckbox.checked = false;
+            // need to remove row from queue
+        }
+        if (e.target.type === 'checkbox') {    // needed if you click in the cell but miss the button
+            const checkbox = cell.getElement().querySelector('input[type="checkbox"]');
+            let row = cell.getRow();
+            let rowData = row.getData();
+            // console.error(rowData)
+            const targetId = checkbox.id === "delete" ? "link" : "delete";
+            rowData.action = targetId === "link" ? "delete" : "link";
+            // console.error(targetId)
+            const targetCheckbox = row.getElement().querySelector(`input[type="checkbox"]#${targetId}`);
+            targetCheckbox.checked = false;
+            process(rowData);
+        }
     }
 
 
