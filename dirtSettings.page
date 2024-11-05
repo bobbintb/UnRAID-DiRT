@@ -7,10 +7,11 @@ $width = [123,300];
 ?>
 
 <form markdown="1" name="share_edit" method="POST" action="/update.htm" target="progressFrame" onsubmit="return prepareEdit()"<?=$name?:">"?>
+<input type="hidden" name="setDateTime" value="apply">
 <div markdown="1" class="shade-<?=$display['theme']?>">
 _(Included share(s))_:
 : <select id="s1" name="shareInclude1" multiple>
-<?$blacklist = ['system', 'server'];
+<?$blacklist = ['system'];
   foreach ($shares as $list):?>
 	  <?=mk_option("", $list['name'], compress($list['name']), in_array($list['name'], $blacklist) ? '' : 'selected')?>
   <?endforeach;?>
@@ -19,11 +20,10 @@ _(Included share(s))_:
 _(Datetime format)_:
 : <input name="display_date" type="text" onchange="presetTime(this.form)">
 
-
 :share_edit_included_disks_help:
 </div>
 &nbsp;
-: <input type="button" value="_(Scan)_" onclick="scan()"><input type="button" value="_(Done)_" onclick="done()">
+: <input type="button" value="_(Apply)_" onclick="doDispatch(this.form)" disabled><input type="button" value="_(Scan)_" onclick="scan()"><input type="button" value="_(Done)_" onclick="done()">
 </form>
 
 <script>
@@ -86,9 +86,17 @@ function checkName(name) {
 	}
 }
 
+function doDispatch(form) {
+    let fields = {};
+    $(form).find('button').prop('disabled',true);
+    fields['#cfg'] = "/boot/config/plugins/bobbintb.system.dirt/dirt.cfg";
+    $(form).find('select[name^="settings_"]').each(function(){fields[$(this).attr('name')] = $(this).val();});
+    $.post('/webGui/include/Dispatcher.php',fields);
+    form.submit();
+}
+
 $(function() {
 	initializeDropdown('#s1', "_(Select shares to monitor...)_", <?=$width[1]?>);
-	initializeDropdown('#s2', "_(None)_", <?=$width[1]?>);
 	checkName($('#shareName').val());
 });
 </script>
