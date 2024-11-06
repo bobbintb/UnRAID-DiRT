@@ -27,7 +27,6 @@ function prepareShare(form) {
   $('input.thin').prop('disabled',false);
 }
 
-
 $(function() {
   $('#s1').dropdownchecklist({emptyText:'_(None)_', width:<?=$width[0]?>, explicitClose:'..._(close)_'});
 });
