@@ -7,7 +7,7 @@ $plugin  = 'bobbintb.system.dirt';
 $cfg     = parse_plugin_cfg($plugin);
 $width   = [400,300];
 $blacklist = ['system'];
-$cfg['datetime_format']		= $cfg['datetime_format='] ?? "f";
+$cfg['datetime_format']		= $cfg['datetime_format'] ?? "f";
 $cfg['share'] = $cfg['share'] ?? implode(',', array_diff(array_column($shares, 'name'), $blacklist));
 ?>
 
