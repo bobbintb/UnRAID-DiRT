@@ -3,27 +3,39 @@ Title="Deduplication in Real-Time"
 Icon="fa-search-minus"
 ---
 <?
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: "/usr/local/emhttp";
 $width = [123,300];
+$plugin	= "bobbintb.system.dirt";
+$cfg = parse_plugin_cfg($plugin);
+
+$jsonFile = "/boot/config/plugins/$plugin/$plugin.json";
+$settings = json_decode(file_get_contents($jsonFile), true);
 ?>
 
-<form markdown="1" name="share_edit" method="POST" action="/update.htm" target="progressFrame" onsubmit="return prepareEdit()"<?=$name?:">"?>
-<input type="hidden" name="setDateTime" value="apply">
-<div markdown="1" class="shade-<?=$display['theme']?>">
+<form class='js-confirm-leave' markdown="1" method="POST" action="/update.php" target="progressFrame">
+<input type="hidden" name="#file" value="<?=$plugin?>/<?=$plugin?>.cfg">
 _(Included share(s))_:
-: <select id="s1" name="shareInclude1" multiple>
+: <select id="s1" name="shares" multiple>
 <?$blacklist = ['system'];
-  foreach ($shares as $list):?>
-	  <?=mk_option("", $list['name'], compress($list['name']), in_array($list['name'], $blacklist) ? '' : 'selected')?>
-  <?endforeach;?>
-  </select>
+$selectedShares = isset($cfg['shares']) ? explode(',', $cfg['shares']) : array_filter(array_column($shares, 'name'), function($name) use ($blacklist) {
+	return !in_array($name, $blacklist);
+});
+
+foreach ($shares as $share): ?>
+	<?= mk_option("", $share['name'], compress($share['name']), in_array($share['name'], $selectedShares) ? 'selected' : '') ?>
+<?php endforeach; ?>
+    </select>
 
 _(Datetime format)_:
-: <input name="display_date" type="text" onchange="presetTime(this.form)">
+: <input name="datetime_format" type="text" value="<?=$cfg['datetime_format'];?>">
 
-:share_edit_included_disks_help:
-</div>
+:dirt_plug:
+> The datetime format for file metadata. See here for available options: [Luxon Date Tokens](https://moment.github.io/luxon/#/parsing?id=table-of-tokens)
+:end
+
+
 &nbsp;
-: <input type="button" value="_(Apply)_" onclick="doDispatch(this.form)" disabled><input type="button" value="_(Scan)_" onclick="scan()"><input type="button" value="_(Done)_" onclick="done()">
+: <input type="submit" value='_(Apply)_'><input type="button" value="_(Scan)_" onclick="scan()"><input type="button" value="_(Done)_" onclick="done()">
 </form>
 
 <script>
@@ -52,33 +64,27 @@ function initializeDropdown(selector, emptyText, width, firstItemChecksAll = fal
 	}
 }
 
-function destroyDropdownIfExists(selector) {
-	try {
-		$(selector).dropdownchecklist('destroy');
-	} catch (e) {
-		if (e.message.includes('prior to initialization')) {
-			console.log(`${selector} not initialized, skipping destroy.`);
-		} else {
-			console.error(`Error destroying ${selector}: ` + e.message);
-		}
-	}
-}
+// function destroyDropdownIfExists(selector) {
+// 	try {
+// 		$(selector).dropdownchecklist('destroy');
+// 	} catch (e) {
+// 		if (e.message.includes('prior to initialization')) {
+// 			console.log(`${selector} not initialized, skipping destroy.`);
+// 		} else {
+// 			console.error(`Error destroying ${selector}: ` + e.message);
+// 		}
+// 	}
+// }
 
-function readShare() {
-	/* Declare variables at the function scope */
-	var name, data, disk, include, exclude, i, j;
+// function readShare() {
+//     let name, data, disk, include, exclude, i, j;
+//     name = $('select[name="readshare"]').val();
+// 	initDropdown(true);
+// }
 
-	name = $('select[name="readshare"]').val();
-	initDropdown(true);
-}
-
-/* Remove characters not allowed in share name. */
 function checkName(name) {
-	/* Declare variables at the function scope */
-	var isValidName;
-
-	isValidName = /^[A-Za-z0-9-_.: ]*$/.test(name);
-
+    let isValidName;
+    isValidName = /^[A-Za-z0-9-_.: ]*$/.test(name);
 	if (isValidName) {
 		$('#zfs-name').hide();
 	} else {
@@ -86,14 +92,6 @@ function checkName(name) {
 	}
 }
 
-function doDispatch(form) {
-    let fields = {};
-    $(form).find('button').prop('disabled',true);
-    fields['#cfg'] = "/boot/config/plugins/bobbintb.system.dirt/dirt.cfg";
-    $(form).find('select[name^="settings_"]').each(function(){fields[$(this).attr('name')] = $(this).val();});
-    $.post('/webGui/include/Dispatcher.php',fields);
-    form.submit();
-}
 
 $(function() {
 	initializeDropdown('#s1', "_(Select shares to monitor...)_", <?=$width[1]?>);

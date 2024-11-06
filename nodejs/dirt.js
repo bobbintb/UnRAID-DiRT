@@ -2,6 +2,19 @@ import express from 'express';
 import * as scan from '../nodejs/scan.js';
 import {enqueueFileAction} from "./processDuplicates.js";
 import {findDuplicateHashes} from "./redisHelper.js";
+import fs from "fs";
+
+const plugin = 'bobbintb.system.dirt';
+const config = fs.readFileSync(`/boot/config/plugins/${plugin}/${plugin}.cfg`, 'utf8');
+const settings = config.split('\n').reduce((acc, line) => {
+    const [key, value] = line.split('=');
+    if (key && value) {
+        const cleanedValue = value.trim().replace(/(^"|"$)/g, ''); // Remove quotes from values
+        acc[key.trim()] = key.trim() === 'shares' ? cleanedValue.split(',') : cleanedValue;
+    }
+    return acc;
+}, {});
+console.log(settings)
 
 const app = express();
 
@@ -46,6 +59,8 @@ if (!process.argv.includes('--debug')) {
     }
 }
 const PORT = 3000;
+
+
 //const settings = scan.getSettings();
 //console.log(util.inspect(settings, false, null, true /* enable colors */ ));
 app.listen(PORT, () => {
