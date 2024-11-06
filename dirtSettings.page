@@ -3,98 +3,51 @@ Title="Deduplication in Real-Time"
 Icon="fa-search-minus"
 ---
 <?
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: "/usr/local/emhttp";
-$width = [123,300];
-$plugin	= "bobbintb.system.dirt";
-$cfg = parse_plugin_cfg($plugin);
-
-$jsonFile = "/boot/config/plugins/$plugin/$plugin.json";
-$settings = json_decode(file_get_contents($jsonFile), true);
+$plugin  = 'bobbintb.system.dirt';
+$cfg     = parse_plugin_cfg($plugin);
+$width   = [400,300];
+$blacklist = ['system'];
+$cfg['datetime_format']		= $cfg['datetime_format='] ?? "f";
+$cfg['share'] = $cfg['share'] ?? implode(',', array_diff(array_column($shares, 'name'), $blacklist));
 ?>
 
-<form class='js-confirm-leave' markdown="1" method="POST" action="/update.php" target="progressFrame">
-<input type="hidden" name="#file" value="<?=$plugin?>/<?=$plugin?>.cfg">
-_(Included share(s))_:
-: <select id="s1" name="shares" multiple>
-<?$blacklist = ['system'];
-$selectedShares = isset($cfg['shares']) ? explode(',', $cfg['shares']) : array_filter(array_column($shares, 'name'), function($name) use ($blacklist) {
-	return !in_array($name, $blacklist);
-});
+<script>
+function prepareShare(form) {
+  var share = '';
+  for (var i=0,item; item=form.share.options[i]; i++) {
+    if (item.selected) {
+      if (share.length) share += ',';
+      share += item.value;
+      item.selected = false;
+    }
+  }
+  item = form.share.options[0];
+  item.value = share;
+  item.selected = true;
+  $('input.thin').prop('disabled',false);
+}
 
-foreach ($shares as $share): ?>
-	<?= mk_option("", $share['name'], compress($share['name']), in_array($share['name'], $selectedShares) ? 'selected' : '') ?>
-<?php endforeach; ?>
-    </select>
+$(function() {
+  $('#s1').dropdownchecklist({emptyText:'_(None)_', width:<?=$width[0]?>, explicitClose:'..._(close)_'});
+});
+</script>
+<form markdown="1" name="dirt_settings" method="POST" action="/update.php" target="progressFrame" onsubmit="prepareShare(this)">
+<input type="hidden" name="#file" value="<?=$plugin?>/<?=$plugin?>.cfg">
+
+_(Included share(s))_:
+: <select id="s1" name="share" multiple style="display:none">
+  <?foreach ($shares as $share):?>
+  <?=mk_option_check($cfg['share'], $share['name'], $share['name'])?>
+  <?endforeach;?>
+  </select>
 
 _(Datetime format)_:
-: <input name="datetime_format" type="text" value="<?=$cfg['datetime_format'];?>">
+: <input name="datetime_format" type="text" value="<?=$cfg['datetime_format']?>">
 
 :dirt_plug:
 > The datetime format for file metadata. See here for available options: [Luxon Date Tokens](https://moment.github.io/luxon/#/parsing?id=table-of-tokens)
 :end
 
-
-&nbsp;
-: <input type="submit" value='_(Apply)_'><input type="button" value="_(Scan)_" onclick="scan()"><input type="button" value="_(Done)_" onclick="done()">
+<input type="submit" name="#default" value="_(Default)_" onclick="$('input[class^=disk]').prop('checked',false)">
+: <input type="submit" name="#apply" value="_(Apply)_"><input type="button" value="_(Done)_" onclick="done()">
 </form>
-
-<script>
-    function scan() {
-        fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/scan`)
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-    }
-
-
-function initializeDropdown(selector, emptyText, width, firstItemChecksAll = false) {
-	try {
-		$(selector).dropdownchecklist({
-			emptyText: emptyText,
-			width: width,
-			explicitClose: "..._(close)_",
-			firstItemChecksAll: firstItemChecksAll
-		});
-	} catch (e) {
-		console.error(`Error initializing ${selector}: ` + e.message);
-	}
-}
-
-// function destroyDropdownIfExists(selector) {
-// 	try {
-// 		$(selector).dropdownchecklist('destroy');
-// 	} catch (e) {
-// 		if (e.message.includes('prior to initialization')) {
-// 			console.log(`${selector} not initialized, skipping destroy.`);
-// 		} else {
-// 			console.error(`Error destroying ${selector}: ` + e.message);
-// 		}
-// 	}
-// }
-
-// function readShare() {
-//     let name, data, disk, include, exclude, i, j;
-//     name = $('select[name="readshare"]').val();
-// 	initDropdown(true);
-// }
-
-function checkName(name) {
-    let isValidName;
-    isValidName = /^[A-Za-z0-9-_.: ]*$/.test(name);
-	if (isValidName) {
-		$('#zfs-name').hide();
-	} else {
-		$('#zfs-name').show();
-	}
-}
-
-
-$(function() {
-	initializeDropdown('#s1', "_(Select shares to monitor...)_", <?=$width[1]?>);
-	checkName($('#shareName').val());
-});
-</script>
