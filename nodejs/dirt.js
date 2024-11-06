@@ -5,16 +5,18 @@ import {findDuplicateHashes} from "./redisHelper.js";
 import fs from "fs";
 
 const plugin = 'bobbintb.system.dirt';
-const config = fs.readFileSync(`/boot/config/plugins/${plugin}/${plugin}.cfg`, 'utf8');
-const settings = config.split('\n').reduce((acc, line) => {
-    const [key, value] = line.split('=');
-    if (key && value) {
-        const cleanedValue = value.trim().replace(/(^"|"$)/g, ''); // Remove quotes from values
-        acc[key.trim()] = key.trim() === 'shares' ? cleanedValue.split(',') : cleanedValue;
-    }
-    return acc;
-}, {});
-console.log(settings)
+
+function loadSettings(file) {
+    const data = fs.readFileSync(file, 'utf8');
+    const settings = {};
+    data.split(/\r?\n/).forEach(line => {
+        const [key, value] = line.split('=').map(item => item.replace(/^"|"$/g, ''));
+        if (key && value !== undefined) {
+            settings[key] = value.includes(',') ? value.split(',').map(item => item.replace(/^"|"$/g, '')) : value;
+        }
+    });
+    return settings;
+}
 
 const app = express();
 
@@ -31,16 +33,25 @@ app.use((req, res, next) => {
 
 // called from dirtSettings.page
 app.get("/scan", async () => {
-    scan.getAllFiles('/mnt/user/downloads'); // need to eventually fix this
-    console.debug("Saving files to database.")
-    console.debug("Done saving files to database.")
+    const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
+    const shares = (Array.isArray(settings.share) ? settings.share : [settings.share])
+        .map(share => `/mnt/user/${share}`);
+    for (const share of shares) {
+        await scan.getAllFiles(share);
+    }
+    console.debug("Saving files to database.");
+    console.debug("Done saving files to database.");
 });
+
 
 // called from dirtSettings.page
 app.get('/hash', async (req, res) => {
   try {
     const result = await findDuplicateHashes();
-    res.json(result);
+      res.json({
+          result: result,
+          datetime_format: settings.datetime_format
+      });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -61,7 +72,7 @@ if (!process.argv.includes('--debug')) {
 const PORT = 3000;
 
 
-//const settings = scan.getSettings();
+const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
 //console.log(util.inspect(settings, false, null, true /* enable colors */ ));
 app.listen(PORT, () => {
     console.log(`dirt is running on port ${PORT}`);

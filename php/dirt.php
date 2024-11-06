@@ -59,11 +59,19 @@
 
     let groupCount = 0;
     let groups = {};
+    let datetime_format;
 
     const leftTable = new Tabulator("#dirt", {
         selectableRows: 1,
         ajaxURL: `http://192.168.1.2:3000/hash`,
         ajaxConfig: { method: "GET" },
+        ajaxResponse: function(url, params, response) {
+            datetime_format = response.datetime_format
+            this.options.columns[6].formatterParams.outputFormat=datetime_format
+            this.options.columns[7].formatterParams.outputFormat=datetime_format
+            this.options.columns[8].formatterParams.outputFormat=datetime_format
+            return response.result;
+        },
         groupBy: "hash",
         setGroupStartOpen: true,
         rowSelectableCheck: function (row) {
@@ -188,7 +196,7 @@
                 formatter: "datetime",
                 formatterParams:{
                     inputFormat: "iso",
-                    outputFormat:"f",
+                    // outputFormat: datetime_format,
                     invalidPlaceholder:"(invalid date)",
                 }
             },
@@ -199,7 +207,7 @@
                 formatter: "datetime",
                 formatterParams:{
                     inputFormat: "iso",
-                    outputFormat:"f",
+                    // outputFormat: datetime_format,
                     invalidPlaceholder:"(invalid date)",
                 }
             },
@@ -210,7 +218,7 @@
                 formatter: "datetime",
                 formatterParams:{
                     inputFormat: "iso",
-                    outputFormat:"f",
+                    // outputFormat:datetime_format,
                     invalidPlaceholder:"(invalid date)",
                 }
             }

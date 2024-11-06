@@ -47,10 +47,10 @@ export async function dequeueCreateFile(file) {
         fileInfo.path.push(existingFile.path);
         fileInfo.hash = existingFile.hash
         let linkedfile = await fileRepository.save(key, fileInfo);
-        console.log('---------------------------------------------------------------------------')
-        console.log('Hardlinked file of existing file:')
-        console.log(linkedfile)
-        console.log('---------------------------------------------------------------------------')
+        console.debug('---------------------------------------------------------------------------')
+        console.debug('Hardlinked file of existing file:')
+        console.debug(linkedfile)
+        console.debug('---------------------------------------------------------------------------')
         return
     }
 
@@ -59,22 +59,22 @@ export async function dequeueCreateFile(file) {
         sameSizeFiles.splice(0, 0, fileInfo); // adds working file to the front of the array of same size files
         const results = await hashFilesInIntervals(sameSizeFiles);
         let newfile = await fileRepository.save(key, results[0])    // add the new file first
-        console.log('---------------------------------------------------------------------------')
-        console.log('New file after comparing same size files:')
-        console.log(newfile)
-        console.log('---------------------------------------------------------------------------')
+        console.debug('---------------------------------------------------------------------------')
+        console.debug('New file after comparing same size files:')
+        console.debug(newfile)
+        console.debug('---------------------------------------------------------------------------')
         for (const result of results.slice(1)) {
             const updatedfile = await fileRepository.save(result)
-            console.log('---------------------------------------------------------------------------')
-            console.log('Updated file after comparing same size files:')
-            console.log(updatedfile)
-            console.log('---------------------------------------------------------------------------')        }
+            console.debug('---------------------------------------------------------------------------')
+            console.debug('Updated file after comparing same size files:')
+            console.debug(updatedfile)
+            console.debug('---------------------------------------------------------------------------')        }
     } else {
         let newfile = await fileRepository.save(key, fileInfo);
-        console.log('---------------------------------------------------------------------------')
-        console.log('New file:')
-        console.log(newfile)
-        console.log('---------------------------------------------------------------------------')
+        console.debug('---------------------------------------------------------------------------')
+        console.debug('New file:')
+        console.debug(newfile)
+        console.debug('---------------------------------------------------------------------------')
     }
 }
 
