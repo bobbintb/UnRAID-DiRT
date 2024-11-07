@@ -1,7 +1,7 @@
 import express from 'express';
 import * as scan from '../nodejs/scan.js';
 import {enqueueFileAction} from "./processDuplicates.js";
-import {findDuplicateHashes} from "./redisHelper.js";
+import {findDuplicateHashes, redis} from "./redisHelper.js";
 import fs from "fs";
 
 const plugin = 'bobbintb.system.dirt';
@@ -46,11 +46,14 @@ app.get("/scan", async () => {
 // called from dirtSettings.page
 app.get('/load', async (req, res) => {
     const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
+    const ogs = await redis.hGetAll("dirt:process:og")
+    console.log(ogs)
   try {
     const result = await findDuplicateHashes();
       res.json({
           result: result,
-          datetime_format: settings.datetime_format
+          datetime_format: settings.datetime_format,
+          ogs: ogs
       });
   } catch (error) {
     console.error(error);
@@ -61,6 +64,12 @@ app.get('/load', async (req, res) => {
 // called from dirt.php
 app.post("/process/", (req, res) => {
     enqueueFileAction(req.body)
+    res.send();
+});
+
+// called from dirt.php
+app.post("/get/", (req, res) => {
+
     res.send();
 });
 

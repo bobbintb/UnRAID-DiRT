@@ -3,7 +3,7 @@ import {dequeueCreateFile} from "./queueListener.js";
 
 
 
-const results = await redis.hGetAll('dirt:process:jobs:652177527557600889')
+const results = await redis.hGetAll('dirt:process:og')
 
 
 console.log(results)

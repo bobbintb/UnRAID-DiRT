@@ -17,6 +17,23 @@
         }
     }
 
+    async function get() {
+        try {
+            const response = await fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/get/`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            return null;
+        }
+    }
+
     function dateFormatter(cell) {
         const date = new Date(Number(cell.getValue()));
         return date.toLocaleString('en-US', {
@@ -70,6 +87,7 @@
             this.options.columns[6].formatterParams.outputFormat=datetime_format
             this.options.columns[7].formatterParams.outputFormat=datetime_format
             this.options.columns[8].formatterParams.outputFormat=datetime_format
+            this.ogs = response.ogs
             return response.result;
         },
         groupBy: "hash",
@@ -158,6 +176,9 @@
                 headerSort: false,
                 maxWidth: 40,
                 formatter: function (cell) {
+                    let isChecked = cell.getValue() ? 'checked' : 'unchecked'; // Assuming cell.getValue() holds the checkbox state (true/false)
+
+                    console.error(`Checkbox is ${isChecked}`);
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
                     return `<label class="icon-checkbox link-checkbox" ${disabled}>
                                 <input type="checkbox" id="link">
@@ -223,23 +244,20 @@
                 }
             }
         ],
-        // This selects the first radio button
+        // This selects the first radio button as original or loads it from saved
         rowFormatter: function (row) {
-            const group = row.getGroup();
-            const groupTitle = row.getData().hash;
-            console.error(groupTitle);
-            // groups.forEach((group)=>{
-            //     console.error(group.getKey());
-            // });
-
-            if (group && group.getRows()[0] === row) {
-                let rowElement = row.getElement();
-                let radioButton = rowElement.querySelector("input[type='radio']");
-                radioButton.checked = true;
-                rowElement.classList.add('disabled');
-                let rowData = row.getData();
-                rowData.action="og";
-                process(rowData);
+            if (row._row.type === 'row') {
+                const rowData = row.getData();
+                const group = row.getGroup();
+                if (leftTable.ogs[rowData.hash] === rowData.id || (leftTable.ogs[rowData.hash] === undefined && group.getRows()[0] === row)) {
+                    let rowElement = row.getElement();
+                    let radioButton = rowElement.querySelector("input[type='radio']");
+                    radioButton.checked = true;
+                    rowElement.classList.add('disabled');
+                    let rowData = row.getData();
+                    rowData.action = "og";
+                    if (leftTable.ogs[rowData.hash] === undefined) process(rowData);
+                }
             }
         },
     });
@@ -260,39 +278,24 @@
         }
     });
 
-
     function actionChange(e, cell) {
-        if (e.target.type === 'radio') {    // needed if you click in the cell but miss the button
-            let row = cell.getRow();
-            let group = row.getGroup();
-            let rowData = row.getData();
-            group.getRows().forEach(function (row) {
-                row.getElement().classList.remove('disabled');
-            });
+        let row = cell.getRow();
+        let rowData = row.getData();
+        if (e.target.type === 'radio') {
+            row.getGroup().getRows().forEach(r => r.getElement().classList.remove('disabled'));
             row.getElement().classList.add('disabled');
-            row.getElement().style.color = '';
-            row.getElement().querySelector('.fa.fa-trash').style.border = 'initial';
-            row.getElement().querySelector('.fa.fa-link').style.border = 'initial';
-            const trashCheckbox = row.getElement().querySelector(`input[type="checkbox"]#delete`);
-            const linkCheckbox = row.getElement().querySelector(`input[type="checkbox"]#link`);
-            trashCheckbox.checked = false;
-            linkCheckbox.checked = false;
-            rowData.action='og'
-            process(rowData);
+            ['fa-trash', 'fa-link'].forEach(icon => row.getElement().querySelector(`.fa.${icon}`).style.border = 'initial');
+            ['delete', 'link'].forEach(id => row.getElement().querySelector(`input[type="checkbox"]#${id}`).checked = false);
+            rowData.action = 'og';
         }
-        if (e.target.type === 'checkbox') {    // needed if you click in the cell but miss the button
-            const checkbox = cell.getElement().querySelector('input[type="checkbox"]');
-            let row = cell.getRow();
-            let rowData = row.getData();
-            // console.error(rowData)
-            const targetId = checkbox.id === "delete" ? "link" : "delete";
-            rowData.action = targetId === "link" ? "delete" : "link";
-            const targetCheckbox = row.getElement().querySelector(`input[type="checkbox"]#${targetId}`);
-            targetCheckbox.checked = false;
-            console.error(rowData)
-            process(rowData);
+        if (e.target.type === 'checkbox') {
+            const targetId = e.target.id === 'delete' ? 'link' : 'delete';
+            rowData.action = e.target.checked ? (targetId === 'link' ? 'delete' : 'link') : '';
+            row.getElement().querySelector(`input[type="checkbox"]#${targetId}`).checked = false;
         }
+        process(rowData);
     }
+
 
 
 </script>

@@ -4,19 +4,24 @@ import crypto from 'crypto';
 
 export async function enqueueFileAction(data) {
     console.log(data.action)
-    if (data.action === "og") {
-        redis.hSet("dirt:process:og", data.hash, data.id)
-    } else {
-        const jobData = {
-            action: data.action,
-            path: data.path
-        };
-        await process.removeJob(data.id)
-            .then(process.createJob(jobData)
-                .setId(data.id)
-                .save()
-                .then(job => {
-                }))
+    switch (data.action) {
+        case "og":
+            await redis.hSet("dirt:process:og", data.hash, data.id);
+            break;
+        case "":
+            await process.removeJob(data.id)
+            break;
+        default:
+            await process.removeJob(data.id)
+                .then(process.createJob({
+                    action: data.action,
+                    path: data.path
+                })
+                    .setId(data.id)
+                    .save()
+                    .then(job => {
+                        // Additional logic after job creation
+                    }));
     }
 }
     // console.error(obj)
