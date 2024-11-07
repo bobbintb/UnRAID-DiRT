@@ -17,35 +17,6 @@
         }
     }
 
-    async function get() {
-        try {
-            const response = await fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/get/`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            return null;
-        }
-    }
-
-    function dateFormatter(cell) {
-        const date = new Date(Number(cell.getValue()));
-        return date.toLocaleString('en-US', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-        });
-    }
     Tabulator.extendModule("columnCalcs", "calculations", {
         "recoverableSize":function(values, data, calcParams){
             return (values.length - 1) * values[0];
@@ -75,6 +46,7 @@
     }
 
     let groupCount = 0;
+    let totalSumFormatted = 0;
     let groups = {};
     let datetime_format;
 
@@ -87,6 +59,7 @@
             this.options.columns[6].formatterParams.outputFormat=datetime_format
             this.options.columns[7].formatterParams.outputFormat=datetime_format
             this.options.columns[8].formatterParams.outputFormat=datetime_format
+            console.error(response)
             this.ogs = response.ogs
             return response.result;
         },
@@ -121,7 +94,7 @@
                     ${value}
                     <span style='color:#d00; margin-left:10px;'>(${count - 1} duplicate files)</span>`;
         },
-        // footerElement: `<div>Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}</div>`,
+        footerElement: `<div>Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}</div>`,
         columns: [
             {
                 // Radio button column
@@ -276,6 +249,17 @@
             leftTable.setGroupBy(false);
             leftTable.setGroupBy("hash");
         }
+    });
+
+    leftTable.on("tableBuilt", function () {
+        let totalSum = 0;
+        this.getData().forEach(row => {
+            totalSum += row.size;
+        });
+        totalSumFormatted = convertFileSize(totalSum);
+        groups = leftTable.getGroups()
+        groupCount = leftTable.getGroups().length;
+        document.querySelector('.tabulator-footer').innerText = `Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}`;
     });
 
     function actionChange(e, cell) {

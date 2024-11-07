@@ -1,7 +1,7 @@
 import express from 'express';
 import * as scan from '../nodejs/scan.js';
 import {enqueueFileAction} from "./processDuplicates.js";
-import {findDuplicateHashes, redis} from "./redisHelper.js";
+import {findDuplicateHashes, process, redis} from "./redisHelper.js";
 import fs from "fs";
 
 const plugin = 'bobbintb.system.dirt';
@@ -47,12 +47,13 @@ app.get("/scan", async () => {
 app.get('/load', async (req, res) => {
     const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
     const ogs = await redis.hGetAll("dirt:process:og")
-    console.log(ogs)
+    const jobs = await process.getJobs('waiting', {start: 0, end: 25});
   try {
     const result = await findDuplicateHashes();
       res.json({
           result: result,
           datetime_format: settings.datetime_format,
+          jobs: jobs,
           ogs: ogs
       });
   } catch (error) {
@@ -74,10 +75,10 @@ app.post("/get/", (req, res) => {
 });
 
 // MAIN
-if (!process.argv.includes('--debug')) {
-    console.debug = function () {
-    }
-}
+// if (!process.argv.includes('--debug')) {
+//     console.debug = function () {
+//     }
+// }
 const PORT = 3000;
 
 
