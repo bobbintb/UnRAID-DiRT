@@ -3,17 +3,22 @@ import fs from "fs";
 import crypto from 'crypto';
 
 export async function enqueueFileAction(data) {
-    const jobData = {
-        action: data.action,
-        path: data.path
-    };
-    await process.removeJob(data.id)
-        .then(process.createJob(jobData)
-        .setId(data.id)
-        .save()
-        .then(job => {
-        }))
+    console.log(data.action)
+    if (data.action === "og") {
+        redis.hSet("dirt:process:og", data.hash, data.id)
+    } else {
+        const jobData = {
+            action: data.action,
+            path: data.path
+        };
+        await process.removeJob(data.id)
+            .then(process.createJob(jobData)
+                .setId(data.id)
+                .save()
+                .then(job => {
+                }))
     }
+}
     // console.error(obj)
     // await redis.hSet(obj[Object.getOwnPropertySymbols(obj)[0]], 'action', obj.action, (err, res) => {
     //     if (err) console.error(err);

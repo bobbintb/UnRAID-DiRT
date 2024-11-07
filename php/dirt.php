@@ -70,7 +70,6 @@
             this.options.columns[6].formatterParams.outputFormat=datetime_format
             this.options.columns[7].formatterParams.outputFormat=datetime_format
             this.options.columns[8].formatterParams.outputFormat=datetime_format
-            console.error(response.result)
             return response.result;
         },
         groupBy: "hash",
@@ -226,12 +225,21 @@
         ],
         // This selects the first radio button
         rowFormatter: function (row) {
-            let group = row.getGroup();
+            const group = row.getGroup();
+            const groupTitle = row.getData().hash;
+            console.error(groupTitle);
+            // groups.forEach((group)=>{
+            //     console.error(group.getKey());
+            // });
+
             if (group && group.getRows()[0] === row) {
                 let rowElement = row.getElement();
                 let radioButton = rowElement.querySelector("input[type='radio']");
                 radioButton.checked = true;
                 rowElement.classList.add('disabled');
+                let rowData = row.getData();
+                rowData.action="og";
+                process(rowData);
             }
         },
     });
@@ -270,7 +278,7 @@
             trashCheckbox.checked = false;
             linkCheckbox.checked = false;
             rowData.action='og'
-            // process(rowData);
+            process(rowData);
         }
         if (e.target.type === 'checkbox') {    // needed if you click in the cell but miss the button
             const checkbox = cell.getElement().querySelector('input[type="checkbox"]');

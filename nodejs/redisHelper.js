@@ -44,17 +44,17 @@ export const fileMetadataSchema = new Schema('ino', {
     dataStructure: 'HASH'
 })
 
-export const configSchema = new Schema('dirt:settings', {
-    shares: {type: 'string[]'},
-    dateFormat: {type: 'number'},
-    saveLocation: {type: 'number'},
-    atime: {type: 'number'},
-    mtime: {type: 'number'},
-    ctime: {type: 'number'},
-    hash: {type: 'string'}
-}, {
-    dataStructure: 'HASH'
-})
+// export const configSchema = new Schema('dirt:process', {
+//     shares: {type: 'string[]'},
+//     dateFormat: {type: 'number'},
+//     saveLocation: {type: 'number'},
+//     atime: {type: 'number'},
+//     mtime: {type: 'number'},
+//     ctime: {type: 'number'},
+//     hash: {type: 'string'}
+// }, {
+//     dataStructure: 'HASH'
+// })
 
 export const fileRepository = await (async () => {
     const repo = new Repository(fileMetadataSchema, redis);
