@@ -33,7 +33,6 @@ app.use((req, res, next) => {
 
 // called from dirtSettings.page
 app.get("/scan", async () => {
-    const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
     const shares = (Array.isArray(settings.share) ? settings.share : [settings.share])
         .map(share => `/mnt/user/${share}`);
     for (const share of shares) {
@@ -45,7 +44,8 @@ app.get("/scan", async () => {
 
 
 // called from dirtSettings.page
-app.get('/hash', async (req, res) => {
+app.get('/load', async (req, res) => {
+    const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
   try {
     const result = await findDuplicateHashes();
       res.json({

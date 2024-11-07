@@ -2,9 +2,19 @@ import {fileRepository, process, queue, redis} from "./redisHelper.js"
 import fs from "fs";
 import crypto from 'crypto';
 
-export async function enqueueFileAction(obj) {
-    console.log(obj[Object.getOwnPropertySymbols(obj)[0]])
-    console.log(obj)
+export async function enqueueFileAction(data) {
+    const jobData = {
+        action: data.action,
+        path: data.path
+    };
+    await process.removeJob(data.id)
+        .then(process.createJob(jobData)
+        .setId(data.id)
+        .save()
+        .then(job => {
+        }))
+    }
+    // console.error(obj)
     // await redis.hSet(obj[Object.getOwnPropertySymbols(obj)[0]], 'action', obj.action, (err, res) => {
     //     if (err) console.error(err);
     //     console.log('Property updated:', res);
@@ -28,7 +38,7 @@ export async function enqueueFileAction(obj) {
     //             console.error(`Failed to add job ${jobID}:`, err);
     //         });
     // }
-}
+
 // export function enqueueFileAction(action, src) {
 //     const jobData = {
 //         action: action,

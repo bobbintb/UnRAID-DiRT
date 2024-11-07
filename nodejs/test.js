@@ -3,7 +3,7 @@ import {dequeueCreateFile} from "./queueListener.js";
 
 
 
-const results = await fileRepository.search().where('action').eq('link').return.all();
+const results = await redis.hGetAll('dirt:process:jobs:652177527557600889')
 
 
 console.log(results)

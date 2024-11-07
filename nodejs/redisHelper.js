@@ -121,7 +121,7 @@ export async function findDuplicateHashes() {
                         hash,
                         documents: entities.map(entity => {
                             return {
-                                id: entity.entityId,
+                                id: entity[Object.getOwnPropertySymbols(entity).find(sym => sym.description === 'entityId')],
                                 ...entity // Spread the properties of the entity
                             };
                         })

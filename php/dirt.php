@@ -63,13 +63,14 @@
 
     const leftTable = new Tabulator("#dirt", {
         selectableRows: 1,
-        ajaxURL: `http://192.168.1.2:3000/hash`,
+        ajaxURL: `http://192.168.1.2:3000/load`,
         ajaxConfig: { method: "GET" },
         ajaxResponse: function(url, params, response) {
             datetime_format = response.datetime_format
             this.options.columns[6].formatterParams.outputFormat=datetime_format
             this.options.columns[7].formatterParams.outputFormat=datetime_format
             this.options.columns[8].formatterParams.outputFormat=datetime_format
+            console.error(response.result)
             return response.result;
         },
         groupBy: "hash",
@@ -256,6 +257,7 @@
         if (e.target.type === 'radio') {    // needed if you click in the cell but miss the button
             let row = cell.getRow();
             let group = row.getGroup();
+            let rowData = row.getData();
             group.getRows().forEach(function (row) {
                 row.getElement().classList.remove('disabled');
             });
@@ -267,7 +269,8 @@
             const linkCheckbox = row.getElement().querySelector(`input[type="checkbox"]#link`);
             trashCheckbox.checked = false;
             linkCheckbox.checked = false;
-            // need to remove row from queue
+            rowData.action='og'
+            // process(rowData);
         }
         if (e.target.type === 'checkbox') {    // needed if you click in the cell but miss the button
             const checkbox = cell.getElement().querySelector('input[type="checkbox"]');
@@ -276,9 +279,9 @@
             // console.error(rowData)
             const targetId = checkbox.id === "delete" ? "link" : "delete";
             rowData.action = targetId === "link" ? "delete" : "link";
-            // console.error(targetId)
             const targetCheckbox = row.getElement().querySelector(`input[type="checkbox"]#${targetId}`);
             targetCheckbox.checked = false;
+            console.error(rowData)
             process(rowData);
         }
     }
