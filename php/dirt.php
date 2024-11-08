@@ -22,10 +22,11 @@
             return (values.length - 1) * values[0];
         }
     });
-    function sizeFormatter(cell) {
-        const date = new Date(cell.getValue(0));
-        return date.toDateString();
-    }
+
+    // function sizeFormatter(cell) {
+    //     const date = new Date(cell.getValue(0));
+    //     return date.toDateString();
+    // }
 
     function convertCellFileSize(cell) {
         return convertFileSize(cell.getValue(0))
@@ -149,9 +150,6 @@
                 headerSort: false,
                 maxWidth: 40,
                 formatter: function (cell) {
-                    let isChecked = cell.getValue() ? 'checked' : 'unchecked'; // Assuming cell.getValue() holds the checkbox state (true/false)
-
-                    console.error(`Checkbox is ${isChecked}`);
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
                     return `<label class="icon-checkbox link-checkbox" ${disabled}>
                                 <input type="checkbox" id="link">
@@ -219,9 +217,19 @@
         ],
         // This selects the first radio button as original or loads it from saved
         rowFormatter: function (row) {
+            // let isChecked = cell.getValue() ? 'checked' : 'unchecked'; // Assuming cell.getValue() holds the checkbox state (true/false)
+            console.error(row)
+            // console.error(`Checkbox is ${isChecked}`);
             if (row._row.type === 'row') {
                 const rowData = row.getData();
                 const group = row.getGroup();
+                if (leftTable.jobs[rowData.hash] === rowData.id) {
+                    console.error('testtesttest')
+                    console.error(rowData.id)
+                    console.error(leftTable.jobs[rowData.hash])
+                }
+
+
                 if (leftTable.ogs[rowData.hash] === rowData.id || (leftTable.ogs[rowData.hash] === undefined && group.getRows()[0] === row)) {
                     let rowElement = row.getElement();
                     let radioButton = rowElement.querySelector("input[type='radio']");
@@ -263,6 +271,7 @@
     });
 
     function actionChange(e, cell) {
+
         let row = cell.getRow();
         let rowData = row.getData();
         if (e.target.type === 'radio') {
@@ -279,8 +288,4 @@
         }
         process(rowData);
     }
-
-
-
 </script>
-
