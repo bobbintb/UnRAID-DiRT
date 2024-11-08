@@ -12,12 +12,11 @@ Icon="fa-search-minus"
     <script src="https://cdn.jsdelivr.net/npm/luxon/build/global/luxon.min.js"></script>
 </head>
 <body>
-<div id="main_container">
+<!--<div id="main_container">-->
     <div id="dirt"><?php include './plugins/bobbintb.system.dirt/php/dirt.php'; ?></div>
-    <div id="right"><?php include './plugins/bobbintb.system.dirt/php/right.php'; ?></div>
-</div>
-<div id="bottom_container">
-    <div id="bleft"></div>
-    <div id="bright"></div>
-</div>
+<!--</div>-->
+<!--<div id="bottom_container">-->
+<!--    <div id="bleft"></div>-->
+<!--    <div id="bright"></div>-->
+<!--</div>-->
 </body>

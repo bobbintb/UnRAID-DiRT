@@ -47,14 +47,12 @@ app.get("/scan", async () => {
 app.get('/load', async (req, res) => {
     const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
     const ogs = await redis.hGetAll("dirt:process:og")
-    const jobs = (await process.getJobs('waiting')).map(job => {
-        return {
-            id: job.id,
-            action: job.data.action,
-            path: job.data.path
-        }
-    })
-  try {
+    const jobs = (await process.getJobs('waiting')).reduce((acc, job) => {
+        acc[job.id] = job.data.action;
+        return acc;
+    }, {});
+
+    try {
     const result = await findDuplicateHashes();
       res.json({
           result: result,

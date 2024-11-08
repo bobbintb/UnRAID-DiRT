@@ -16,6 +16,18 @@ chmod +x /etc/rc.d/rc.valkey
 # sed -i '54 i\loadmodule /opt/redis/lib/redisearch.so' /etc/redis/redis.conf
 
 sed -i 's/^write_logs.*/write_logs = no/' /etc/audit/auditd.conf
-sed -i '54 i\loadmodule /usr/bin/valkey-modules/redisearch.so' /etc/valkey/valkey.conf
+
+config_file="/path/to/config.conf"
+new_value="/path/to/your/module.so"
+
+awk -v new_value="$new_value" '
+  /^#? *loadmodule / && !found {
+    $0 = "loadmodule " new_value
+    found = 1
+  }
+  { print }
+' "$config_file" > "$config_file.tmp" && mv "$config_file.tmp" "$config_file"
+
+#sed -i '54 i\loadmodule /usr/bin/valkey-modules/redisearch.so' /etc/valkey/valkey.conf
 sysctl vm.overcommit_memory=1
 echo "Done."

@@ -51,7 +51,7 @@
     let groups = {};
     let datetime_format;
 
-    const leftTable = new Tabulator("#dirt", {
+    const table = new Tabulator("#dirt", {
         selectableRows: 1,
         ajaxURL: `http://192.168.1.2:3000/load`,
         ajaxConfig: { method: "GET" },
@@ -60,12 +60,13 @@
             this.options.columns[6].formatterParams.outputFormat=datetime_format
             this.options.columns[7].formatterParams.outputFormat=datetime_format
             this.options.columns[8].formatterParams.outputFormat=datetime_format
-            console.error(response)
             this.ogs = response.ogs
+            this.jobs = response.jobs
             return response.result;
         },
         groupBy: "hash",
         setGroupStartOpen: true,
+        layout:"fitDataStretch",
         rowSelectableCheck: function (row) {
             return !row.getElement().classList.contains('disabled');
         },
@@ -170,7 +171,7 @@
                 title: "File",
                 field: "path",
                 sorter: "string",
-                width: "-webkit-fill-available",
+                // width: "-webkit-fill-available",
                 formatter:"textarea"
             },
             {
@@ -216,34 +217,27 @@
             }
         ],
         // This selects the first radio button as original or loads it from saved
-        rowFormatter: function (row) {
-            // let isChecked = cell.getValue() ? 'checked' : 'unchecked'; // Assuming cell.getValue() holds the checkbox state (true/false)
-            console.error(row)
-            // console.error(`Checkbox is ${isChecked}`);
+        rowFormatter: async function (row) {
             if (row._row.type === 'row') {
                 const rowData = row.getData();
                 const group = row.getGroup();
-                if (leftTable.jobs[rowData.hash] === rowData.id) {
-                    console.error('testtesttest')
-                    console.error(rowData.id)
-                    console.error(leftTable.jobs[rowData.hash])
+                if (rowData.id in table.jobs) {
+                    row.getElement().querySelector(`input[type="checkbox"]#${table.jobs[rowData.id]}`).checked = true;
                 }
-
-
-                if (leftTable.ogs[rowData.hash] === rowData.id || (leftTable.ogs[rowData.hash] === undefined && group.getRows()[0] === row)) {
+                if (table.ogs[rowData.hash] === rowData.id || (table.ogs[rowData.hash] === undefined && group.getRows()[0] === row)) {
                     let rowElement = row.getElement();
                     let radioButton = rowElement.querySelector("input[type='radio']");
                     radioButton.checked = true;
                     rowElement.classList.add('disabled');
                     let rowData = row.getData();
                     rowData.action = "og";
-                    if (leftTable.ogs[rowData.hash] === undefined) process(rowData);
+                    if (table.ogs[rowData.hash] === undefined) process(rowData);
                 }
             }
         },
     });
 
-    leftTable.on("headerClick", function (e, column) {
+    table.on("headerClick", function (e, column) {
         if (column._column.definition.title.includes("custom-arrow")) {
             let arrowCell = document.getElementsByClassName('custom-arrow')[0]
             arrowCell.style.setProperty('border-width', arrowCell.style.borderWidth === '6px 6px 0px' ? '6px 0px 6px 6px' : '6px 6px 0px');
@@ -253,20 +247,20 @@
             arrowCell.style.setProperty('border-top-color', arrowCell.style.borderTopColor === 'rgb(102, 102, 102)' ? 'transparent' : 'rgb(102, 102, 102');
             arrowCell.style.setProperty('border-bottom-style', arrowCell.style.borderBottomStyle === 'initial' ? 'solid' : 'initial');
             arrowCell.style.setProperty('border-bottom-color', arrowCell.style.borderBottomColor === 'initial' ? 'transparent' : 'initial');
-            leftTable.setGroupStartOpen(!leftTable.options.groupStartOpen);
-            leftTable.setGroupBy(false);
-            leftTable.setGroupBy("hash");
+            table.setGroupStartOpen(!table.options.groupStartOpen);
+            table.setGroupBy(false);
+            table.setGroupBy("hash");
         }
     });
 
-    leftTable.on("tableBuilt", function () {
+    table.on("tableBuilt", function () {
         let totalSum = 0;
         this.getData().forEach(row => {
             totalSum += row.size;
         });
         totalSumFormatted = convertFileSize(totalSum);
-        groups = leftTable.getGroups()
-        groupCount = leftTable.getGroups().length;
+        groups = table.getGroups()
+        groupCount = table.getGroups().length;
         document.querySelector('.tabulator-footer').innerText = `Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}`;
     });
 

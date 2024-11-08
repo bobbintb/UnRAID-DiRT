@@ -59,6 +59,6 @@ _(Datetime format)_:
 > The datetime format for file metadata. See here for available options: [Luxon Date Tokens](https://moment.github.io/luxon/#/parsing?id=table-of-tokens)
 :end
 
-<input type="submit" name="#default" value="_(Default)_" onclick="$('input[class^=disk]').prop('checked',false)">
+<input type="submit" name="#default" value="_(Default)_" onclick="if(confirm('Are you sure?')) {$('input[class^=share]').prop('checked', false);}">
 : <input type="submit" name="#apply" value="_(Apply)_"><input type="button" value="_(Scan)_" onclick="scan()"><input type="button" value="_(Done)_" onclick="done()">
 </form>
