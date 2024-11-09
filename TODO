@@ -6,3 +6,4 @@ simplify check-all logic
 setup valkey persistence
 always says laurel not installed
 restoring defaults on settings page not working for shares
+bug: if group is collapsed and header icon clicked, it is 'selected' but rows don't get simulated click

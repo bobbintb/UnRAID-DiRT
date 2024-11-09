@@ -253,6 +253,39 @@
         }
     });
 
+    function simulateClicksOnGroupCells(group, id) {
+        const rows = group.getRows();
+        const action = id[1] === 'fa-link' ? 'link' : 'delete';
+        rows.forEach(row => {
+            if (!row.getElement().classList.contains('disabled')) {
+                // console.error(id)
+                // id.selected = !id.selected;
+                // console.error(id.selected)
+                // var bool = rows.length !== table.getDataCount();
+                const cell = row.getElement().querySelector(`.${id[0]}.${id[1]}`);
+                if (id.selected === row.getElement().querySelector(`input[type="checkbox"]#${action}`).checked) {
+                    console.error('================')
+                    console.error(id.selected)
+                    console.error(action)
+                    console.error(row.getElement().querySelector(`input[type="checkbox"]#${action}`).checked)
+                    console.error('================')
+                    const event = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    cell.dispatchEvent(event);
+                }
+            }
+        });
+    }
+
+    table.on("groupClick", function(e, group) {
+        let id = e.target.classList
+        id.selected = id.selected === undefined ? false : !id.selected;
+        simulateClicksOnGroupCells(group, id);
+    });
+
     table.on("tableBuilt", function () {
         let totalSum = 0;
         this.getData().forEach(row => {
