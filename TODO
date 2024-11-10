@@ -8,3 +8,4 @@ always says laurel not installed
 restoring defaults on settings page not working for shares
 bug: if group is collapsed and header icon clicked, it is 'selected' but rows don't get simulated click
 add "running" indicator in upper right
+fix css in settings page
