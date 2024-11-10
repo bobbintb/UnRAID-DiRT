@@ -6,18 +6,18 @@ export async function enqueueFileAction(data) {
     console.log(data.action)
     switch (data.action) {
         case "og":
-            await redis.hSet("dirt:process:og", data.hash, data.id);
+            await redis.hSet("dirt:process:og", data.hash, data.path);
             break;
         case "":
-            await process.removeJob(data.id)
+            await process.removeJob(data.path)
             break;
         default:
-            await process.removeJob(data.id)
+            await process.removeJob(data.path)
                 .then(process.createJob({
                     action: data.action,
                     path: data.path
                 })
-                    .setId(data.id)
+                    .setId(data.path)
                     .save()
                     .then(job => {
                         // Additional logic after job creation

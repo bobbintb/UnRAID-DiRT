@@ -1,99 +1,62 @@
-Menu="Share:1"
-Title="Share Settings"
-Tag="share-alt-square"
+Menu="OtherSettings"
+Title="VM Manager"
+Icon="icon-virtualization"
+Tag="columns"
 ---
+<?
+require_once "$docroot/plugins/dynamix.vm.manager/include/libvirt_helpers.php";
+
+?>
+<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>">
+<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
 
 
-<div class="clone1">
-    <span class="clone">_(Read settings from)_</span><i class="fa fa-arrow-left fa-fw"></i>
-    <span class="wrap"><select name="readshare" class="clone" onchange="toggleButton('readshare',false)">
-	<option disabled selected>_(select)_...</option>
-	<?
-    foreach ($shares as $list) if ($list['name']!=$name || !$name) echo mk_option("", $list['name'], compress($list['name']));
-    ?>
-	</select></span><input type="button" id="readshare" value="_(Read)_" class="clone" onclick="readShare()" disabled>
-</div>
+<form markdown="1" id="settingsForm" method="POST" action="/update.php" target="progressFrame">
+    <input type="hidden" name="#file" value="<?=htmlspecialchars($domain_cfgfile)?>">
+    <input type="hidden" name="#arg[1]" value="cmdStatus=Apply">
 
-<form markdown="1" name="share_edit" method="POST" action="/update.htm" target="progressFrame" onsubmit="return prepareEdit()"<?=$name?:">"?>
-<div markdown="1" class="shade-<?=$display['theme']?>">
-    _(Included disk(s))_:
-    : <select id="s1" name="shareInclude1" multiple>
-        <?foreach ($shares as $list):?>
-            <?=mk_option("", $list['name'], compress($list['name']))?>
-        <?endforeach;?>
-    </select>
 
-    :share_edit_included_disks_help:
+    _(Default ISO storage path)_:
+    : <input type="text" id="mediadir" name="MEDIADIR" autocomplete="off" spellcheck="false" data-pickfolders="true" data-pickfilter="HIDE_FILES_FILTER" data-pickroot="<?=is_dir('/mnt/user')?'/mnt/user':'/mnt'?>" value="<?=htmlspecialchars($domain_cfg['MEDIADIR'])?>" placeholder="_(Click to Select)_" pattern="^[^\\]*/$">
+	<?if (!is_dir($domain_cfg['MEDIADIR'])):?><span><i class="fa fa-warning icon warning"></i> _(Path does not exist)_</span><?endif;?>
 
-    _(Excluded disk(s))_:
-    : <select id="s2" name="shareExclude1" multiple>
-        <?foreach ($shares as $list):?>
-            <?=mk_option("", $list['name'], compress($list['name']))?>
-        <?endforeach;?>
-    </select>
+    :vms_libvirt_iso_storage_help:
 
-    :share_edit_excluded_disks_help:
-</div>
-
-&nbsp;
-: <input type="button" value="_(Done)_" onclick="done()">
+    : <input type="button" id="applyBtn" value="_(Apply)_" disabled><input type="button" value="_(Done)_" onclick="done()">
 </form>
 
+</div>
+
+<script src="<?autov('/webGui/javascript/jquery.filetree.js')?>" charset="utf-8"></script>
+<script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
+<script src="<?autov('/plugins/dynamix.vm.manager/javascript/dynamix.vm.manager.js')?>"></script>
 <script>
 
-
-    let checkRequiredPrimary = false;
-
-    function initializeDropdown(selector, emptyText, width, firstItemChecksAll = false) {
-        try {
-            $(selector).dropdownchecklist({
-                emptyText: emptyText,
-                width: width,
-                explicitClose: "..._(close)_",
-                firstItemChecksAll: firstItemChecksAll
-            });
-        } catch (e) {
-            console.error(`Error initializing ${selector}: ` + e.message);
-        }
-    }
-
-    function destroyDropdownIfExists(selector) {
-        try {
-            $(selector).dropdownchecklist('destroy');
-        } catch (e) {
-            if (e.message.includes('prior to initialization')) {
-                console.log(`${selector} not initialized, skipping destroy.`);
-            } else {
-                console.error(`Error destroying ${selector}: ` + e.message);
+    $(function(){
+        $.post("/plugins/dynamix.vm.manager/include/Fedora-virtio-isos.php",{},function(isos) {
+            $('#winvirtio_select').html(isos).prop('disabled',false).change().each(function(){$(this).on('change',function() {
+                // attach button updates when select element changes
+                var form = $(this).parentsUntil('form').parent();
+                form.find('input[value="<?=_("Apply")?>"],input[value="Apply"],input[name="cmdEditShare"],input[name="cmdUserEdit"]').not('input.lock').prop('disabled',false);
+                form.find('input[value="<?=_("Done")?>"],input[value="Done"]').not('input.lock').val("<?=_('Reset')?>").prop('onclick',null).off('click').click(function(){formHasUnsavedChanges=false;refresh(form.offset().top);});
+            });});
+        });
+        $("#applyBtn").click(function(){
+            if ($("#deleteCheckbox").length && $("#deleteCheckbox").is(":checked")) {
+                $("#removeForm").submit();
+                return;
             }
-        }
-    }
+        });
 
-    function readShare() {
-        /* Declare variables at the function scope */
-        var name, data, disk, include, exclude, i, j;
+        $("#mediadir").on("input change", function(){
+            $("#winvirtio_select").change();
+        });
 
-        name = $('select[name="readshare"]').val();
-        initDropdown(true);
-    }
+        $('#mediadir').fileTreeAttach();
 
-    /* Remove characters not allowed in share name. */
-    function checkName(name) {
-        /* Declare variables at the function scope */
-        var isValidName;
-
-        isValidName = /^[A-Za-z0-9-_.: ]*$/.test(name);
-
-        if (isValidName) {
-            $('#zfs-name').hide();
-        } else {
-            $('#zfs-name').show();
-        }
-    }
-
-    $(function() {
-        initializeDropdown('#s1', "_(Select shares to monitor...)_", <?=$width[1]?>);
-        initializeDropdown('#s2', "_(None)_", <?=$width[1]?>);
-        checkName($('#shareName').val());
+        $.post("/plugins/dynamix.vm.manager/include/VMajax.php", {action:'reboot'}, function(data){
+            var rebootMessage = "_(VM Settings: A reboot is required to apply changes)_";
+            if (data.modified) addRebootNotice(rebootMessage); else removeRebootNotice(rebootMessage);
+        });
     });
 </script>

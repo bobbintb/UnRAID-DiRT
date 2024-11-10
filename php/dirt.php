@@ -62,6 +62,13 @@
             this.options.columns[8].formatterParams.outputFormat=datetime_format
             this.ogs = response.ogs
             this.jobs = response.jobs
+            response.result = response.result.flatMap(obj =>
+                obj.path.length === 1
+                    ? { ...obj, path: obj.path[0] }
+                    : obj.path.map(p => ({ ...obj, path: p }))
+            );
+
+            console.error(response.result)
             return response.result;
         },
         groupBy: "hash",

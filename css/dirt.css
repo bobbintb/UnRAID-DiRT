@@ -106,3 +106,7 @@
     color: initial; /* Color for disabled state */
     cursor: not-allowed; /* Change cursor to indicate it's disabled */
 }
+
+.tabulator-group .single-item-group {
+    display: none;
+}

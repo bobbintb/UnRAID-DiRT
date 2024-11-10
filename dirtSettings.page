@@ -3,6 +3,8 @@ Title="Deduplication in Real-Time"
 Icon="fa-search-minus"
 ---
 <?
+//require_once "$docroot/plugins/dynamix.vm.manager/include/libvirt_helpers.php";
+//require_once "$docroot/plugins/dynamix/include/Helpers.php";
 $plugin  = 'bobbintb.system.dirt';
 $cfg     = parse_plugin_cfg($plugin);
 $width   = [400,300];
@@ -10,8 +12,45 @@ $blacklist = ['system'];
 $cfg['datetime_format']		= $cfg['datetime_format'] ?? "f";
 $cfg['share'] = $cfg['share'] ?? implode(',', array_diff(array_column($shares, 'name'), $blacklist));
 ?>
+<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>">
+<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
+<link type="text/css" rel="stylesheet" href="<?autov('/plugins/dynamix.vm.manager/sheets/VMSettings.css')?>">
+<link type="text/css" rel="stylesheet" href="<?autov('/plugins/dynamix.vm.manager/sheets/VMSettings-black.css')?>">
+<!--<link type="text/css" rel="stylesheet" href="--><?//autov('/plugins/dynamix.vm.manager/sheets/VMSettings-white.css')?><!--">-->
+<!--<link type="text/css" rel="stylesheet" href="--><?//autov('/plugins/dynamix.vm.manager/sheets/VMSettings-gray.css')?><!--">-->
+<!--<link type="text/css" rel="stylesheet" href="--><?//autov('/plugins/dynamix.vm.manager/sheets/VMSettings-azure.css')?><!--">-->
+
+
+<form markdown="1" name="dirt_settings" method="POST" action="/update.php" target="progressFrame" onsubmit="prepareShare(this)">
+<input type="hidden" name="#file" value="<?=$plugin?>/<?=$plugin?>.cfg">
+
+_(Included share(s))_:
+: <select id="s1" name="share" multiple style="display:none">
+  <?foreach ($shares as $share):?>
+  <?=mk_option_check($cfg['share'], $share['name'], $share['name'])?>
+  <?endforeach;?>
+  </select>
+
+_(Datetime format)_:
+: <input name="datetime_format" type="text" value="<?=$cfg['datetime_format']?>">
+
+:dirt_plug:
+> The datetime format for file metadata. See here for available options: [Luxon Date Tokens](https://moment.github.io/luxon/#/parsing?id=table-of-tokens)
+:end
+
+_(Default database path)_:
+: <input type="text" id="dbdir" name="dbdir" autocomplete="off" spellcheck="false" data-pickfolders="true" data-pickfilter="HIDE_FILES_FILTER" data-pickroot="<?=is_dir('/mnt/user')?'/mnt/user':'/mnt'?>" value="<?=htmlspecialchars($cfg['dbdir'])?>" placeholder="_(Click to Select)_" pattern="^[^\\]*/$">
+  <?if (!is_dir($cfg['dbdir'])):?><span><i class="fa fa-warning icon warning"></i> _(Path does not exist)_</span><?endif;?>
+<script src="<?autov('/webGui/javascript/jquery.filetree.js')?>" charset="utf-8"></script>
+<script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
+<script src="<?autov('/plugins/dynamix.vm.manager/javascript/dynamix.vm.manager.js')?>"></script>
+
+<input type="submit" name="#default" value="_(Default)_" onclick="if(confirm('Are you sure?')) {$('input[class^=share]').prop('checked', false);}">
+: <input type="submit" name="#apply" value="_(Apply)_"><input type="button" value="_(Scan)_" onclick="scan()"><input type="button" value="_(Done)_" onclick="done()">
+</form>
 
 <script>
+$('#dbdir').fileTreeAttach();
 function scan() {
   fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/scan`)
     .then(response => response.json())
@@ -41,24 +80,5 @@ function prepareShare(form) {
 $(function() {
   $('#s1').dropdownchecklist({emptyText:'_(None)_', width:<?=$width[0]?>, explicitClose:'..._(close)_'});
 });
+
 </script>
-<form markdown="1" name="dirt_settings" method="POST" action="/update.php" target="progressFrame" onsubmit="prepareShare(this)">
-<input type="hidden" name="#file" value="<?=$plugin?>/<?=$plugin?>.cfg">
-
-_(Included share(s))_:
-: <select id="s1" name="share" multiple style="display:none">
-  <?foreach ($shares as $share):?>
-  <?=mk_option_check($cfg['share'], $share['name'], $share['name'])?>
-  <?endforeach;?>
-  </select>
-
-_(Datetime format)_:
-: <input name="datetime_format" type="text" value="<?=$cfg['datetime_format']?>">
-
-:dirt_plug:
-> The datetime format for file metadata. See here for available options: [Luxon Date Tokens](https://moment.github.io/luxon/#/parsing?id=table-of-tokens)
-:end
-
-<input type="submit" name="#default" value="_(Default)_" onclick="if(confirm('Are you sure?')) {$('input[class^=share]').prop('checked', false);}">
-: <input type="submit" name="#apply" value="_(Apply)_"><input type="button" value="_(Scan)_" onclick="scan()"><input type="button" value="_(Done)_" onclick="done()">
-</form>
