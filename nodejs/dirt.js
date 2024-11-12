@@ -73,8 +73,9 @@ app.post("/process/", (req, res) => {
 });
 
 // called from dirt.php
-app.post("/get/", (req, res) => {
-
+app.post("/clear/", async (req, res) => {
+    console.log('clearing')
+    await process.destroy()
     res.send();
 });
 

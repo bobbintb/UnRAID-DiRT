@@ -53,6 +53,9 @@
 
     const table = new Tabulator("#dirt", {
         selectableRows: 1,
+        dataTree: true,
+        dataTreeStartExpanded: true,
+        dataTreeElementColumn: "path",
         ajaxURL: `http://192.168.1.2:3000/load`,
         ajaxConfig: { method: "GET" },
         ajaxResponse: function(url, params, response) {
@@ -64,11 +67,15 @@
             this.jobs = response.jobs
             response.result = response.result.flatMap(obj =>
                 obj.path.length === 1
-                    ? { ...obj, path: obj.path[0] }
-                    : obj.path.map(p => ({ ...obj, path: p }))
+                    ? [{ ...obj, path: obj.path[0] }]
+                    : [
+                        {
+                            ...obj,
+                            path: obj.path[0],
+                            _children: obj.path.slice(1).map(p => ({ ...obj, path: p }))
+                        }
+                    ]
             );
-
-            console.error(response.result)
             return response.result;
         },
         groupBy: "hash",
@@ -112,7 +119,7 @@
                     </div>`,
                 headerHozAlign: "center",
                 headerSort: false,
-                maxWidth: 40,
+                // maxWidth: 40,
                 formatter: function (cell) {
                     let rowData = cell.getRow().getData();
                     return `<div style='display: flex;
@@ -228,10 +235,10 @@
             if (row._row.type === 'row') {
                 const rowData = row.getData();
                 const group = row.getGroup();
-                if (rowData.id in table.jobs) {
-                    row.getElement().querySelector(`input[type="checkbox"]#${table.jobs[rowData.id]}`).checked = true;
+                if (rowData.path in table.jobs) {
+                    row.getElement().querySelector(`input[type="checkbox"]#${table.jobs[rowData.path]}`).checked = true;
                 }
-                if (table.ogs[rowData.hash] === rowData.id || (table.ogs[rowData.hash] === undefined && group.getRows()[0] === row)) {
+                if (table.ogs[rowData.hash] === rowData.path || (table.ogs[rowData.hash] === undefined && group.getRows()[0] === row)) {
                     let rowElement = row.getElement();
                     let radioButton = rowElement.querySelector("input[type='radio']");
                     radioButton.checked = true;
@@ -265,10 +272,6 @@
         const action = id[1] === 'fa-link' ? 'link' : 'delete';
         rows.forEach(row => {
             if (!row.getElement().classList.contains('disabled')) {
-                // console.error(id)
-                // id.selected = !id.selected;
-                // console.error(id.selected)
-                // var bool = rows.length !== table.getDataCount();
                 const cell = row.getElement().querySelector(`.${id[0]}.${id[1]}`);
                 if (id.selected === row.getElement().querySelector(`input[type="checkbox"]#${action}`).checked) {
                     console.error('================')

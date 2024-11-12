@@ -3,7 +3,6 @@ import fs from "fs";
 import crypto from 'crypto';
 
 export async function enqueueFileAction(data) {
-    console.log(data.action)
     switch (data.action) {
         case "og":
             await redis.hSet("dirt:process:og", data.hash, data.path);
