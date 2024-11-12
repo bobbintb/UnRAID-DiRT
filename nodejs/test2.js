@@ -1,7 +1,7 @@
-import {fileRepository, process, redis} from "./redisHelper.js";
+import {fileRepository, processQueue, redis} from "./redisHelper.js";
 import {dequeueCreateFile} from "./queueListener.js";
 
-process.getJobs('waiting').then((jobs) => {
+processQueue.getJobs('waiting').then((jobs) => {
     jobs.forEach((job) => {
         // console.log(`Job ID: ${job.id}, Data: ${JSON.stringify(job.data)}`);
         console.log(`action: ${JSON.stringify(job.data.action)}`);

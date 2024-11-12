@@ -4,7 +4,7 @@ import * as queueListener from "./javascript/queueListener.js"
 import * as readline from "node:readline";
 
 const rl = readline.createInterface({
-    input: process.stdin,
+    input: addToProcessQueue.stdin,
     terminal: false
 });
 

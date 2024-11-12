@@ -1,6 +1,6 @@
 import fs from "fs";
 import {hashFilesInIntervals} from "./hashHelper.js"
-import {fileRepository, filesOfSize, queue, redis} from "./redisHelper.js";
+import {fileRepository, filesOfSize, scanQueue, redis} from "./redisHelper.js";
 
 
 export function enqueueDeleteFile(src) {
@@ -8,7 +8,7 @@ export function enqueueDeleteFile(src) {
         task: 'delete',
         src: src
     };
-    queue.createJob(jobData).save();
+    scanQueue.createJob(jobData).save();
 }
 
 export function enqueueCreateFile(src) {
@@ -16,7 +16,7 @@ export function enqueueCreateFile(src) {
         task: 'create',
         src: src
     };
-    queue.createJob(jobData).save();
+    scanQueue.createJob(jobData).save();
 }
 
 export function enqueueMoveFile(src, dest) {
@@ -25,7 +25,7 @@ export function enqueueMoveFile(src, dest) {
         src: src,
         dest: dest
     };
-    queue.createJob(jobData).save();
+    scanQueue.createJob(jobData).save();
 }
 
 export async function dequeueCreateFile(file) {
@@ -87,7 +87,7 @@ async function dequeueMoveFile(src, dest) {
 }
 
 // Must be called to process the queue
-queue.process(async (job) => {
+scanQueue.process(async (job) => {
     switch (job.data.task) {
         case 'create':
             await dequeueCreateFile(job.data.src)

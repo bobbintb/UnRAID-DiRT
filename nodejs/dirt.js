@@ -1,7 +1,7 @@
 import express from 'express';
 import * as scan from '../nodejs/scan.js';
 import {enqueueFileAction} from "./processDuplicates.js";
-import {findDuplicateHashes, process, redis} from "./redisHelper.js";
+import {findDuplicateHashes, processQueue, redis} from "./redisHelper.js";
 import fs from "fs";
 
 const plugin = 'bobbintb.system.dirt';
@@ -47,7 +47,7 @@ app.get("/scan", async () => {
 app.get('/load', async (req, res) => {
     const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
     const ogs = await redis.hGetAll("dirt:process:og")
-    const jobs = (await process.getJobs('waiting')).reduce((acc, job) => {
+    const jobs = (await processQueue.getJobs('waiting')).reduce((acc, job) => {
         acc[job.id] = job.data.action;
         return acc;
     }, {});
@@ -67,16 +67,22 @@ app.get('/load', async (req, res) => {
 });
 
 // called from dirt.php
-app.post("/process/", (req, res) => {
+app.post("/addToProcessQueue", (req, res) => {
     enqueueFileAction(req.body)
     res.send();
 });
 
+app.get("/process", async () => {
+    await processQueue.process(async (job, done) => {
+        console.log(`Processing job ${job.id}`);
+        return done(null, job.data.x + job.data.y);
+    })
+});
+
 // called from dirt.php
-app.post("/clear/", async (req, res) => {
+app.get("/clear", async () => {
     console.log('clearing')
-    await process.destroy()
-    res.send();
+    await processQueue.destroy()
 });
 
 // MAIN

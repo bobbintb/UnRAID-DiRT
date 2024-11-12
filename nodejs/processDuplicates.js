@@ -1,4 +1,4 @@
-import {fileRepository, process, queue, redis} from "./redisHelper.js"
+import {fileRepository, processQueue, scanQueue, redis} from "./redisHelper.js"
 import fs from "fs";
 import crypto from 'crypto';
 
@@ -8,11 +8,11 @@ export async function enqueueFileAction(data) {
             await redis.hSet("dirt:process:og", data.hash, data.path);
             break;
         case "":
-            await process.removeJob(data.path)
+            await processQueue.removeJob(data.path)
             break;
         default:
-            await process.removeJob(data.path)
-                .then(process.createJob({
+            await processQueue.removeJob(data.path)
+                .then(processQueue.createJob({
                     action: data.action,
                     path: data.path
                 })

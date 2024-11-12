@@ -1,7 +1,7 @@
 <script type="module">
-    async function process(dataObj) {
+    async function addToProcessQueue(dataObj) {
         try {
-            const response = await fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/process/`, {
+            const response = await fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/addToProcessQueue/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -16,6 +16,37 @@
             return null;
         }
     }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const clearButton = document.getElementById('clearButton');
+        clearButton.addEventListener('click', function() {
+            const isConfirmed = confirm("Are you sure you want to clear?");
+            if (isConfirmed) {
+                fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/clear`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                table.setData();
+            }
+        });
+
+        const processButton = document.getElementById('processButton');
+        processButton.addEventListener('click', function() {
+            fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/process`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            table.setData();
+        });
+    });
 
     Tabulator.extendModule("columnCalcs", "calculations", {
         "recoverableSize":function(values, data, calcParams){
@@ -245,7 +276,7 @@
                     rowElement.classList.add('disabled');
                     let rowData = row.getData();
                     rowData.action = "og";
-                    if (table.ogs[rowData.hash] === undefined) process(rowData);
+                    if (table.ogs[rowData.hash] === undefined) addToProcessQueue(rowData);
                 }
             }
         },
@@ -323,6 +354,6 @@
             rowData.action = e.target.checked ? (targetId === 'link' ? 'delete' : 'link') : '';
             row.getElement().querySelector(`input[type="checkbox"]#${targetId}`).checked = false;
         }
-        process(rowData);
+        addToProcessQueue(rowData);
     }
 </script>

@@ -2,7 +2,7 @@ import Queue from "bee-queue";
 import {AggregateGroupByReducers, AggregateSteps, createClient} from "redis";
 import {Repository, Schema} from "redis-om";
 
-export const queue = new Queue('queue', {
+export const scanQueue = new Queue('queue', {
     redis: {
         host: '127.0.0.1',
         port: 6379,
@@ -13,7 +13,7 @@ export const queue = new Queue('queue', {
     removeOnSuccess: true
 });
 
-export const process = new Queue('process', {
+export const processQueue = new Queue('process', {
     redis: {
         host: '127.0.0.1',
         port: 6379,
