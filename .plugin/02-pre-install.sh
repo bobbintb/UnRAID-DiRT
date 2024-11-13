@@ -83,35 +83,12 @@ install_package "redisearch" \
 "https://github.com/bobbintb/Slackware_Packages/raw/main/redisearch/2.10.7/redisearch.so" \
 "/usr/bin/valkey-modules/"
 
-install_package "redisjson" \
-"https://github.com/bobbintb/Slackware_Packages/raw/main/redisjson/2.8.4/librejson.so" \
-"/usr/bin/valkey-modules/"
+#install_package "redisjson" \
+#"https://github.com/bobbintb/Slackware_Packages/raw/main/redisjson/2.8.4/librejson.so" \
+#"/usr/bin/valkey-modules/"
 
 install_package "laurel" \
-"https://github.com/threathunters-io/laurel/releases/download/v0.6.3/laurel-v0.6.3-x86_64-glibc.tar.gz" \
-"/usr/local/sbin/laurel"
-
-#NAME="laurel"
-#URL="https://github.com/threathunters-io/laurel/releases/download/v0.6.3/laurel-v0.6.3-x86_64-glibc.tar.gz"
-#FILE=$(basename "$URL")
-#BIN_PATH="/boot/config/plugins/${PLUGIN_NAME}/${NAME}"
-#TAR_GZ_PATH="/boot/config/plugins/${PLUGIN_NAME}/${FILE}"
-#
-#if [ ! -f "$BIN_PATH" ]; then
-#  echo "-----------------------------------------------------------"
-#  echo "Downloading $NAME..."
-#  echo "-----------------------------------------------------------"
-#  curl "$URL" --create-dirs -o "$TXZ_PATH"
-#  #wget "$URL" -O "$TAR_GZ_PATH"
-#  tar -xzf "/boot/config/plugins/${PLUGIN_NAME}/${FILE}" $NAME
-#  rm "$TAR_GZ_PATH"
-#fi
-#
-#if [ ! -f "/var/log/packages/${FILE_BASE}" ] >/dev/null 2>&amp;1; then
-#  echo "-----------------------------------------------------------"
-#  echo "Installing $NAME..."
-#  echo "-----------------------------------------------------------"
-#  install -m755 "/boot/config/plugins/${PLUGIN_NAME}/${NAME}" /usr/local/sbin/${NAME}
-#fi
+"https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/laurel/laurel-v0.6.3.txz"
+#"/usr/local/sbin/laurel"
 
 echo "Done."
