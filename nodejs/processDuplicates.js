@@ -3,24 +3,33 @@ import fs from "fs";
 import crypto from 'crypto';
 
 export async function enqueueFileAction(data) {
+    const jobId = data.path
+    const existingJob = await processQueue.getJob(jobId);
     switch (data.action) {
         case "og":
-            await redis.hSet("dirt:process:og", data.hash, data.path);
+            await redis.hSet("dirt:process:og", data.hash, jobId);
             break;
         case "":
-            await processQueue.removeJob(data.path)
+            await existingJob.remove()
             break;
         default:
-            await processQueue.removeJob(data.path)
-                .then(processQueue.createJob({
+            if (existingJob) {
+                await existingJob.update({
                     action: data.action,
-                    path: data.path
+                    path: jobId
                 })
-                    .setId(data.path)
-                    .save()
                     .then(job => {
                         // Additional logic after job creation
-                    }));
+                    });
+            } else {
+                await processQueue.add({
+                    action: data.action,
+                    path: jobId
+                }, { jobId: jobId })
+                    .then(job => {
+                        // Additional logic after job creation
+                    });
+            }
     }
 }
     // console.error(obj)

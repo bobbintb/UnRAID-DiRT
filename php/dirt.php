@@ -339,7 +339,6 @@
     });
 
     function actionChange(e, cell) {
-
         let row = cell.getRow();
         let rowData = row.getData();
         if (e.target.type === 'radio') {
@@ -348,12 +347,14 @@
             ['fa-trash', 'fa-link'].forEach(icon => row.getElement().querySelector(`.fa.${icon}`).style.border = 'initial');
             ['delete', 'link'].forEach(id => row.getElement().querySelector(`input[type="checkbox"]#${id}`).checked = false);
             rowData.action = 'og';
-        }
+            addToProcessQueue(rowData);
+        } else
         if (e.target.type === 'checkbox') {
             const targetId = e.target.id === 'delete' ? 'link' : 'delete';
             rowData.action = e.target.checked ? (targetId === 'link' ? 'delete' : 'link') : '';
             row.getElement().querySelector(`input[type="checkbox"]#${targetId}`).checked = false;
+            addToProcessQueue(rowData);
         }
-        addToProcessQueue(rowData);
+
     }
 </script>

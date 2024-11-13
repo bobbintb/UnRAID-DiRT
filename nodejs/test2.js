@@ -1,17 +1,28 @@
-import {fileRepository, processQueue, redis} from "./redisHelper.js";
-import {dequeueCreateFile} from "./queueListener.js";
-
-processQueue.getJobs('waiting').then((jobs) => {
-    jobs.forEach((job) => {
-        // console.log(`Job ID: ${job.id}, Data: ${JSON.stringify(job.data)}`);
-        console.log(`action: ${JSON.stringify(job.data.action)}`);
-        console.log(`path: ${JSON.stringify(job.data.path)}`);
-    });
-}).catch((err) => {
-    console.error('Error fetching jobs:', err);
+import Queue from "bull";
+console.log('test')
+const processQueue = await new Queue('process', {
+    redis: {
+        host: '127.0.0.1',
+        port: 6379,
+        db: 0,
+        options: {},
+    },
+    prefix: 'dirt',
+    defaultJobOptions: {
+        removeOnComplete: true
+    }
 });
+console.log('test')
+processQueue.process(async (job, done) => {
+    console.log(`Processing job ${job.id}`);
+    done();
+})
+console.log('test')
+// const newjob = await processQueue.add({ foo: 'bar' }, { jobId: 'unique-job-id' });
+const newjob = await processQueue.isPaused;
 
-// await fileRepository.remove(file);
-// let file = await fileRepository.fetch('11540474084581453')
-// console.log(file)
-// console.log(file.path[0])
+console.log(newjob)
+// await processQueue.process(function (job, done) {
+    // Processors can also return promises instead of using the done callback
+    // return done();
+// });

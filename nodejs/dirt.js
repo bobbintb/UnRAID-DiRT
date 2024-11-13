@@ -5,6 +5,7 @@ import {findDuplicateHashes, processQueue, redis} from "./redisHelper.js";
 import fs from "fs";
 
 const plugin = 'bobbintb.system.dirt';
+const app = express();
 
 function loadSettings(file) {
     const data = fs.readFileSync(file, 'utf8');
@@ -18,15 +19,12 @@ function loadSettings(file) {
     return settings;
 }
 
-const app = express();
-
 app.use(express.json()); // Middleware to parse JSON bodies
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     res.header('Access-Control-Allow-Methods', 'POST'); // Ensure POST is included
-
     next();
 });
 
@@ -77,6 +75,7 @@ app.get("/process", async () => {
         console.log(`Processing job ${job.id}`);
         return done(null, job.data.x + job.data.y);
     })
+    processQueue.obliterate();
 });
 
 // called from dirt.php

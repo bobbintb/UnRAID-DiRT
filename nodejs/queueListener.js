@@ -8,7 +8,7 @@ export function enqueueDeleteFile(src) {
         task: 'delete',
         src: src
     };
-    scanQueue.createJob(jobData).save();
+    scanQueue.add(jobData);
 }
 
 export function enqueueCreateFile(src) {
@@ -16,7 +16,7 @@ export function enqueueCreateFile(src) {
         task: 'create',
         src: src
     };
-    scanQueue.createJob(jobData).save();
+    scanQueue.add(jobData);
 }
 
 export function enqueueMoveFile(src, dest) {
@@ -25,7 +25,7 @@ export function enqueueMoveFile(src, dest) {
         src: src,
         dest: dest
     };
-    scanQueue.createJob(jobData).save();
+    scanQueue.add(jobData);
 }
 
 export async function dequeueCreateFile(file) {
@@ -87,7 +87,7 @@ async function dequeueMoveFile(src, dest) {
 }
 
 // Must be called to process the queue
-scanQueue.process(async (job) => {
+scanQueue.process(async (job, done) => {
     switch (job.data.task) {
         case 'create':
             await dequeueCreateFile(job.data.src)
@@ -99,5 +99,5 @@ scanQueue.process(async (job) => {
             await dequeueDeleteFile(job.data)
             break;
     }
-    return job.data.x + job.data.y;
+    done();
 });

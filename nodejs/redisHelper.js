@@ -1,8 +1,8 @@
-import Queue from "bee-queue";
+import Queue from "bull";
 import {AggregateGroupByReducers, AggregateSteps, createClient} from "redis";
 import {Repository, Schema} from "redis-om";
 
-export const scanQueue = new Queue('queue', {
+export const scanQueue = await new Queue('queue', {
     redis: {
         host: '127.0.0.1',
         port: 6379,
@@ -10,10 +10,12 @@ export const scanQueue = new Queue('queue', {
         options: {},
     },
     prefix: 'dirt',
-    removeOnSuccess: true
+    defaultJobOptions: {
+        removeOnComplete: true
+    }
 });
 
-export const processQueue = new Queue('process', {
+export const processQueue = await new Queue('process', {
     redis: {
         host: '127.0.0.1',
         port: 6379,
@@ -21,7 +23,9 @@ export const processQueue = new Queue('process', {
         options: {},
     },
     prefix: 'dirt',
-    removeOnSuccess: true
+    defaultJobOptions: {
+        removeOnComplete: true
+    }
 });
 
 export const redis = await (async () => {
@@ -43,18 +47,6 @@ export const fileMetadataSchema = new Schema('ino', {
 }, {
     dataStructure: 'HASH'
 })
-
-// export const configSchema = new Schema('dirt:process', {
-//     shares: {type: 'string[]'},
-//     dateFormat: {type: 'number'},
-//     saveLocation: {type: 'number'},
-//     atime: {type: 'number'},
-//     mtime: {type: 'number'},
-//     ctime: {type: 'number'},
-//     hash: {type: 'string'}
-// }, {
-//     dataStructure: 'HASH'
-// })
 
 export const fileRepository = await (async () => {
     const repo = new Repository(fileMetadataSchema, redis);
