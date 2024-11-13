@@ -27,6 +27,12 @@ export const processQueue = await new Queue('process', {
         removeOnComplete: true
     }
 });
+processQueue.pause();
+processQueue.process(async (job, done) => {
+    console.log(`Processing job ${job.data.path}`);
+    done();
+})
+
 
 export const redis = await (async () => {
     const client = await createClient();

@@ -45,7 +45,7 @@ app.get("/scan", async () => {
 app.get('/load', async (req, res) => {
     const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
     const ogs = await redis.hGetAll("dirt:process:og")
-    const jobs = (await processQueue.getJobs('waiting')).reduce((acc, job) => {
+    const jobs = (await processQueue.getJobs('paused')).reduce((acc, job) => {
         acc[job.id] = job.data.action;
         return acc;
     }, {});
@@ -71,11 +71,8 @@ app.post("/addToProcessQueue", (req, res) => {
 });
 
 app.get("/process", async () => {
-    await processQueue.process(async (job, done) => {
-        console.log(`Processing job ${job.id}`);
-        return done(null, job.data.x + job.data.y);
-    })
-    processQueue.obliterate();
+    await processQueue.resume()
+    await processQueue.pause()
 });
 
 // called from dirt.php
