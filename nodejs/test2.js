@@ -12,17 +12,8 @@ const processQueue = await new Queue('process', {
         removeOnComplete: true
     }
 });
-console.log('test')
-processQueue.process(async (job, done) => {
-    console.log(`Processing job ${job.id}`);
-    done();
-})
-console.log('test')
-// const newjob = await processQueue.add({ foo: 'bar' }, { jobId: 'unique-job-id' });
-const newjob = await processQueue.isPaused;
-
-console.log(newjob)
-// await processQueue.process(function (job, done) {
-    // Processors can also return promises instead of using the done callback
-    // return done();
-// });
+const jobs = (await processQueue.getJobs('paused')).reduce((acc, job) => {
+    acc[job.id] = job.data.action;
+    return acc;
+}, {});
+console.log(jobs)
