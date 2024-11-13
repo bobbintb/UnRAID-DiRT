@@ -89,6 +89,5 @@ install_package "redisearch" \
 
 install_package "laurel" \
 "https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/laurel/laurel-v0.6.3.txz"
-#"/usr/local/sbin/laurel"
 
 echo "Done."
