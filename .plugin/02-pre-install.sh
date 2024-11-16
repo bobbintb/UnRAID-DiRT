@@ -64,8 +64,8 @@ install_package() {
     fi
 }
 
-install_package "audit" \
-"https://slackers.it/repository/slackware64-current/audit/audit-4.0.2-x86_64-1cf.txz"
+#install_package "audit" \
+#"https://slackers.it/repository/slackware64-current/audit/audit-4.0.2-x86_64-1cf.txz"
 
 install_package "nodejs" \
 "https://github.com/UnRAIDES/unRAID-NerdTools/raw/main/packages/pkgs/nodejs-20.11.0-x86_64-1_SBo_UES.txz"
@@ -87,7 +87,10 @@ install_package "redisearch" \
 #"https://github.com/bobbintb/Slackware_Packages/raw/main/redisjson/2.8.4/librejson.so" \
 #"/usr/bin/valkey-modules/"
 
-install_package "laurel" \
-"https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/laurel/laurel-v0.6.3.txz"
+#install_package "laurel" \
+#"https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/laurel/laurel-v0.6.3.txz"
+
+install_package "go-audit" \
+"https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/go-audit/go-audit-v1.2.0.txz"
 
 echo "Done."
