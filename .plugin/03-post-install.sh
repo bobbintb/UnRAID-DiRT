@@ -21,12 +21,12 @@ config_file="/etc/valkey/valkey.conf"
 new_value="/usr/bin/valkey-modules/redisearch.so"
 
 awk -v new_value="$new_value" '
-  /^#? *loadmodule / &amp;&amp; !found {
+  /^#? *loadmodule / && !found {
     $0 = "loadmodule " new_value
     found = 1
   }
   { print }
-' "$config_file" > "$config_file.tmp" &amp;&amp; mv "$config_file.tmp" "$config_file"
+' "$config_file" > "$config_file.tmp" && mv "$config_file.tmp" "$config_file"
 
 #sed -i '54 i\loadmodule /usr/bin/valkey-modules/redisearch.so' /etc/valkey/valkey.conf
 sysctl vm.overcommit_memory=1
