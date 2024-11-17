@@ -255,7 +255,7 @@ filter-action = "drop"
 </INLINE>
 </FILE>
 
-<FILE Name="/etc/init.d/functions" Mode="0755">
+<FILE Name="/etc/rc.d/init.d/functions" Mode="0755">
 <INLINE>
 <![CDATA[
 # -*-Shell-script-*-
