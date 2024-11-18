@@ -8,7 +8,7 @@ echo "-----------------------------------------------------------"
 echo "Configuring..."
 echo "-----------------------------------------------------------"
 
-#ln -s /etc/rc.d/rc.auditd /usr/bin/rc.auditd
+mkdir -p /var/log/go-audit/
 ln -s /usr/local/etc/rc.d/rc.valkey /etc/rc.d/rc.valkey
 chmod +x /etc/rc.d/rc.valkey
 # ln -s /etc/rc.d/rc.redis /usr/local/etc/rc.d/rc.redis

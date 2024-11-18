@@ -30,7 +30,7 @@
                     .catch(error => {
                         console.error('Error:', error);
                     });
-                table.setData();
+                location.reload()
             }
         });
 

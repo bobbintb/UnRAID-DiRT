@@ -2,4 +2,6 @@ import {fileRepository, processQueue, redis} from "./redisHelper.js";
 
 
 // const isPaused = await processQueue.get;
-console.log(await processQueue.jobs())
+await redis.del('dirt:process:og').then(result => {
+    redis.quit();
+})
