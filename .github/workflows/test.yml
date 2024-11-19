@@ -18,11 +18,13 @@ jobs:
     steps:
       - name: Download
         run: |
+          wget https://slackware.uk/slackware/slackware64-current/slackware64/l/nodejs-20.18.0-x86_64-2.txz
           wget https://slackware.uk/slackware/slackware64-current/slackware64/n/openssl-3.4.0-x86_64-1.txz
           wget https://slackware.uk/slackware/slackware64-current/slackware64/n/nghttp3-1.6.0-x86_64-1.txz
           wget https://slackware.uk/slackware/slackware64-current/slackware64/l/icu4c-76.1-x86_64-1.txz
           wget https://slackware.uk/slackware/slackware64-current/slackware64/d/gcc-g++-14.2.0-x86_64-2.txz
           wget https://slackware.uk/slackware/slackware64-current/slackware64/d/gcc-14.2.0-x86_64-2.txz
+          installpkg *.txz
           ln -s /usr/bin/python3 /usr/bin/python
           npm install nexe
           pwd
