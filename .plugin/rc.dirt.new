@@ -11,11 +11,9 @@
 . /etc/rc.d/init.d/functions
 
 DIRT_OPTIONS=""
-exec="dirt $DIRT_OPTIONS"
+exec="node nodejs/dirt.js $DIRT_OPTIONS"
 prog=$(basename $exec)
-pidfile=/var/run/${prog}.pid
-CONFIG_FILE="/etc/go-audit.yaml"
-LOG_DIRECTORY="/var/log/go-audit"
+pidfile=/run/${prog}.pid
 
 start() {
     [ -f $pidfile ] && checkpid $(cat $pidfile) && echo "$prog already running" && return
@@ -36,7 +34,7 @@ start() {
 
 stop() {
     echo -n $"Stopping $prog: "
-    killproc -p $pidfile node
+    killproc -p $pidfile $prog
     retval=$?
     echo
     [ $retval -eq 0 ] && rm -f $pidfile

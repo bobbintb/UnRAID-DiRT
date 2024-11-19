@@ -64,6 +64,9 @@ install_package() {
     fi
 }
 
+install_package "audit" \
+"https://slackers.it/repository/slackware64-current/audit/audit-4.0.2-x86_64-1cf.txz"
+
 install_package "nodejs" \
 "https://github.com/UnRAIDES/unRAID-NerdTools/raw/main/packages/pkgs/nodejs-20.11.0-x86_64-1_SBo_UES.txz"
 
@@ -82,5 +85,8 @@ install_package "redisearch" \
 
 install_package "go-audit" \
 "https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/go-audit/go-audit-v1.2.0.txz"
+
+install_package "yq" \
+"https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/yq/yq-4.44.5-x86_64-1_SBo.tgz"
 
 echo "Done."

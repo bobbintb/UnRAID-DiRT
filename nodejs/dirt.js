@@ -3,6 +3,7 @@ import * as scan from '../nodejs/scan.js';
 import {enqueueFileAction} from "./processDuplicates.js";
 import {findDuplicateHashes, processQueue, redis} from "./redisHelper.js";
 import fs from "fs";
+import {dirtySock} from "./socket.js";
 
 const plugin = 'bobbintb.system.dirt';
 const app = express();
@@ -94,3 +95,14 @@ const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
 app.listen(PORT, () => {
     console.log(`dirt is running on port ${PORT}`);
 });
+
+dirtySock((data) => {
+    try {
+        const parsedData = JSON.parse(data.toString());
+        console.log('Received and parsed data:', parsedData);
+    } catch (err) {
+        console.error('Failed to parse data:', data.toString(), err);
+    }
+});
+
+dirtySock()
