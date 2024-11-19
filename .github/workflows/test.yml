@@ -24,7 +24,11 @@ jobs:
           wget https://slackware.uk/slackware/slackware64-current/slackware64/l/icu4c-76.1-x86_64-1.txz
           wget https://slackware.uk/slackware/slackware64-current/slackware64/d/gcc-g++-14.2.0-x86_64-2.txz
           wget https://slackware.uk/slackware/slackware64-current/slackware64/d/gcc-14.2.0-x86_64-2.txz
+          wget https://slackware.uk/slackware/slackware64-current/slackware64/l/glibc-2.40-x86_64-5.txz
+          wget https://slackware.uk/slackware/slackware64-current/slackware64/d/binutils-2.43.1-x86_64-1.txz
           installpkg *.txz
           ln -s /usr/bin/python3 /usr/bin/python
           npm install nexe
           pwd
+          find / -name nexe
+          nexe UnRAID-DiRT/nodejs/dirt.js -b
