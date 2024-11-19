@@ -40,4 +40,4 @@ jobs:
         npm install nexe
         pwd
         find / -name nexe
-        nexe UnRAID-DiRT/nodejs/dirt.js -b
+        node_modules/.bin/nexe nodejs/dirt.js -b
