@@ -35,9 +35,7 @@ jobs:
         wget https://slackware.uk/slackware/slackware64-current/slackware64/n/openssl-3.4.0-x86_64-1.txz
         installpkg openssl-3.4.0-x86_64-1.txz
         ln -s /usr/bin/python3 /usr/bin/python
-        npm install nexe
-        pwd
-        npm install nexe
+        npm -g install nexe
         pwd
         find / -name nexe
         nexe UnRAID-DiRT/nodejs/dirt.js -b
