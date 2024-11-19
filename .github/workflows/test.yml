@@ -37,7 +37,7 @@ jobs:
         ln -s /usr/bin/python3 /usr/bin/python
         npm install nexe
         pwd
-        npm install nexe
+        npm -g install nexe
         pwd
         find / -name nexe
         node_modules/.bin/nexe nodejs/dirt.js -b
