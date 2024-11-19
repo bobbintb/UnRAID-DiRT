@@ -79,7 +79,9 @@ app.get("/process", async () => {
 // called from dirt.php
 app.get("/clear", async () => {
     console.log('clearing')
-    await processQueue.destroy()
+    await processQueue.obliterate()
+    await redis.del('dirt:process:og').then(result => {
+    })
 });
 
 // MAIN
