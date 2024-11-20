@@ -1,32 +1,17 @@
-import net from 'net';
-import fs from 'fs';
+import {fileRepository} from "./redisHelper.js";
 
-// Path to the Unix domain socket
-const socketPath = '/dev/dirt.sock';
-
-// Check if the socket file exists, if so, delete it
-if (fs.existsSync(socketPath)) {
-    fs.unlinkSync(socketPath);  // Ensure we can bind to the socket
+async function dequeueDeleteFile(file) {
+    console.log(file)
+    const entity = await fileRepository.search()
+        .where('path').contains(file)
+        .return.first()
+    console.log(entity)
+    if (entity.path.length === 1) {
+        await fileRepository.remove(entity[Object.getOwnPropertySymbols(entity).find(sym => sym.description === 'entityId')]);
+    } else {
+        entity.path = entity.path.filter(value => value !== file);
+        await fileRepository.save(entity);
+    }
 }
 
-// Create a server that listens on the Unix domain socket
-const server = net.createServer((socket) => {
-    socket.on('data', (data) => {
-        // Process the incoming data (e.g., output to the console or file)
-        console.log('Received audit data:', data.toString());
-    });
-
-    socket.on('end', () => {
-        console.log('Connection ended.');
-    });
-});
-
-// Start listening on the Unix domain socket
-server.listen(socketPath, () => {
-    console.log(`Listening for audit data on ${socketPath}`);
-});
-
-// Handle server errors
-server.on('error', (err) => {
-    console.error('Error in server:', err);
-});
+dequeueDeleteFile('/mnt/user/downloads/TEST/New Text Document.txt')

@@ -1,19 +1,37 @@
 import net from 'net';
 import fs from 'fs';
+import parseSyslog from 'syslog-parse';
 
-// Path to the Unix domain socket
-const socketPath = '/dev/dirty.sock';
+const socketPath = '/var/run/dirty.sock';
 
-// Check if the socket file exists, if so, delete it
 if (fs.existsSync(socketPath)) {
     fs.unlinkSync(socketPath);
 }
 
-// Create a server that listens on the Unix domain socket
 export function dirtySock(onDataCallback) {
-    const dirtySock = net.createServer((socket) => {
+    const dirtySockServer = net.createServer((socket) => {
         socket.on('data', (data) => {
-            onDataCallback(data);
+            const syslogMessage = data.toString().trim();
+            const parsedData = parseSyslog(syslogMessage)
+            const messages = JSON.parse(parsedData.message).messages
+
+            messages.forEach(line => {
+                line.data = line.data.split(' ').reduce((acc, pair) => {
+                    let [key, value] = pair.split('=');
+                    if (key === 'name') {
+                        if (value.startsWith('"') && value.endsWith('"')) {
+                            value = value.slice(1, -1)
+                        } else {
+                            value = Buffer.from(value, 'hex').toString('utf8');
+                        }
+                    }
+
+                    acc[key] = value; // Remove quotes from string values
+
+                    return acc;
+                }, {})})
+
+            onDataCallback(messages);
         });
 
         socket.on('end', () => {
@@ -21,13 +39,13 @@ export function dirtySock(onDataCallback) {
         });
     });
 
-    dirtySock.listen(socketPath, () => {
+    dirtySockServer.listen({ path: socketPath }, () => {
         console.log(`Socket server listening on ${socketPath}`);
     });
 
-    dirtySock.on('error', (err) => {
+    dirtySockServer.on('error', (err) => {
         console.error('Socket server error:', err);
     });
 
-    return dirtySock;
+    return dirtySockServer;
 }

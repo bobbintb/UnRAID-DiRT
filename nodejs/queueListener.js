@@ -4,6 +4,7 @@ import {fileRepository, filesOfSize, scanQueue, redis} from "./redisHelper.js";
 
 
 export function enqueueDeleteFile(src) {
+    console.log(src)
     const jobData = {
         task: 'delete',
         src: src
@@ -79,7 +80,17 @@ export async function dequeueCreateFile(file) {
 }
 
 async function dequeueDeleteFile(file) {
-    // await fileRepository.remove(file);
+    console.log(file)
+    const entity = await fileRepository.search()
+        .where('path').contains(file)
+        .return.first()
+    console.log(entity)
+    if (entity.path.length === 1) {
+        await fileRepository.remove(entity[Object.getOwnPropertySymbols(entity).find(sym => sym.description === 'entityId')]);
+    } else {
+        entity.path = entity.path.filter(value => value !== file);
+        await fileRepository.save(entity);
+    }
 }
 
 async function dequeueMoveFile(src, dest) {
@@ -96,7 +107,7 @@ scanQueue.process(async (job, done) => {
             await dequeueMoveFile(job.data.src, job.data.dest)
             break;
         case 'delete':
-            await dequeueDeleteFile(job.data)
+            await dequeueDeleteFile(job.data.src)
             break;
     }
     done();

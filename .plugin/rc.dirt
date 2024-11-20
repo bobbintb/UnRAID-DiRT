@@ -6,60 +6,57 @@
 #
 
 # Put the command line options here that you want to pass to dirt:
-
-# Source function library.
-. /etc/rc.d/init.d/functions
-
 DIRT_OPTIONS=""
-exec="dirt $DIRT_OPTIONS"
-prog=$(basename $exec)
-pidfile=/var/run/${prog}.pid
-CONFIG_FILE="/etc/go-audit.yaml"
-LOG_DIRECTORY="/var/log/go-audit"
 
 start() {
-    [ -f $pidfile ] && checkpid $(cat $pidfile) && echo "$prog already running" && return
-
-    echo -n $"Starting $prog: "
-    cd /usr/local/emhttp/plugins/bobbintb.system.dirt
-    nohup $exec </dev/null &
-    pid=$!
-    echo $pid >$pidfile
-
-    sleep 0.1  # Sleep briefly to see if the process ends immediately
-    checkpid $(cat $pidfile)
-    status=$?
-    if [ $status -eq 0 ]; then success; else failure; fi
-    echo
-    return $status
+      # Start daemons.
+      echo -n "Starting dirt..."
+      cd /usr/local/emhttp/plugins/bobbintb.system.dirt
+      node nodejs/dirt.js $DIRT_OPTIONS &
+      sleep 0.5
+      echo ""
 }
-
 stop() {
-    echo -n $"Stopping $prog: "
-    killproc -p $pidfile node
-    retval=$?
-    echo
-    [ $retval -eq 0 ] && rm -f $pidfile
-    return $retval
+      # Stop daemons.
+      echo -n "Shutting down dirt..."
+      if kill -TERM $(pgrep -f "node nodejs/dirt.js"); then
+          echo "Process terminated successfully."
+      else
+          echo "Failed to terminate the process."
+      fi
+      echo
 }
-
+status() {
+  PIDS=$(pgrep -f "node nodejs/dirt.js")
+  if [ "$PIDS" == "" ]; then
+    echo "dirt is not running!"
+  else
+    echo "dirt is running at pid(s) ${PIDS}."
+  fi
+}
 restart() {
-    stop
-    start
+      stop
+      start
 }
 
-rh_status() {
-    status -p $pidfile $prog
-}
-
+# See how we were called.
 case "$1" in
-    start|stop|restart)
-        $1
+  start)
+        start
         ;;
-    status)
-        rh_status
+  stop)
+        stop
         ;;
-    *)
-        echo $"Usage: $0 {start|stop|status|restart}"
-        exit 2
+  restart)
+        stop
+        start
+        ;;
+  status)
+        status
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|status|restart}"
+        ;;
 esac
+
+exit 0
