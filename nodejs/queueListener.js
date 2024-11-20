@@ -80,12 +80,15 @@ export async function dequeueCreateFile(file) {
 }
 
 async function dequeueDeleteFile(file) {
+    console.log('dequeueDeleteFile - file')
     console.log(file)
     const entity = await fileRepository.search()
-        .where('path').contains(file)
+        .where('path').contains(file.toString())
         .return.first()
+    console.log('dequeueDeleteFile - entity')
     console.log(entity)
     if (entity.path.length === 1) {
+        console.log('entity.path.length === 1')
         await fileRepository.remove(entity[Object.getOwnPropertySymbols(entity).find(sym => sym.description === 'entityId')]);
     } else {
         entity.path = entity.path.filter(value => value !== file);

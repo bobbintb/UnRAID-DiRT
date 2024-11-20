@@ -7,10 +7,11 @@ async function dequeueDeleteFile(file) {
         .return.first()
     console.log(entity)
     if (entity.path.length === 1) {
-        await fileRepository.remove(entity[Object.getOwnPropertySymbols(entity).find(sym => sym.description === 'entityId')]);
+        console.log(entity.path)
+        // await fileRepository.remove(entity[Object.getOwnPropertySymbols(entity).find(sym => sym.description === 'entityId')]);
     } else {
         entity.path = entity.path.filter(value => value !== file);
-        await fileRepository.save(entity);
+        // await fileRepository.save(entity);
     }
 }
 

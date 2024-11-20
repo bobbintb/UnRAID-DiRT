@@ -18,12 +18,12 @@ export function dirtySock(onDataCallback) {
             messages.forEach(line => {
                 line.data = line.data.split(' ').reduce((acc, pair) => {
                     let [key, value] = pair.split('=');
-                    if (key === 'name') {
-                        if (value.startsWith('"') && value.endsWith('"')) {
-                            value = value.slice(1, -1)
-                        } else {
-                            value = Buffer.from(value, 'hex').toString('utf8');
-                        }
+
+                    if (key === 'name' && !value.startsWith('"') && !value.endsWith('"')) {
+                        value = Buffer.from(value, 'hex').toString('utf8');
+                    }
+                    if (value.startsWith('"') && value.endsWith('"')) {
+                        value = value.slice(1, -1)
                     }
 
                     acc[key] = value; // Remove quotes from string values
@@ -31,7 +31,7 @@ export function dirtySock(onDataCallback) {
                     return acc;
                 }, {})})
 
-            onDataCallback(messages);
+            onDataCallback(data);
         });
 
         socket.on('end', () => {
