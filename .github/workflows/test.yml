@@ -1,0 +1,41 @@
+name: test
+on:
+  workflow_dispatch:
+jobs:
+  slackware-job:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    container:
+      image: spaceinvaderone/auto_slack_pack
+      options: --privileged
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Update and install packages
+      run: |
+        echo "================================= Updating packages ================================="
+        CONF_FILE="/etc/slackpkg/slackpkg.conf"
+        sed -i "s/^DIALOG=.*/DIALOG=off/" "$CONF_FILE"
+        sed -i "s/^BATCH=.*/BATCH=on/" "$CONF_FILE"
+        sed -i "s/^DEFAULT_ANSWER=.*/DEFAULT_ANSWER=y/" "$CONF_FILE"
+        sed -i '$s/.*/https:\/\/mirrors\.slackware\.com\/slackware\/slackware64-15.0\//' /etc/slackpkg/mirrors
+        slackpkg update <<< y
+        slackpkg upgrade-all
+    - name: Build
+      run: |
+        echo "================================= Downloading dependencies ================================="
+        wget https://slackware.uk/slackware/slackware64-current/slackware64/l/nodejs-20.18.0-x86_64-2.txz
+        wget https://slackware.uk/slackware/slackware64-current/slackware64/n/nghttp3-1.6.0-x86_64-1.txz
+        wget https://slackware.uk/slackware/slackware64-current/slackware64/l/icu4c-76.1-x86_64-1.txz
+        wget https://slackware.uk/slackware/slackware64-current/slackware64/d/gcc-g++-14.2.0-x86_64-2.txz
+        wget https://slackware.uk/slackware/slackware64-current/slackware64/d/gcc-14.2.0-x86_64-2.txz
+        wget https://slackware.uk/slackware/slackware64-current/slackware64/l/glibc-2.40-x86_64-5.txz
+        wget https://slackware.uk/slackware/slackware64-current/slackware64/d/binutils-2.43.1-x86_64-1.txz
+        installpkg *.txz
+        wget https://slackware.uk/slackware/slackware64-current/slackware64/n/openssl-3.4.0-x86_64-1.txz
+        installpkg openssl-3.4.0-x86_64-1.txz
+        ln -s /usr/bin/python3 /usr/bin/python
+        npm -g install nexe
+        pwd
+        find / -name nexe
+        nexe nodejs/dirt.js -b
