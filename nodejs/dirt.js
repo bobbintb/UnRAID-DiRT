@@ -103,6 +103,7 @@ app.listen(PORT, () => {
 dirtySock((messages) => {
     console.log(messages)
     try {
+        if (messages[0].data.key) {
         switch (messages[0].data.key) {
             case 'create':
                 // enqueueCreateFile()
@@ -113,16 +114,18 @@ dirtySock((messages) => {
             case 'delete_monitor':
                 console.log('delete triggered')
                 console.log(messages)
-                console.log(path.join(messages[2].data.name, messages[3].data.name));
-                enqueueDeleteFile(path.join(messages[2].data.name, messages[3].data.name));
+                // delete from terminal. does not work for SMB.
+                enqueueDeleteFile(messages[3].data.name.toString());
                 break;
-        }
+        }}
     } catch (err) {
         console.error('Failed to parse data:', messages.toString(), err);
     }
 });
 
 //   - -a always,exit -F arch=b64 -F dir=/mnt/user/downloads/ -S unlink -S unlinkat -S rmdir -k delete_monitor
+//   - -a always,exit -F arch=b32 -F dir=/mnt/user/downloads/ -S unlink -S unlinkat -S rmdir -k delete_monitor
+
 //   - -a always,exit -F arch=b64 -F dir=/mnt/user/downloads/ -S rename -S renameat -k move_monitor
 
 // scanQueue.process(async (job, done) => {

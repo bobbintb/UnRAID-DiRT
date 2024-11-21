@@ -83,7 +83,7 @@ async function dequeueDeleteFile(file) {
     console.log('dequeueDeleteFile - file')
     console.log(file)
     const entity = await fileRepository.search()
-        .where('path').contains(file.toString())
+        .where('path').contains(file)
         .return.first()
     console.log('dequeueDeleteFile - entity')
     console.log(entity)

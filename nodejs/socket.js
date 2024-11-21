@@ -19,7 +19,7 @@ export function dirtySock(onDataCallback) {
                 line.data = line.data.split(' ').reduce((acc, pair) => {
                     let [key, value] = pair.split('=');
 
-                    if (key === 'name' && !value.startsWith('"') && !value.endsWith('"')) {
+                    if ((key === 'name' || key === 'proctitle') && !value.startsWith('"') && !value.endsWith('"')) {
                         value = Buffer.from(value, 'hex').toString('utf8');
                     }
                     if (value.startsWith('"') && value.endsWith('"')) {
@@ -31,7 +31,7 @@ export function dirtySock(onDataCallback) {
                     return acc;
                 }, {})})
 
-            onDataCallback(data);
+            onDataCallback(messages);
         });
 
         socket.on('end', () => {
