@@ -2,7 +2,7 @@ import net from 'net';
 import fs from 'fs';
 import parseSyslog from 'syslog-parse';
 
-const socketPath = '/var/run/dirty.sock';
+const socketPath = '/run/dirty.sock';
 
 if (fs.existsSync(socketPath)) {
     fs.unlinkSync(socketPath);
