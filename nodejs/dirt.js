@@ -102,31 +102,31 @@ app.listen(PORT, () => {
 
 dirtySock((messages) => {
     console.log(messages)
-    try {
-        if (messages[0].data.key) {
-        switch (messages[0].data.key) {
-            case 'create':
-                // enqueueCreateFile()
-                break;
-            case 'move':
-                // enqueueMoveFile()
-                break;
-            case 'delete_monitor':
-                console.log('delete triggered')
-                console.log(messages)
-                // delete from terminal. does not work for SMB.
-                enqueueDeleteFile(messages[3].data.name.toString());
-                break;
-        }}
-    } catch (err) {
-        console.error('Failed to parse data:', messages.toString(), err);
-    }
+    // try {
+    //     if (messages[0].data.key) {
+    //     switch (messages[0].data.key) {
+    //         case 'create':
+    //             // enqueueCreateFile()
+    //             break;
+    //         case 'move':
+    //             // enqueueMoveFile()
+    //             break;
+    //         case 'delete_monitor':
+    //             console.log('delete triggered')
+    //             console.log(messages)
+    //             // delete from terminal. does not work for SMB.
+    //             enqueueDeleteFile(messages[3].data.name.toString());
+    //             break;
+    //     }}
+    // } catch (err) {
+    //     console.error('Failed to parse data:', messages.toString(), err);
+    // }
 });
 
-//   - -a always,exit -F arch=b64 -F dir=/mnt/user/downloads/ -S unlink -S unlinkat -S rmdir -k delete_monitor
-//   - -a always,exit -F arch=b32 -F dir=/mnt/user/downloads/ -S unlink -S unlinkat -S rmdir -k delete_monitor
+//   - -a always,exit -F arch=b64 -F success=1 -F dir=/mnt/user/downloads/ -S unlink -S unlinkat -S rmdir -k delete_monitor
+//   - -a always,exit -F arch=b32 -F success=1 -F dir=/mnt/user/downloads/ -S unlink -S unlinkat -S rmdir -k delete_monitor
 
-//   - -a always,exit -F arch=b64 -F dir=/mnt/user/downloads/ -S rename -S renameat -k move_monitor
+//   - -a always,exit -F arch=b64 -F success=1 -F dir=/mnt/user/downloads/ -S rename -S renameat -S renameat2 -k move_monitor
 
 // scanQueue.process(async (job, done) => {
 //     switch (job.data.task) {
