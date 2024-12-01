@@ -38,9 +38,9 @@ _(Datetime format)_:
 > The datetime format for file metadata. See here for available options: [Luxon Date Tokens](https://moment.github.io/luxon/#/parsing?id=table-of-tokens)
 :end
 
-_(Default database path)_:
-: <input type="text" id="dbdir" name="dbdir" autocomplete="off" spellcheck="false" data-pickfolders="true" data-pickfilter="HIDE_FILES_FILTER" data-pickroot="<?=is_dir('/mnt/user')?'/mnt/user':'/mnt'?>" value="<?=htmlspecialchars($cfg['dbdir'])?>" placeholder="_(Click to Select)_" pattern="^[^\\]*/$">
-  <?if (!is_dir($cfg['dbdir'])):?><span><i class="fa fa-warning icon warning"></i> _(Path does not exist)_</span><?endif;?>
+<!--_(Default database path)_:-->
+<!--: <input type="text" id="dbdir" name="dbdir" autocomplete="off" spellcheck="false" data-pickfolders="true" data-pickfilter="HIDE_FILES_FILTER" data-pickroot="--><?php //=is_dir('/boot/config/plugins/'.$plugin)?'/boot/config/plugins/'.$plugin:'/mnt'?><!--" value="--><?php //=htmlspecialchars($cfg['dbdir'])?><!--" placeholder="_(Click to Select)_" pattern="^[^\\]*/$">-->
+<!--  --><?//if (!is_dir($cfg['dbdir'])):?><!--<span><i class="fa fa-warning icon warning"></i> _(Path does not exist)_</span>--><?//endif;?>
 <script src="<?autov('/webGui/javascript/jquery.filetree.js')?>" charset="utf-8"></script>
 <script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
 <script src="<?autov('/plugins/dynamix.vm.manager/javascript/dynamix.vm.manager.js')?>"></script>

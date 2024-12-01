@@ -34,11 +34,11 @@ app.use((req, res, next) => {
 
 // called from dirtSettings.page
 app.get("/scan", async () => {
-    // const shares = (Array.isArray(settings.share) ? settings.share : [settings.share])
-    //     .map(share => `/mnt/user/${share}`);
-    // for (const share of shares) {
-        await scan.getAllFiles('/mnt/user/downloads/TEST');
-    // }
+    const shares = (Array.isArray(settings.share) ? settings.share : [settings.share])
+        .map(share => `/mnt/user/${share}`);
+    for (const share of shares) {
+        await scan.getAllFiles(share);
+    }
     console.debug("Saving files to database.");
     console.debug("Done saving files to database.");
 });
