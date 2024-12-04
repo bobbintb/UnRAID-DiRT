@@ -25,13 +25,16 @@ export async function hashFilesInIntervals(files) {
                             });
 
                             const chunks = [];
-                            stream.on('data', (chunk) => chunks.push(chunk));
-                            stream.on('end', () => {
-                                const combinedChunk = Buffer.concat(chunks);
-                                hashers[index].update(combinedChunk);
-                                processedBytes[index] += combinedChunk.length;
-                                chunkResolve(true);
+                            stream.on('data', (chunk) => {
+                                // Directly update the hash with the current chunk
+                                hashers[index].update(chunk);
+                                processedBytes[index] += chunk.length;  // Update the progress
                             });
+
+                            stream.on('end', () => {
+                                chunkResolve(true);  // Resolve the promise after the stream ends
+                            });
+
                             stream.on('error', (error) => {
                                 console.error(`Error processing file: ${file.path[0]}`, error);
                                 chunkReject(error);  // Reject if there's a stream error
@@ -48,9 +51,9 @@ export async function hashFilesInIntervals(files) {
                     const currentHash = hashers[index].digest('hex');
                     if (index === 0 || currentHash === hashers[0].digest('hex')) {
                         // Keep the file if it matches the first file's hash
-                        //console.debug(`File ${index}: \x1b[32m${currentHash}\x1b[0m`);
+                        // console.log(`File ${index}: \x1b[32m${currentHash}\x1b[0m`);
                     } else {
-                        //console.debug(`File ${index}: \x1b[33m${currentHash}\x1b[0m (No match, removing from further processing.)`);
+                        // console.log(`File ${index}: \x1b[33m${currentHash}\x1b[0m (No match, removing from further processing.)`);
                         files.splice(index, 1);
                         hashers.splice(index, 1);
                         processedBytes.splice(index, 1);
@@ -59,7 +62,7 @@ export async function hashFilesInIntervals(files) {
 
                 // Log progress
                 const progress = ((processedBytes[0] / files[0].size) * 100).toFixed(2);
-                //console.debug(`${progress}% (${processedBytes[0]} bytes)`);
+                // console.log(`${progress}% (${processedBytes[0]} bytes)`);
 
                 // Check if the first file is fully processed
                 if (processedBytes[0] >= files[0].size) {
@@ -72,7 +75,7 @@ export async function hashFilesInIntervals(files) {
 
             // If there's only one file left, resolve early
             if (files.length === 1) {
-                //console.debug('Only one file left, stopping early.');
+                // console.log('Only one file left, stopping early.');
                 files[0].hash = hashers[0].digest('hex');
                 return resolve(files);
             }
