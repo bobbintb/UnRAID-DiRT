@@ -1,9 +1,13 @@
+// noinspection SpellCheckingInspection
+
 import fs from 'fs';
 import blake3 from 'blake3';
 
 const CHUNK_SIZE = 1048576; // 1MB chunk size
 await blake3.load();
 
+// TODO: this needs to handle files being moved before starting hash. If it moved during it's fine, as it uses the file descriptor.
+// Maybe consider using the inode instead of filepath so you can get the filepath when needed or the file descriptor.
 export async function hashFilesInIntervals(files) {
     // Create a hasher and track processed bytes for each file
     let hashers = files.map(() => blake3.createHash());

@@ -1,6 +1,8 @@
 import Queue from "bull";
 import {AggregateGroupByReducers, AggregateSteps, createClient} from "redis";
 import {Repository, Schema} from "redis-om";
+import fs from "fs";
+import { exec } from 'child_process';
 
 export const scanQueue = await new Queue('queue', {
     redis: {
@@ -29,6 +31,31 @@ export const processQueue = await new Queue('process', {
 });
 processQueue.pause();
 processQueue.process(async (job, done) => {
+    switch (job.data.action) {
+        case 'delete':
+            console.log('rm', job.data.path);
+            // fs.unlink(job.data.path, (err) => {
+            //     if (err) {
+            //         console.error('Error deleting file:', err);
+            //     } else {
+            //         console.log('File deleted successfully');
+            //     }
+            // });
+            break;
+        case 'link':
+            exec(`ln -f ${existingFilePath} ${hardLinkPath}`, (err, stdout, stderr) => {
+                if (err) {
+                    console.error('Error creating hard link:', err);
+                    return;
+                }
+                if (stderr) {
+                    console.error('stderr:', stderr);
+                    return;
+                }
+                console.log('Hard link created successfully');
+            });
+            break;
+    }
     console.log(`Processing job ${job.data.path}`);
     done();
 })
