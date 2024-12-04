@@ -22,6 +22,7 @@ export function getSettings() {
 }
 
 // Recursively scans a directory and adds each file to the queue
+// TODO investigate big delay when traversing large directories.
 export function getAllFiles(dirPath) {
     function traverseDir(currentPath) {
         try {
