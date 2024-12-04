@@ -104,6 +104,14 @@ app.listen(PORT, () => {
     console.log(`dirt is running on port ${PORT}`);
 });
 
+process.on('SIGINT', () => {
+    redis.quit(() => {
+        console.log('Redis connection closed');
+        process.exit(0); // Graceful shutdown
+    });
+});
+
+
 dirtySock((messages) => {
     console.log(messages)
     // try {
