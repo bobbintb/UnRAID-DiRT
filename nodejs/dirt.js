@@ -97,19 +97,7 @@ app.get("/clear", async () => {
 //     }
 // }
 
-const wss = new WebSocketServer({ port: 3001 });
 
-export let clientSocket = null;
-
-wss.on('connection', (ws) => {
-    clientSocket = ws;
-});
-
-export function sendToClient(message) {
-    // if (clientSocket && clientSocket.readyState === WebSocket.OPEN) {
-        clientSocket.send(message + '\n');
-    // }
-}
 
 const PORT = 3000;
 

@@ -2,23 +2,45 @@
 
 import fs from 'fs';
 import blake3 from 'blake3';
-import {clientSocket, sendToClient} from "./dirt.js";
+// import {clientSocket, sendToClient} from "./dirt.js";
+import { WebSocketServer, WebSocket } from 'ws';
+import file from "express/lib/view.js";
 
-const CHUNK_SIZE = 1024; // 1KB chunk size
+
+const CHUNK_SIZE = 10485760; // 10MB chunk size
 await blake3.load();
+
+
+const wss = new WebSocketServer({ port: 3001 });
+
+export let clientSocket = null;
+
+wss.on('connection', (ws) => {
+    clientSocket = ws;
+});
+
+export function sendToClient(message) {
+    if (clientSocket && clientSocket.readyState === WebSocket.OPEN) {
+        clientSocket.send(message);
+    }
+}
 
 // TODO: this needs to handle files being moved before starting hash. If it moved during it's fine, as it uses the file descriptor.
 // Maybe consider using the inode instead of filepath so you can get the filepath when needed or the file descriptor.
+// TODO: it seems some bluray files that aren't even the same size have the same hash. my guess is partial hash is being saved.
 export async function hashFilesInIntervals(files) {
     // Create a hasher and track processed bytes for each file
     let hashers = files.map(() => blake3.createHash());
     let processedBytes = files.map(() => 0);
-    sendToClient('Starting hash', files[0])
+    // sendToClient('Starting hash', files[0])
+
     return new Promise(async (resolve, reject) => {
         try {
             // Continue processing as long as there's more than one file
             while (files.length > 1) {
+                let progressIndex
                 const fileChunkPromises = files.map((file, index) => {
+                    progressIndex = index
                     return new Promise((chunkResolve, chunkReject) => {
                         if (processedBytes[index] >= file.size) {
                             // File fully processed
@@ -53,18 +75,27 @@ export async function hashFilesInIntervals(files) {
                 await Promise.all(fileChunkPromises);
 
                 // Compare the intermediate hashes
+                let message = `Currently processing: ${files[0].path}<br>`;
+                message += `file size: ${files[0].size}<br>`;
+                message += `<!--file size: ${processedBytes[progressIndex]}<br>-->`;
+                message += `Progress: ${Math.round((processedBytes[progressIndex]/files[0].size)*100)}%<br>`;
+
                 for (let index = files.length - 1; index >= 0; index--) {
                     const currentHash = hashers[index].digest('hex');
                     if (index === 0 || currentHash === hashers[0].digest('hex')) {
                         // Keep the file if it matches the first file's hash
-                        sendToClient(`File ${index}: \x1b[32m${currentHash}\x1b[0m`);
+                        message += `File ${index}: <span style="color: green;">${files[index].path}</span><br>`
+                        // sendToClient(`File ${index}: <span style="color: green;">${currentHash}</span>`);
                     } else {
-                        sendToClient(`File ${index}: \x1b[33m${currentHash}\x1b[0m (No match, removing from further processing.)`);
+                        message += `File ${index}: <span style="color: yellow;">${files[index].path}</span> (No match, removing from further processing.)<br>`
+                        // sendToClient(`File ${index}: <span style="color: yellow;">${currentHash}</span> (No match, removing from further processing.)`);
                         files.splice(index, 1);
                         hashers.splice(index, 1);
                         processedBytes.splice(index, 1);
                     }
                 }
+
+                sendToClient(message)
 
                 // Log progress
                 const progress = ((processedBytes[0] / files[0].size) * 100).toFixed(2);

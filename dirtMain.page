@@ -17,17 +17,34 @@ Icon="fa-search-minus"
 
 </head>
 <body>
-<div id="console-output" style="white-space: pre-wrap;"></div>
-
 <script>
     const socket = new WebSocket('ws://192.168.1.2:3001');  // Connect to WebSocket server
 
     // Listen for messages from the server
     socket.addEventListener('message', (event) => {
         const consoleOutput = document.getElementById('console-output');
-        consoleOutput.textContent += event.data;  // Append new messages to the console output
+        consoleOutput.innerHTML = event.data;  // Append new messages to the console output
+    });
+
+    $(function() {
+        let current_progress = 0;
+        const interval = setInterval(function () {
+            current_progress += 10;
+            $("#dynamic")
+                .css("width", current_progress + "%")
+                .attr("aria-valuenow", current_progress)
+                .text(current_progress + "% Complete");
+            if (current_progress >= 100)
+                clearInterval(interval);
+        }, 1000);
     });
 </script>
+<div class="progress">
+    <div id="dynamic" class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+        <span id="current-progress"></span>
+    </div>
+</div>
+<div id="console-output" style="white-space: pre-wrap;"></div>
 <div id="buttonBox" style="margin-top: -5px; text-align: right;">
     <input type="button" id="processButton" value="_(Process)_">
     <input type="button" id="clearButton" value="_(Clear)_">
