@@ -10,7 +10,8 @@
     "jquery": "^3.6.0",
     "redis": "^4.7.0",
     "redis-om": "^0.4.6",
-    "syslog-parse": "^2.0.0"
+    "syslog-parse": "^2.0.0",
+    "ws": "^8.18.0"
   },
   "overrides": {
     "blake3-wasm": "^3.0.0",

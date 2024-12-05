@@ -10,8 +10,24 @@ Icon="fa-search-minus"
     <link href="https://unpkg.com/tabulator-tables@6.3/dist/css/tabulator.min.css" rel="stylesheet">
     <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.3/dist/js/tabulator.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/luxon/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm@4.8.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.5.0/lib/xterm-addon-fit.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-attach@0.5.0/lib/xterm-addon-attach.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.8.0/css/xterm.css" />
+
 </head>
 <body>
+<div id="console-output" style="white-space: pre-wrap;"></div>
+
+<script>
+    const socket = new WebSocket('ws://192.168.1.2:3001');  // Connect to WebSocket server
+
+    // Listen for messages from the server
+    socket.addEventListener('message', (event) => {
+        const consoleOutput = document.getElementById('console-output');
+        consoleOutput.textContent += event.data;  // Append new messages to the console output
+    });
+</script>
 <div id="buttonBox" style="margin-top: -5px; text-align: right;">
     <input type="button" id="processButton" value="_(Process)_">
     <input type="button" id="clearButton" value="_(Clear)_">

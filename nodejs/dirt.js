@@ -6,6 +6,7 @@ import fs from "fs";
 import {dirtySock} from "./socket.js";
 import {dequeueCreateFile, enqueueCreateFile, enqueueDeleteFile, enqueueMoveFile} from "./queueListener.js";
 import path from "path";
+import { WebSocketServer } from 'ws';
 
 const plugin = 'bobbintb.system.dirt';
 const app = express();
@@ -95,6 +96,21 @@ app.get("/clear", async () => {
 //     console.debug = function () {
 //     }
 // }
+
+const wss = new WebSocketServer({ port: 3001 });
+
+export let clientSocket = null;
+
+wss.on('connection', (ws) => {
+    clientSocket = ws;
+});
+
+export function sendToClient(message) {
+    // if (clientSocket && clientSocket.readyState === WebSocket.OPEN) {
+        clientSocket.send(message + '\n');
+    // }
+}
+
 const PORT = 3000;
 
 

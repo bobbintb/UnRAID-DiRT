@@ -2,8 +2,9 @@
 
 import fs from 'fs';
 import blake3 from 'blake3';
+import {clientSocket, sendToClient} from "./dirt.js";
 
-const CHUNK_SIZE = 1048576; // 1MB chunk size
+const CHUNK_SIZE = 1024; // 1KB chunk size
 await blake3.load();
 
 // TODO: this needs to handle files being moved before starting hash. If it moved during it's fine, as it uses the file descriptor.
@@ -12,6 +13,7 @@ export async function hashFilesInIntervals(files) {
     // Create a hasher and track processed bytes for each file
     let hashers = files.map(() => blake3.createHash());
     let processedBytes = files.map(() => 0);
+    sendToClient('Starting hash', files[0])
     return new Promise(async (resolve, reject) => {
         try {
             // Continue processing as long as there's more than one file
@@ -55,9 +57,9 @@ export async function hashFilesInIntervals(files) {
                     const currentHash = hashers[index].digest('hex');
                     if (index === 0 || currentHash === hashers[0].digest('hex')) {
                         // Keep the file if it matches the first file's hash
-                        // console.log(`File ${index}: \x1b[32m${currentHash}\x1b[0m`);
+                        sendToClient(`File ${index}: \x1b[32m${currentHash}\x1b[0m`);
                     } else {
-                        // console.log(`File ${index}: \x1b[33m${currentHash}\x1b[0m (No match, removing from further processing.)`);
+                        sendToClient(`File ${index}: \x1b[33m${currentHash}\x1b[0m (No match, removing from further processing.)`);
                         files.splice(index, 1);
                         hashers.splice(index, 1);
                         processedBytes.splice(index, 1);
