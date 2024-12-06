@@ -89,6 +89,7 @@ export async function hashFilesInIntervals(files) {
                     } else {
                         message += `File ${index}: <span style="color: yellow;">${files[index].path}</span> (No match, removing from further processing.)<br>`
                         // sendToClient(`File ${index}: <span style="color: yellow;">${currentHash}</span> (No match, removing from further processing.)`);
+                        delete files[index].hash;
                         files.splice(index, 1);
                         hashers.splice(index, 1);
                         processedBytes.splice(index, 1);
