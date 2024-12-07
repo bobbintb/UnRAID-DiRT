@@ -24,6 +24,15 @@ export function sendToClient(message) {
         clientSocket.send(message);
     }
 }
+function delHash(file) {
+    return new Promise(resolve => {
+        // Replace with the task you want to perform on the file
+        delete file.hash;
+
+        // After task is done, resolve the promise
+        resolve();
+    });
+}
 
 // TODO: this needs to handle files being moved before starting hash. If it moved during it's fine, as it uses the file descriptor.
 // Maybe consider using the inode instead of filepath so you can get the filepath when needed or the file descriptor.
@@ -77,7 +86,7 @@ export async function hashFilesInIntervals(files) {
                 // Compare the intermediate hashes
                 let message = `Currently processing: ${files[0].path}<br>`;
                 message += `file size: ${files[0].size}<br>`;
-                message += `<!--file size: ${processedBytes[progressIndex]}<br>-->`;
+                message += `file size: ${processedBytes[progressIndex]}<br>`;
                 message += `Progress: ${Math.round((processedBytes[progressIndex]/files[0].size)*100)}%<br>`;
 
                 for (let index = files.length - 1; index >= 0; index--) {
@@ -88,8 +97,12 @@ export async function hashFilesInIntervals(files) {
                         // sendToClient(`File ${index}: <span style="color: green;">${currentHash}</span>`);
                     } else {
                         message += `File ${index}: <span style="color: yellow;">${files[index].path}</span> (No match, removing from further processing.)<br>`
-                        // sendToClient(`File ${index}: <span style="color: yellow;">${currentHash}</span> (No match, removing from further processing.)`);
-                        delete files[index].hash;
+                        // message += `File Details: <pre>${JSON.stringify(files[index], null, 2)}</pre><br>`;
+                        // sendToClient(`File ${index}: <span style="color: yellow;">${files[index].hash}</span> (preremove.)`);
+                        if (files[index].hash) {
+                            await delHash(files[index])
+                        }
+                                                // sendToClient(`File ${index}: <span style="color: yellow;">${files[index].hash}</span> (postremove.)`);
                         files.splice(index, 1);
                         hashers.splice(index, 1);
                         processedBytes.splice(index, 1);
@@ -104,9 +117,11 @@ export async function hashFilesInIntervals(files) {
 
                 // Check if the first file is fully processed
                 if (processedBytes[0] >= files[0].size) {
-                    files.forEach((file, index) => {
-                        file.hash = hashers[index].digest('hex');
-                    });
+                //     files.forEach((file, index) => {
+                //         if (file.hash) {
+                //             file.hash = hashers[index].digest('hex');
+                //         }
+                //     });
                     return resolve(files);  // Resolve once all files are hashed
                 }
             }
