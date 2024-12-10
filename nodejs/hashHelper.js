@@ -24,10 +24,13 @@ export function sendToClient(message) {
         clientSocket.send(message);
     }
 }
-function delHash(file) {
+function delHash(file,files,hashers,processedBytes,index) {
     return new Promise(resolve => {
         // Replace with the task you want to perform on the file
         delete file.hash;
+        files.splice(index, 1);
+        hashers.splice(index, 1);
+        processedBytes.splice(index, 1);
 
         // After task is done, resolve the promise
         resolve();
@@ -100,12 +103,12 @@ export async function hashFilesInIntervals(files) {
                         // message += `File Details: <pre>${JSON.stringify(files[index], null, 2)}</pre><br>`;
                         // sendToClient(`File ${index}: <span style="color: yellow;">${files[index].hash}</span> (preremove.)`);
                         if (files[index].hash) {
-                            await delHash(files[index])
+                            await delHash(files[index],files,hashers,processedBytes,index)
                         }
                                                 // sendToClient(`File ${index}: <span style="color: yellow;">${files[index].hash}</span> (postremove.)`);
-                        files.splice(index, 1);
-                        hashers.splice(index, 1);
-                        processedBytes.splice(index, 1);
+                        // files.splice(index, 1);
+                        // hashers.splice(index, 1);
+                        // processedBytes.splice(index, 1);
                     }
                 }
 
@@ -117,11 +120,11 @@ export async function hashFilesInIntervals(files) {
 
                 // Check if the first file is fully processed
                 if (processedBytes[0] >= files[0].size) {
-                //     files.forEach((file, index) => {
-                //         if (file.hash) {
-                //             file.hash = hashers[index].digest('hex');
-                //         }
-                //     });
+                    files.forEach((file, index) => {
+                        // if (file.hash) {
+                            file.hash = hashers[index].digest('hex');
+                        // }
+                    });
                     return resolve(files);  // Resolve once all files are hashed
                 }
             }
@@ -144,17 +147,3 @@ if (!process.argv.includes('--debug')) {
     console.debug = function () {
     }
 }
-//let sameSizeFiles = await searchBySize(12779642545);
-//12779642545
-//142454784
-//console.debug(`Files of size ${sameSizeFiles[0].size}:`)
-
-//sameSizeFiles.forEach((file, index) => {
-//    console.debug(`File ${index}: ${file.path}`)
-//});
-//console.debug('\x1b[96m%s\x1b[0m','========================================================================');
-
-
-//hashFilesInIntervals(sameSizeFiles)
-//    .then(result => console.log('Final Results:', result))
-//    .catch(err => console.error('Error processing files:', err));

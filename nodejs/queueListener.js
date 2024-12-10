@@ -45,13 +45,16 @@ export async function dequeueCreateFile(file) {
         // Good enough for now but inefficient. Checks if the inode exists first (hardlink) and adds it to `path`.
     if (await redis.exists('ino:' + key) === 1) {
         const existingFile = await redis.hGetAll('ino:' + key);
-        fileInfo.path.push(existingFile.path);
-        fileInfo.hash = existingFile.hash
-        let linkedfile = await fileRepository.save(key, fileInfo);
-        console.debug('---------------------------------------------------------------------------')
-        console.debug('Hardlinked file of existing file:')
-        console.debug(linkedfile)
-        console.debug('---------------------------------------------------------------------------')
+        // Just in case. I see duplicates in the debugger but not in normal operation.
+        if (!existingFile.path === fileInfo.path) {
+            fileInfo.path.push(existingFile.path);
+            fileInfo.hash = existingFile.hash
+            let linkedfile = await fileRepository.save(key, fileInfo);
+            console.debug('---------------------------------------------------------------------------')
+            console.debug('Hardlinked file of existing file:')
+            console.debug(linkedfile)
+            console.debug('---------------------------------------------------------------------------')
+        }
         return
     }
 

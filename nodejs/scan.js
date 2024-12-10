@@ -30,6 +30,7 @@ export function getAllFiles(dirPath) {
             for (const entry of entries) {
                 const fullPath = path.join(currentPath, entry.name);
                 if (entry.isFile()) {
+                    fs.appendFileSync('output.log', fullPath + '\n');
                     enqueueCreateFile(fullPath);
                 } else if (entry.isDirectory()) {
                     traverseDir(fullPath);
