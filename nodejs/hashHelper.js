@@ -41,21 +41,21 @@ export async function hashFilesInIntervals(files) {
                     progressIndex = index
                     return new Promise((chunkResolve, chunkReject) => {
                         if (processedBytes[index] >= file.size) {
-                            chunkResolve(null);                                                                    // File fully processed
+                            chunkResolve(null);                                                                   // File fully processed
                         } else {
-                            const stream = fs.createReadStream(file.path[0], {                                    // Read the next 1MB chunk from the file
+                            const stream = fs.createReadStream(file.path[0], {                                   // Read the next 1MB chunk from the file
                                 start: processedBytes[index],
                                 end: Math.min(processedBytes[index] + CHUNK_SIZE - 1, file.size - 1)
                             });
 
                             const chunks = [];
-                            stream.on('data', (chunk) => {                                                   // Directly update the hash with the current chunk
+                            stream.on('data', (chunk) => {                                                 // Directly update the hash with the current chunk
                                 hashers[index].update(chunk);
                                 processedBytes[index] += chunk.length;                                                  // Update the progress
                             });
 
                             stream.on('end', () => {
-                                chunkResolve(true);                                                                // Resolve the promise after the stream ends
+                                chunkResolve(true);                                                               // Resolve the promise after the stream ends
                             });
 
                             stream.on('error', (error) => {
