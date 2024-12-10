@@ -49,11 +49,7 @@ export async function dequeueCreateFile(file) {
         if (!existingFile.path === fileInfo.path) {
             fileInfo.path.push(existingFile.path);
             fileInfo.hash = existingFile.hash
-            let linkedfile = await fileRepository.save(key, fileInfo);
-            console.debug('---------------------------------------------------------------------------')
-            console.debug('Hardlinked file of existing file:')
-            console.debug(linkedfile)
-            console.debug('---------------------------------------------------------------------------')
+            await fileRepository.save(key, fileInfo);
         }
         return
     }
@@ -62,23 +58,12 @@ export async function dequeueCreateFile(file) {
     if (sameSizeFiles.length > 0) {
         sameSizeFiles.splice(0, 0, fileInfo); // adds working file to the front of the array of same size files
         const results = await hashFilesInIntervals(sameSizeFiles);
-        let newfile = await fileRepository.save(key, results[0])    // add the new file first
-        console.debug('---------------------------------------------------------------------------')
-        console.debug('New file after comparing same size files:')
-        console.debug(newfile)
-        console.debug('---------------------------------------------------------------------------')
+        await fileRepository.save(key, results[0])    // add the new file first
         for (const result of results.slice(1)) {
-            const updatedfile = await fileRepository.save(result)
-            console.debug('---------------------------------------------------------------------------')
-            console.debug('Updated file after comparing same size files:')
-            console.debug(updatedfile)
-            console.debug('---------------------------------------------------------------------------')        }
+            await fileRepository.save(result)
+        }
     } else {
-        let newfile = await fileRepository.save(key, fileInfo);
-        console.debug('---------------------------------------------------------------------------')
-        console.debug('New file:')
-        console.debug(newfile)
-        console.debug('---------------------------------------------------------------------------')
+        await fileRepository.save(key, fileInfo);
     }
 }
 
