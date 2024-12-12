@@ -20,6 +20,9 @@ export function sendToClient(message) {
 }
 function delHash(file,files,hashers,processedBytes,index) {
     return new Promise(resolve => {
+        if (files.length === 1) {                                                                                   // If there's only one file left, resolve early
+            return resolve(files);
+        }
         delete file.hash;
         files.splice(index, 1);
         hashers.splice(index, 1);
@@ -48,7 +51,6 @@ export async function hashFilesInIntervals(files) {
                                 end: Math.min(processedBytes[index] + CHUNK_SIZE - 1, file.size - 1)
                             });
 
-                            const chunks = [];
                             stream.on('data', (chunk) => {                                                 // Directly update the hash with the current chunk
                                 hashers[index].update(chunk);
                                 processedBytes[index] += chunk.length;                                                  // Update the progress
@@ -72,6 +74,11 @@ export async function hashFilesInIntervals(files) {
                 message += `file size: ${processedBytes[progressIndex]}<br>`;
                 message += `Progress: ${Math.round((processedBytes[progressIndex]/files[0].size)*100)}%<br>`;
                 for (let index = files.length - 1; index >= 0; index--) {
+                    if (files.length ===1) {
+                        console.log(files.length)
+                        console.log(files[index])
+                        console.log(message)
+                    }
                     const currentHash = hashers[index].digest('hex');
                     if (index === 0 || currentHash === hashers[0].digest('hex')) {                                      // Keep the file if it matches the first file's hash
                         message += `File ${index}: <span style="color: green;">${files[index].path}</span><br>`
@@ -83,6 +90,7 @@ export async function hashFilesInIntervals(files) {
                     }
                 }
 
+
                 sendToClient(message)
                 const progress = ((processedBytes[0] / files[0].size) * 100).toFixed(2);
                 if (processedBytes[0] >= files[0].size) {                                                               // Check if the first file is fully processed
@@ -93,10 +101,7 @@ export async function hashFilesInIntervals(files) {
                 }
             }
 
-            if (files.length === 1) {                                                                                   // If there's only one file left, resolve early
-                files[0].hash = hashers[0].digest('hex');
-                return resolve(files);
-            }
+            return resolve(files);                                                                                      // If there's only one file left, resolve early
 
         } catch (error) {
             console.error('Error during file hashing:', error);
