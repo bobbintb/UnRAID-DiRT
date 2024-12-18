@@ -42,7 +42,7 @@ export async function hashFilesInIntervals(files) {
         try {
             while (files.length > 1) {                                                                                  // Continue processing as long as there's more than one file
                 let progressIndex
-                const fileChunkPromises = files.map((file, index) => {
+                const fileChunkPromises = await files.map((file, index) => {
                     progressIndex = index
                     return new Promise((chunkResolve, chunkReject) => {
                         if (processedBytes[index] >= file.size) {
@@ -81,7 +81,7 @@ export async function hashFilesInIntervals(files) {
                         message += `File ${index}: <span style="color: green;">${files[index].path}</span><br>`
                     } else {
                         message += `File ${index}: <span style="color: yellow;">${files[index].path}</span> (No match, removing from further processing.)<br>`
-                            await delHash(files[index],files,hashers,processedBytes,index)
+                        await delHash(files[index],files,hashers,processedBytes,index)
                     }
                 }
 

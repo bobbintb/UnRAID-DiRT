@@ -1,0 +1,59 @@
+Menu="Dashboard:0"
+Cond="version_compare(parse_ini_file('/etc/unraid-version')['version'],'6.11.9','>')"
+---
+<?PHP
+/*
+  Create a .page file based on this example file and store the file in your plugin directory
+  Make sure this file has a unique name not used by the GUI or other plugins
+
+  This is an example configuration which is used to add custom tiles to the dashboard
+  Placement of one or more custom tiles is done under column1, column2 or column3
+  A column can have as many new custom tiles as needed, each custom tile is a <tbody> element
+  Each tile must have these two properties set:
+
+  "_(description)_"    - this is the (translated) description shown in the Content Manager window
+  "_(Tile tile)_"      - this is the (translated) title of the tile shown in bold on the screen
+
+  The content of the tile can be any text as required by your plugin, this content is placed inside the <td> element
+  A number of predefined spans are available to make fields of certain widths and maybe used to follow the GUI alignment
+  These are:
+  <span class="w18">
+  <span class="w26">
+  <span class="w36">
+  <span class="w44">
+  <span class="w72">
+*/
+$pluginname = "DiRT"; // substitute this entry with the name of your plugin
+
+$mytiles[$pluginname]['column1'] =
+<<<EOT
+<tbody title="_(description)_">
+<tr><td>_(DiRT)_<a href="/Dashboard/Settings/dirtSettings" title="_(Go to DiRT settings)_"><i class="fa fa-fw fa-cog control"></i></a></td></tr>
+<tr><td>
+<script>
+    const socket = new WebSocket('ws://192.168.1.2:3001');  // Connect to WebSocket server
+
+    // Listen for messages from the server
+    socket.addEventListener('message', (event) => {
+        const consoleOutput = document.getElementById('console-output');
+        consoleOutput.innerHTML = event.data;  // Append new messages to the console output
+    });
+
+    $(function() {
+        let current_progress = 0;
+        const interval = setInterval(function () {
+            current_progress += 10;
+            $("#dynamic")
+                .css("width", current_progress + "%")
+                .attr("aria-valuenow", current_progress)
+                .text(current_progress + "% Complete");
+            if (current_progress >= 100)
+                clearInterval(interval);
+        }, 1000);
+    });
+</script>
+<div id="console-output" style="white-space: pre-wrap;"></div>
+</td></tr>
+</tbody>
+EOT;
+?>
