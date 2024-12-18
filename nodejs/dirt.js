@@ -39,9 +39,12 @@ app.get("/scan", async () => {
     console.time('scan');
     const shares = (Array.isArray(settings.share) ? settings.share : [settings.share])
         .map(share => `/mnt/user/${share}`);
+    let allFiles = [];
     for (const share of shares) {
-        await scan.getAllFiles(share);
+        const files = await scan.getAllFiles(share); // Capture the result of getAllFiles
+        allFiles = allFiles.concat(files);
     }
+    console.log(allFiles)
     console.log('Scan complete.')
     console.timeEnd('scan');
     console.debug("Saving files to database.");
