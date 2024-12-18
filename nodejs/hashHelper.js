@@ -23,7 +23,9 @@ function delHash(file,files,hashers,processedBytes,index) {
         if (files.length === 1) {                                                                                   // If there's only one file left, resolve early
             return resolve(files);
         }
-        delete file.hash;
+        if (files[index].hash) {
+            delete file.hash;
+        }
         files.splice(index, 1);
         hashers.splice(index, 1);
         processedBytes.splice(index, 1);
@@ -74,19 +76,12 @@ export async function hashFilesInIntervals(files) {
                 message += `file size: ${processedBytes[progressIndex]}<br>`;
                 message += `Progress: ${Math.round((processedBytes[progressIndex]/files[0].size)*100)}%<br>`;
                 for (let index = files.length - 1; index >= 0; index--) {
-                    if (files.length ===1) {
-                        console.log(files.length)
-                        console.log(files[index])
-                        console.log(message)
-                    }
                     const currentHash = hashers[index].digest('hex');
                     if (index === 0 || currentHash === hashers[0].digest('hex')) {                                      // Keep the file if it matches the first file's hash
                         message += `File ${index}: <span style="color: green;">${files[index].path}</span><br>`
                     } else {
                         message += `File ${index}: <span style="color: yellow;">${files[index].path}</span> (No match, removing from further processing.)<br>`
-                        if (files[index].hash) {
                             await delHash(files[index],files,hashers,processedBytes,index)
-                        }
                     }
                 }
 
