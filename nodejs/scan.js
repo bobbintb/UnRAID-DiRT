@@ -23,8 +23,8 @@ export function getSettings() {
 
 // Recursively scans a directory and adds each file to the queue
 // TODO investigate big delay when traversing large directories.
-export function getAllFiles(dirPath) {
-    let allFiles = [];
+export function getAllFiles(dirPath, allFiles) {
+    // let allFiles = [];
     function traverseDir(currentPath) {
         try {
             const entries = fs.readdirSync(currentPath, {withFileTypes: true});
@@ -42,10 +42,11 @@ export function getAllFiles(dirPath) {
                         mtime: stats.mtime,
                         ctime: stats.ctime
                     };
-                    if (!allFiles[size]) {
-                        allFiles[size] = [];
+                    if (!allFiles.has(size)) {
+                        allFiles.set(size, [fileInfo]);
+                    } else {
+                        allFiles.get(size).push(fileInfo);
                     }
-                    allFiles[size].push(fileInfo)
                 } else if (entry.isDirectory()) {
                     traverseDir(fullPath);
                 }

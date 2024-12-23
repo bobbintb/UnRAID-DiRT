@@ -1,12 +1,13 @@
 // noinspection SpellCheckingInspection
 
 import fs from 'fs';
-import blake3 from 'blake3';
+// import blake3 from 'blake3';
+import { blake3 } from '@noble/hashes/blake3';
 import { WebSocketServer, WebSocket } from 'ws';
 
 const CHUNK_SIZE = 1048576; // 1MB chunk size
 const wss = new WebSocketServer({ port: 3001 })
-await blake3.load();
+// await blake3.load();
 export let clientSocket = null;
 
 wss.on('connection', (ws) => {
@@ -35,8 +36,8 @@ function delHash(file,files,hashers,processedBytes,index) {
 
 // TODO: this needs to handle files being moved before starting hash. If it moved during it's fine, as it uses the file descriptor.
 // Maybe consider using the inode instead of filepath so you can get the filepath when needed or the file descriptor.
-export async function hashFilesInIntervals(files) {
-    let hashers = files.map(() => blake3.createHash());                                                                 // Create a hasher and track processed bytes for each file
+export async function hashFilesInIntervals(files, initial=false) {
+    let hashers = files.map(() => blake3.create());                                                                 // Create a hasher and track processed bytes for each file
     let processedBytes = files.map(() => 0);
     return new Promise(async (resolve, reject) => {
         try {
@@ -75,13 +76,18 @@ export async function hashFilesInIntervals(files) {
                 message += `file size: ${files[0].size}<br>`;
                 message += `file size: ${processedBytes[progressIndex]}<br>`;
                 message += `Progress: ${Math.round((processedBytes[progressIndex]/files[0].size)*100)}%<br>`;
+
                 for (let index = files.length - 1; index >= 0; index--) {
-                    const currentHash = hashers[index].digest('hex');
-                    if (index === 0 || currentHash === hashers[0].digest('hex')) {                                      // Keep the file if it matches the first file's hash
-                        message += `File ${index}: <span style="color: green;">${files[index].path}</span><br>`
+                    const currentHash = hashers[index]._cloneInto().digest('hex');
+                    if (initial) {
+
                     } else {
-                        message += `File ${index}: <span style="color: yellow;">${files[index].path}</span> (No match, removing from further processing.)<br>`
-                        await delHash(files[index],files,hashers,processedBytes,index)
+                        if (index === 0 || currentHash === hashers[0].digest('hex')) {                                  // Keep the file if it matches the first file's hash
+                            message += `File ${index}: <span style="color: green;">${files[index].path}</span><br>`
+                        } else {
+                            message += `File ${index}: <span style="color: yellow;">${files[index].path}</span> (No match, removing from further processing.)<br>`
+                            await delHash(files[index],files,hashers,processedBytes,index)
+                        }
                     }
                 }
 

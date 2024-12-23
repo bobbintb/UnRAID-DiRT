@@ -7,6 +7,7 @@ import {dirtySock} from "./socket.js";
 import {dequeueCreateFile, enqueueCreateFile, enqueueDeleteFile, enqueueMoveFile} from "./queueListener.js";
 import path from "path";
 import { WebSocketServer } from 'ws';
+import {hashFilesInIntervals} from "./hashHelper.js";
 
 const plugin = 'bobbintb.system.dirt';
 const app = express();
@@ -39,12 +40,27 @@ app.get("/scan", async () => {
     console.time('scan');
     const shares = (Array.isArray(settings.share) ? settings.share : [settings.share])
         .map(share => `/mnt/user/${share}`);
-    let allFiles = [];
+    // let allFiles = [];
+    let allFiles = new Map();
+
     for (const share of shares) {
-        const files = await scan.getAllFiles(share); // Capture the result of getAllFiles
-        allFiles = allFiles.concat(files);
+        allFiles = await scan.getAllFiles(share, allFiles); // Capture the result of getAllFiles
     }
+
+    allFiles.forEach((files, size) => {
+        if (files.length > 1) {
+            hashFilesInIntervals(files, true)
+            console.log(`Performing action for size: ${size}`);
+            // Example action: log each file path in the array
+            console.log(files.length)
+            files.forEach(file => {
+                console.log(`File Path: ${file.path}`);
+            });
+            // Perform other actions as needed here
+        }
+    });
     console.log(allFiles)
+    console.log(allFiles.length)
     console.log('Scan complete.')
     console.timeEnd('scan');
     console.debug("Saving files to database.");

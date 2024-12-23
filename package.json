@@ -1,6 +1,7 @@
 {
   "type": "module",
   "dependencies": {
+    "@noble/hashes": "^1.6.1",
     "bee-queue": "^1.7.1",
     "blake3": "^3.0.0",
     "bull": "^4.16.4",
