@@ -57,13 +57,15 @@ export async function hashFilesInIntervals(files, initial=false) {
                                 end: Math.min(processedBytes[index] + CHUNK_SIZE - 1, file.size - 1)
                             });
 
-                            stream.on('data', (chunk) => {                             // Directly update the hash with the current chunk
+                            stream.on('data', (chunk) => {                                                 // Directly update the hash with the current chunk
                                 hashers[index].update(chunk);
+                                files[index].currentHash = Buffer.from(hashers[index].state.buffer).toString('hex');
                                 processedBytes[index] += chunk.length;                                                  // Update the progress
                             });
 
                             stream.on('end', () => {
                                 chunkResolve(true);                                                               // Resolve the promise after the stream ends
+                                files[index].hash = hashers[index].digest();
                             });
 
                             stream.on('error', (error) => {
@@ -81,15 +83,10 @@ export async function hashFilesInIntervals(files, initial=false) {
                 message += `Progress: ${Math.round((processedBytes[progressIndex]/files[0].size)*100)}%<br>`;
 
                 for (let index = files.length - 1; index >= 0; index--) {
-                    let currentHash
-                    if (hashers[index] && 'state' in hashers[index]) {
-                        currentHash = Buffer.from(hashers[index].state.buffer).toString('hex');
-                        console.log('Intermediate Hash (Hex):', currentHash);
-                    } else {currentHash = hashers[index].digest();}
                     if (initial) {
 
                     } else {
-                        if (index === 0 || currentHash === hashers[0].digest('hex')) {                                  // Keep the file if it matches the first file's hash
+                        if (index === 0 || files[index].currentHash === hashers[0].digest('hex')) {                                  // Keep the file if it matches the first file's hash
                             message += `File ${index}: <span style="color: green;">${files[index].path}</span><br>`
                         } else {
                             message += `File ${index}: <span style="color: yellow;">${files[index].path}</span> (No match, removing from further processing.)<br>`
