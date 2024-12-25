@@ -45,22 +45,30 @@ app.get("/scan", async () => {
 
     for (const share of shares) {
         allFiles = await scan.getAllFiles(share, allFiles); // Capture the result of getAllFiles
+        allFiles.forEach((files, size) => {
+            if (files.length > 1) {
+                try {
+                    hashFilesInIntervals(files, true)
+
+                }
+                catch (error) {
+                    console.error(error);
+                    console.log(files)
+                }
+                // console.log(`Performing action for size: ${size}`);
+                // Example action: log each file path in the array
+                // console.log(files.length)
+                // files.forEach(file => {
+                //     console.log(`File Path: ${file.path}`);
+                // });
+                // Perform other actions as needed here
+            }
+        });
     }
 
-    allFiles.forEach((files, size) => {
-        if (files.length > 1) {
-            hashFilesInIntervals(files, true)
-            console.log(`Performing action for size: ${size}`);
-            // Example action: log each file path in the array
-            console.log(files.length)
-            files.forEach(file => {
-                console.log(`File Path: ${file.path}`);
-            });
-            // Perform other actions as needed here
-        }
-    });
-    console.log(allFiles)
-    console.log(allFiles.length)
+
+    // console.log(allFiles)
+    // console.log(allFiles.length)
     console.log('Scan complete.')
     console.timeEnd('scan');
     console.debug("Saving files to database.");

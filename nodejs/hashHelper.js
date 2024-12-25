@@ -33,10 +33,13 @@ function delHash(file,files,hashers,processedBytes,index) {
         resolve();
     });
 }
-
+function stateToHex(state) {
+    return Array.from(state).map(byte => byte.toString(16).padStart(2, '0')).join('');
+}
 // TODO: this needs to handle files being moved before starting hash. If it moved during it's fine, as it uses the file descriptor.
 // Maybe consider using the inode instead of filepath so you can get the filepath when needed or the file descriptor.
 export async function hashFilesInIntervals(files, initial=false) {
+    console.log(files)
     let hashers = files.map(() => blake3.create());                                                                 // Create a hasher and track processed bytes for each file
     let processedBytes = files.map(() => 0);
     return new Promise(async (resolve, reject) => {
@@ -54,7 +57,7 @@ export async function hashFilesInIntervals(files, initial=false) {
                                 end: Math.min(processedBytes[index] + CHUNK_SIZE - 1, file.size - 1)
                             });
 
-                            stream.on('data', (chunk) => {                                                 // Directly update the hash with the current chunk
+                            stream.on('data', (chunk) => {                             // Directly update the hash with the current chunk
                                 hashers[index].update(chunk);
                                 processedBytes[index] += chunk.length;                                                  // Update the progress
                             });
@@ -78,7 +81,11 @@ export async function hashFilesInIntervals(files, initial=false) {
                 message += `Progress: ${Math.round((processedBytes[progressIndex]/files[0].size)*100)}%<br>`;
 
                 for (let index = files.length - 1; index >= 0; index--) {
-                    const currentHash = hashers[index]._cloneInto().digest('hex');
+                    let currentHash
+                    if (hashers[index] && 'state' in hashers[index]) {
+                        currentHash = Buffer.from(hashers[index].state.buffer).toString('hex');
+                        console.log('Intermediate Hash (Hex):', currentHash);
+                    } else {currentHash = hashers[index].digest();}
                     if (initial) {
 
                     } else {
