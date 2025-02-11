@@ -39,7 +39,7 @@ function stateToHex(state) {
 // TODO: this needs to handle files being moved before starting hash. If it moved during it's fine, as it uses the file descriptor.
 // Maybe consider using the inode instead of filepath so you can get the filepath when needed or the file descriptor.
 export async function hashFilesInIntervals(files, initial=false) {
-    console.log(files)
+    // console.log(files)
     let hashers = files.map(() => blake3.create());                                                                 // Create a hasher and track processed bytes for each file
     let processedBytes = files.map(() => 0);
     return new Promise(async (resolve, reject) => {

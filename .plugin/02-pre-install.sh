@@ -80,7 +80,7 @@ install_package "valkey" \
 "https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/valkey/valkey-8.0.1-x86_64-1_SBo.tgz"
 
 install_package "redisearch" \
-"https://github.com/bobbintb/Slackware_Packages/raw/main/redisearch/2.10.7/redisearch.so" \
+"https://github.com/bobbintb/Slackware_Packages/raw/main/builds/redisearch/2.10.7/redisearch.so" \
 "/usr/bin/valkey-modules/"
 
 install_package "go-audit" \
