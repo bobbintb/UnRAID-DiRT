@@ -1,7 +1,7 @@
 #dirt {
-    --main_container_height: 65vh;
+    /*--main_container_height: 65vh;*/
     /*border: 1 px solid black;*/
-    height: var(--main_container_height);
+    /*height: var(--main_container_height);*/
     /*display: flex;*/
     /*flex-direction: row;*/
     /*margin-top: -30px;*/

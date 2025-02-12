@@ -1,14 +1,11 @@
 Network security audit. Check http and https. Check orgins allowed.
+simplify icon columns changing styles
+simplify check-all logic
+    https://jsfiddle.net/cemmons/6fghegn4/2
+    https://jsfiddle.net/m3jpghb8/
 setup valkey persistence
 always says laurel not installed
 restoring defaults on settings page not working for shares
 bug: if group is collapsed and header icon clicked, it is 'selected' but rows don't get simulated click
 add "running" indicator in upper right
 fix css in settings page
-
-ebpm...
-fix OOM error on scan
-add message screen when deleting
-fix issue with valkey connections.
-add scan to dashboard
-fix issue with files still hashing when only one left

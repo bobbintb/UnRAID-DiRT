@@ -1,13 +1,12 @@
 // noinspection SpellCheckingInspection
 
 import fs from 'fs';
-// import blake3 from 'blake3';
-import { blake3 } from '@noble/hashes/blake3';
+import blake3 from 'blake3';
 import { WebSocketServer, WebSocket } from 'ws';
 
 const CHUNK_SIZE = 1048576; // 1MB chunk size
 const wss = new WebSocketServer({ port: 3001 })
-// await blake3.load();
+await blake3.load();
 export let clientSocket = null;
 
 wss.on('connection', (ws) => {
@@ -21,89 +20,87 @@ export function sendToClient(message) {
 }
 function delHash(file,files,hashers,processedBytes,index) {
     return new Promise(resolve => {
-        if (files.length === 1) {                                                                                   // If there's only one file left, resolve early
-            return resolve(files);
-        }
-        if (files[index].hash) {
-            delete file.hash;
-        }
+        delete file.hash;
         files.splice(index, 1);
         hashers.splice(index, 1);
         processedBytes.splice(index, 1);
         resolve();
     });
 }
-function stateToHex(state) {
-    return Array.from(state).map(byte => byte.toString(16).padStart(2, '0')).join('');
+
+// TODO: this needs to handle files being moved before starting hash. If it moved during it's fine, as it uses the file descriptor.
+// Maybe consider using the inode instead of filepath so you can get the filepath when needed or the file descriptor.
+export async function hashFilesInIntervals(files) {
+    let hashers = files.map(() => blake3.createHash());                                                                 // Create a hasher and track processed bytes for each file
+    let processedBytes = files.map(() => 0);
+    return new Promise(async (resolve, reject) => {
+        try {
+            while (files.length > 1) {                                                                                  // Continue processing as long as there's more than one file
+                let progressIndex
+                const fileChunkPromises = files.map((file, index) => {
+                    progressIndex = index
+                    return new Promise((chunkResolve, chunkReject) => {
+                        if (processedBytes[index] >= file.size) {
+                            chunkResolve(null);                                                                   // File fully processed
+                        } else {
+                            const stream = fs.createReadStream(file.path[0], {                                   // Read the next 1MB chunk from the file
+                                start: processedBytes[index],
+                                end: Math.min(processedBytes[index] + CHUNK_SIZE - 1, file.size - 1)
+                            });
+
+                            const chunks = [];
+                            stream.on('data', (chunk) => {                                                 // Directly update the hash with the current chunk
+                                hashers[index].update(chunk);
+                                processedBytes[index] += chunk.length;                                                  // Update the progress
+                            });
+
+                            stream.on('end', () => {
+                                chunkResolve(true);                                                               // Resolve the promise after the stream ends
+                            });
+
+                            stream.on('error', (error) => {
+                                console.error(`Error processing file: ${file.path[0]}`, error);
+                                chunkReject(error);                                                                     // Reject if there's a stream error
+                            });
+                        }
+                    });
+                });
+
+                await Promise.all(fileChunkPromises);                                                                   // Wait for all chunk reads to complete
+                let message = `Currently processing: ${files[0].path}<br>`;                                             // Compare the intermediate hashes
+                message += `file size: ${files[0].size}<br>`;
+                message += `file size: ${processedBytes[progressIndex]}<br>`;
+                message += `Progress: ${Math.round((processedBytes[progressIndex]/files[0].size)*100)}%<br>`;
+                for (let index = files.length - 1; index >= 0; index--) {
+                    const currentHash = hashers[index].digest('hex');
+                    if (index === 0 || currentHash === hashers[0].digest('hex')) {                                      // Keep the file if it matches the first file's hash
+                        message += `File ${index}: <span style="color: green;">${files[index].path}</span><br>`
+                    } else {
+                        message += `File ${index}: <span style="color: yellow;">${files[index].path}</span> (No match, removing from further processing.)<br>`
+                        if (files[index].hash) {
+                            await delHash(files[index],files,hashers,processedBytes,index)
+                        }
+                    }
+                }
+
+                sendToClient(message)
+                const progress = ((processedBytes[0] / files[0].size) * 100).toFixed(2);
+                if (processedBytes[0] >= files[0].size) {                                                               // Check if the first file is fully processed
+                    files.forEach((file, index) => {
+                        file.hash = hashers[index].digest('hex');
+                    });
+                    return resolve(files);                                                                              // Resolve once all files are hashed
+                }
+            }
+
+            if (files.length === 1) {                                                                                   // If there's only one file left, resolve early
+                files[0].hash = hashers[0].digest('hex');
+                return resolve(files);
+            }
+
+        } catch (error) {
+            console.error('Error during file hashing:', error);
+            reject(error);                                                                                              // Reject the promise if there's any error
+        }
+    });
 }
-
-function processFileChunk(file, hasher, totalProcessedBytes) {
-    return new Promise((resolve, reject) => {
-      // let stream = fs.createReadStream(file.path, { highWaterMark: CHUNK_SIZE, start: totalProcessedBytes });
-      const stream = fs.createReadStream(file.path, {                                   // Read the next 1MB chunk from the file
-        start: totalProcessedBytes,
-        end: Math.min(totalProcessedBytes + CHUNK_SIZE - 1, file.size - 1)
-    });
-  
-      // Read file in chunks
-      stream.on('data', (chunk) => {
-        hasher.update(chunk);  // Update the hasher with the current chunk
-        file.currentHash = Buffer.from(hasher.state.buffer).toString('hex');
-        totalProcessedBytes += chunk.length;
-        // console.log(`Intermediate hash for ${file.path} chunk :`, intermediateHash);  // Log intermediate hash
-      });
-  
-      // When the file has been fully processed, resolve the promise
-      stream.on('end', () => {
-        // console.log(`Finished processing chunk  of ${file.path}`);
-        file.hash = hasher.digest();
-        resolve();  // Resolve when chunk processing is complete
-      });
-  
-      // If there is an error during the file processing, reject the promise
-      stream.on('error', (err) => {
-        // console.error('Error reading file:', err);
-        reject(err);
-      });
-    });
-  }
-  
-  export async function hashFilesInIntervals(files) {
-    let hashers = files.map(() => blake3.create());
-    let chunkIndex = 0;
-    
-    let fileSize = files[0].size;
-    let maxChunks = Math.ceil(fileSize / CHUNK_SIZE);
-    let totalProcessedBytes = files.map(() => 0);
-    while (chunkIndex < maxChunks) {
-      const promises = files.map((file, index) => {
-        return processFileChunk(file, hashers[index], totalProcessedBytes[index]);
-      });
-  
-      await Promise.all(promises);
-    
-      let message = `Currently processing: ${files[0].path}<br>`;
-      message += `Iteration: ${chunkIndex}<br>`;
-
-      files.forEach((file, index) => {
-        if (file.currentHash === files[0].currentHash) {
-          message += `File ${index}: <span style="color: green;">${file.path}</span><br>`
-      } else {
-          message += `File ${index}: <span style="color: yellow;">${file.path}</span> (No match, removing from further processing.)<br>`
-          // await delHash(files[index],files,hashers,processedBytes,index)
-      }
-      });
-
-      message += `File size: ${fileSize}<br>`;
-      message += `Total processed bytes: ${totalProcessedBytes}<br>`;
-      message += `Progress: ${Math.round((totalProcessedBytes / fileSize) * 100)}%<br>`;
-      
-      sendToClient(message);
-  
-      chunkIndex++;
-    }
-  
-    console.log('All files have been processed.');
-    return files; 
-  }
-  
