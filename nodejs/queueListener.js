@@ -55,7 +55,7 @@ export async function dequeueCreateFile(file) {
     }
 
     let sameSizeFiles = await filesOfSize(size)
-    if (sameSizeFiles.length > 0) {
+    if (sameSizeFiles.length > 0 && sameSizeFiles[0].size !== 0) {
         sameSizeFiles.splice(0, 0, fileInfo); // adds working file to the front of the array of same size files
         const results = await hashFilesInIntervals(sameSizeFiles);
         await fileRepository.save(key, results[0])    // add the new file first
