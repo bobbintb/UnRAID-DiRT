@@ -21,6 +21,21 @@ export function getSettings() {
     }
 }
 
+export function getFileStats(file) {
+    const stats = fs.statSync(file, {bigint: true});
+    const size = Number(stats.size)
+    const key = stats.ino.toString()
+    const fileInfo = {
+        path: [file],
+        nlink: Number(stats.nlink),
+        size: size,
+        atime: stats.atime,
+        mtime: stats.mtime,
+        ctime: stats.ctime
+    };
+    return fileInfo, key;
+}
+
 // Recursively scans a directory and adds each file to the queue
 // TODO investigate big delay when traversing large directories.
 export function getAllFiles(dirPath) {

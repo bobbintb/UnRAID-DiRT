@@ -1,6 +1,7 @@
 import fs from "fs";
 import {hashFilesInIntervals} from "./hashHelper.js"
 import {fileRepository, filesOfSize, scanQueue, redis} from "./redisHelper.js";
+import {getFileStats} from "./scan.js";
 
 
 export function enqueueDeleteFile(src) {
@@ -32,15 +33,16 @@ export function enqueueMoveFile(src, dest) {
 export async function dequeueCreateFile(file) {
     const stats = fs.statSync(file, {bigint: true});
     const size = Number(stats.size)
-    const key = stats.ino.toString()
-    const fileInfo = {
-        path: [file],
-        nlink: Number(stats.nlink),
-        size: size,
-        atime: stats.atime,
-        mtime: stats.mtime,
-        ctime: stats.ctime
-    };
+    // const key = stats.ino.toString()
+    // const fileInfo = {
+    //     path: [file],
+    //     nlink: Number(stats.nlink),
+    //     size: size,
+    //     atime: stats.atime,
+    //     mtime: stats.mtime,
+    //     ctime: stats.ctime
+    // };
+    const [key, fileInfo] = getFileStats(file)
 
         // Good enough for now but inefficient. Checks if the inode exists first (hardlink) and adds it to `path`.
     if (await redis.exists('ino:' + key) === 1) {
