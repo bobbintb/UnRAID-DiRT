@@ -18,9 +18,8 @@ export function sendToClient(message) {
         clientSocket.send(message);
     }
 }
-function delHash(file,files,hashers,processedBytes,index) {
+function delHash(files,hashers,processedBytes,index) {
     return new Promise(resolve => {
-        delete file.hash;
         files.splice(index, 1);
         hashers.splice(index, 1);
         processedBytes.splice(index, 1);
@@ -29,11 +28,13 @@ function delHash(file,files,hashers,processedBytes,index) {
 }
 
 async function processFileChunks(files, hashers, processedBytes, CHUNK_SIZE) {
+    await new Promise(resolve => setTimeout(resolve, 3000));
     return files.map((file, index) => {
+        // let end = files[0].size < CHUNK_SIZE ? files[0].size : Math.min(processedBytes[index] + CHUNK_SIZE - 1, file.size - 1);
         return new Promise((chunkResolve, chunkReject) => {
                 const stream = fs.createReadStream(file.path[0], { // Read the next chunk from the file
                     start: processedBytes[index],
-                    end: Math.min(processedBytes[index] + CHUNK_SIZE - 1, file.size - 1)
+                    end: Math.min(processedBytes[index] + CHUNK_SIZE - 1, files[0].size - 1)
                 });
 
                 const chunks = [];
@@ -67,21 +68,26 @@ export async function hashFilesInIntervals(files) {
                 let fileChunkPromises = await processFileChunks(files, hashers, processedBytes, CHUNK_SIZE);
 
                 await Promise.all(fileChunkPromises);                                                                   // Wait for all chunk reads to complete
+                let ogHash = hashers[0].digest('hex');
                 let message = `Currently processing: ${files[0].path}<br>`;                                             // Compare the intermediate hashes
                 message += `file size: ${files[0].size}<br>`;
+                message += `number of files: ${files.length}<br>`;
                 message += `iteration: ${progressIndex}<br>`;
-                message += `Progress: ${Math.round((processedBytes[progressIndex]/files[0].size)*100)}%<br>`;
-                for (let index = files.length - 1; index >= 0; index--) {
+                message += `Progress: ${((processedBytes[0] / files[0].size) * 100).toFixed(2)}%<br>`;
+                message += `File 0: ${ogHash}<br>`
+                for (let index = files.length - 1; index >= 1; index--) {
                     const currentHash = hashers[index].digest('hex');
-                    if (index === 0 || currentHash === hashers[0].digest('hex')) {                                      // Keep the file if it matches the first file's hash
-                        message += `File ${index}: <span style="color: green;">${files[index].path}</span><br>`
+                    if (currentHash === ogHash) {                                      // Keep the file if it matches the first file's hash
+                        message += `File ${index}: ${currentHash}: <span style="color: green;">${files[index].path}</span><br>`
                     } else {
-                        message += `File ${index}: <span style="color: yellow;">${files[index].path}</span> (No match, removing from further processing.)<br>`
-                        if (files[index].hash) {
-                            await delHash(files[index],files,hashers,processedBytes,index)
-                        }
+                        message += `File ${index}: ${currentHash}: <span style="color: yellow;">${files[index].path}</span> (No match, removing from further processing.)<br>`
+                            files.splice(index, 1);
+                            hashers.splice(index, 1);
+                            processedBytes.splice(index, 1);
                     }
                 }
+
+                message += `current number of files: ${files.length}<br>`;
 
                 sendToClient(message)
                 const progress = ((processedBytes[0] / files[0].size) * 100).toFixed(2);
