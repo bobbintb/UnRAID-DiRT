@@ -3,8 +3,9 @@ simplify icon columns changing styles
 simplify check-all logic
     https://jsfiddle.net/cemmons/6fghegn4/2
     https://jsfiddle.net/m3jpghb8/
-setup valkey persistence
-always says laurel not installed
+setup valkey persistence, can set db dir but it doesn't do anything yet
+default of setting spage does nothing i think
+
 restoring defaults on settings page not working for shares
 bug: if group is collapsed and header icon clicked, it is 'selected' but rows don't get simulated click
 add "running" indicator in upper right
