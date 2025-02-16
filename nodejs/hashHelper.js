@@ -28,7 +28,7 @@ function delHash(files,hashers,processedBytes,index) {
 }
 
 async function processFileChunks(files, hashers, processedBytes, CHUNK_SIZE) {
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // await new Promise(resolve => setTimeout(resolve, 3000));
     return files.map((file, index) => {
         // let end = files[0].size < CHUNK_SIZE ? files[0].size : Math.min(processedBytes[index] + CHUNK_SIZE - 1, file.size - 1);
         return new Promise((chunkResolve, chunkReject) => {
@@ -103,6 +103,9 @@ export async function hashFilesInIntervals(files) {
                 files[0].hash = hashers[0].digest('hex');
                 return resolve(files);
             }
+
+            message = `Done.`;
+            sendToClient(message)
 
         } catch (error) {
             console.error('Error during file hashing:', error);
