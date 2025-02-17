@@ -9,7 +9,8 @@ $plugin  = 'bobbintb.system.dirt';
 $cfg     = parse_plugin_cfg($plugin);
 $width   = [400,300];
 $blacklist = ['system'];
-$cfg['datetime_format']		= $cfg['datetime_format'] ?? "f";
+$cfg['datetime_format']	= $cfg['datetime_format'] ?? "f";
+$cfg['dbdir'] = $cfg['dbdir'] ?? "/boot/config/plugins/$plugin/";
 $cfg['share'] = $cfg['share'] ?? implode(',', array_diff(array_column($shares, 'name'), $blacklist));
 ?>
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>">
@@ -25,7 +26,7 @@ $cfg['share'] = $cfg['share'] ?? implode(',', array_diff(array_column($shares, '
 <input type="hidden" name="#file" value="<?=$plugin?>/<?=$plugin?>.cfg">
 
 _(Included share(s))_:
-: <select id="s1" name="share" multiple style="display:none">
+: <select id="share" name="share" multiple style="display:none">
   <?foreach ($shares as $share):?>
   <?=mk_option_check($cfg['share'], $share['name'], $share['name'])?>
   <?endforeach;?>
@@ -38,9 +39,8 @@ _(Datetime format)_:
 > The datetime format for file metadata. See here for available options: [Luxon Date Tokens](https://moment.github.io/luxon/#/parsing?id=table-of-tokens)
 :end
 
-<!--_(Default database path)_:-->
-<!--: <input type="text" id="dbdir" name="dbdir" autocomplete="off" spellcheck="false" data-pickfolders="true" data-pickfilter="HIDE_FILES_FILTER" data-pickroot="--><?php //=is_dir('/boot/config/plugins/'.$plugin)?'/boot/config/plugins/'.$plugin:'/mnt'?><!--" value="--><?php //=htmlspecialchars($cfg['dbdir'])?><!--" placeholder="_(Click to Select)_" pattern="^[^\\]*/$">-->
-<!--  --><?//if (!is_dir($cfg['dbdir'])):?><!--<span><i class="fa fa-warning icon warning"></i> _(Path does not exist)_</span>--><?//endif;?>
+_(Database directory)_:
+: <input type="text" id="dbdir" name="dbdir" autocomplete="off" spellcheck="false" value="<?=$cfg['dbdir']?>" data-pickfolders="true" data-pickfilter="HIDE_FILES_FILTER"> <?if (!is_dir($cfg['dbdir'])):?><span><i class="fa fa-warning icon warning"></i> _(Path does not exist)_</span><?endif;?>
 <script src="<?autov('/webGui/javascript/jquery.filetree.js')?>" charset="utf-8"></script>
 <script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
 <script src="<?autov('/plugins/dynamix.vm.manager/javascript/dynamix.vm.manager.js')?>"></script>
@@ -64,21 +64,48 @@ function scan() {
 
 function prepareShare(form) {
   var share = '';
+  
   for (var i=0,item; item=form.share.options[i]; i++) {
     if (item.selected) {
+      console.log("Selected before submission:", item.value);
       if (share.length) share += ',';
       share += item.value;
       item.selected = false;
     }
   }
+  var after = share.split(',').map(s => `/mnt/user/${s}`);
+  var before = "<?= $cfg['share'] ?>".split(',').map(s => `/mnt/user/${s}`);
+
+  var removed = before.filter(x => !after.includes(x));
+  var added = after.filter(x => !before.includes(x));
+
+  console.log("Removed:", removed);
+  console.log("Added:", added);
+  
+  
+  
   item = form.share.options[0];
   item.value = share;
   item.selected = true;
   $('input.thin').prop('disabled',false);
 }
 
+function removeShare(removed) {
+	if (removed.length > 0) {
+    fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/removePaths`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ before: removed })
+    })
+    .then(response => response.json())
+    .then(data => console.log("Remove Response:", data))
+    .catch(error => console.error('Error:', error));
+  }
+}
+
+
 $(function() {
-  $('#s1').dropdownchecklist({emptyText:'_(None)_', width:<?=$width[0]?>, explicitClose:'..._(close)_'});
+  $('#share').dropdownchecklist({emptyText:'_(None)_', width:<?=$width[0]?>, explicitClose:'..._(close)_'});
 });
 
 </script>

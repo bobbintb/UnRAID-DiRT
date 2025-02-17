@@ -166,3 +166,20 @@ export async function findDuplicateHashes() {
         throw error;
     }
 }
+
+export async function removePathsStartingWith(before) {
+    const entities = await fileRepository.search()
+        .where('path').matches(`${before}*`)
+        .return.all();
+
+    for (const entity of entities) {
+        const updatedPaths = entity.path.filter(p => !p.startsWith(before));
+
+        if (updatedPaths.length > 0) {
+            await fileRepository.save({ ...entity, path: updatedPaths });
+        } else {
+            await fileRepository.remove(entity[Object.getOwnPropertySymbols(entity).find(sym => sym.description === 'entityId')]);
+        }
+    }
+}
+

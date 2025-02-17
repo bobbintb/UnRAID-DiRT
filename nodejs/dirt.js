@@ -72,6 +72,21 @@ app.get('/load', async (req, res) => {
   }
 });
 
+// called from dirtSettings.page
+app.post("/removeShare", async () => {
+    console.log('Starting scan...')
+    console.time('scan');
+    const shares = (Array.isArray(settings.share) ? settings.share : [settings.share])
+        .map(share => `/mnt/user/${share}`);
+    for (const share of shares) {
+        await scan.getAllFiles(share);
+    }
+    console.log('Scan complete.')
+    console.timeEnd('scan');
+    console.debug("Saving files to database.");
+    console.debug("Done saving files to database.");
+});
+
 // called from dirt.php
 app.post("/addToProcessQueue", (req, res) => {
     enqueueFileAction(req.body)
