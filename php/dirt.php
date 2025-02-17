@@ -1,35 +1,59 @@
 <script type="module">
-    async function addToProcessQueue(dataObj) {
-        try {
-            const response = await fetch("http://127.0.0.1:3000/dirt/addToProcessQueue/", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(dataObj)
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            return null;
-        }
-    }
+    const socket = new WebSocket('ws://127.0.0.1:3001');
+
+    function dirtySock(type, dataObj) {
+    return new Promise((resolve, reject) => {
+        const message = {
+            clientId: "dirt.php",
+            type: type,
+            data: dataObj
+        };
+
+        socket.send(JSON.stringify(message));
+
+        socket.addEventListener("message", (event) => {
+            resolve(event.data);
+        });
+
+        socket.addEventListener("error", (error) => {
+            reject(error);
+        });
+    });
+}
+
+
+    // async function addToProcessQueue(dataObj) {
+    //     try {
+    //         const response = await fetch("http://127.0.0.1:3000/dirt/addToProcessQueue/", {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json'
+    //             },
+    //             body: JSON.stringify(dataObj)
+    //         });
+    //         if (!response.ok) {
+    //             throw new Error(`HTTP error! status: ${response.status}`);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error fetching data:', error);
+    //         return null;
+    //     }
+    // }
 
     document.addEventListener("DOMContentLoaded", function() {
         const clearButton = document.getElementById('clearButton');
         clearButton.addEventListener('click', function() {
             const isConfirmed = confirm("Are you sure you want to clear?");
             if (isConfirmed) {
-                fetch("http://127.0.0.1:3000/dirt/clear")
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data);
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
+                dirtySock("clear", data)
+                // fetch("http://127.0.0.1:3000/dirt/clear")
+                //     .then(response => response.json())
+                //     .then(data => {
+                //         console.log(data);
+                //     })
+                //     .catch(error => {
+                //         console.error('Error:', error);
+                //     });
                 location.reload()
             }
         });
@@ -301,7 +325,7 @@
                     rowElement.classList.add('disabled');
                     let rowData = row.getData();
                     rowData.action = "og";
-                    if (table.ogs[rowData.hash] === undefined) addToProcessQueue(rowData);
+                    if (table.ogs[rowData.hash] === undefined) dirtySock("addToProcessQueue", rowData);
                 }
             }
         },
@@ -372,13 +396,13 @@
             ['fa-trash', 'fa-link'].forEach(icon => row.getElement().querySelector(`.fa.${icon}`).style.border = 'initial');
             ['delete', 'link'].forEach(id => row.getElement().querySelector(`input[type="checkbox"]#${id}`).checked = false);
             rowData.action = 'og';
-            addToProcessQueue(rowData);
+            dirtySock("addToProcessQueue", rowData);
         } else
         if (e.target.type === 'checkbox') {
             const targetId = e.target.id === 'delete' ? 'link' : 'delete';
             rowData.action = e.target.checked ? (targetId === 'link' ? 'delete' : 'link') : '';
             row.getElement().querySelector(`input[type="checkbox"]#${targetId}`).checked = false;
-            addToProcessQueue(rowData);
+            dirtySock("addToProcessQueue", rowData);
         }
 
     }
