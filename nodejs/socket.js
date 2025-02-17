@@ -26,7 +26,7 @@ export function dirtySock(onDataCallback) {
                         value = value.slice(1, -1)
                     }
 
-                    acc[key] = value; // Remove quotes from string values
+                    acc[key] = value;
 
                     return acc;
                 }, {})})

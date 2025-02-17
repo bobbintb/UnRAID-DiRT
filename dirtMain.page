@@ -18,7 +18,7 @@ Icon="fa-search-minus"
 </head>
 <body>
 <script>
-    const socket = new WebSocket('ws://192.168.1.2:3001');  // Connect to WebSocket server
+    const socket = new WebSocket('ws://127.0.0.1:3001');  // Connect to WebSocket server
 
     // Listen for messages from the server
     socket.addEventListener('message', (event) => {

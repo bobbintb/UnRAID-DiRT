@@ -64,7 +64,9 @@ function scan() {
 
 function prepareShare(form) {
   var share = '';
-  
+  console.log(JSON.stringify(<?php echo json_encode($_SERVER); ?>, null, 2));
+
+
   for (var i=0,item; item=form.share.options[i]; i++) {
     if (item.selected) {
       console.log("Selected before submission:", item.value);
@@ -81,7 +83,7 @@ function prepareShare(form) {
 
   console.log("Removed:", removed);
   console.log("Added:", added);
-  
+  removeShare(removed)
   
   
   item = form.share.options[0];
@@ -92,10 +94,10 @@ function prepareShare(form) {
 
 function removeShare(removed) {
 	if (removed.length > 0) {
-    fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/removePaths`, {
+    fetch("http://127.0.0.1:3000/dirt/removeShare", {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ before: removed })
+      body: JSON.stringify(removed)
     })
     .then(response => response.json())
     .then(data => console.log("Remove Response:", data))

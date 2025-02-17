@@ -1,7 +1,7 @@
 <script type="module">
     async function addToProcessQueue(dataObj) {
         try {
-            const response = await fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/addToProcessQueue/`, {
+            const response = await fetch("http://127.0.0.1:3000/dirt/addToProcessQueue/", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -22,7 +22,7 @@
         clearButton.addEventListener('click', function() {
             const isConfirmed = confirm("Are you sure you want to clear?");
             if (isConfirmed) {
-                fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/clear`)
+                fetch("http://127.0.0.1:3000/dirt/clear")
                     .then(response => response.json())
                     .then(data => {
                         console.log(data);
@@ -33,10 +33,35 @@
                 location.reload()
             }
         });
+    
+        // document.addEventListener("DOMContentLoaded", function() {
+        //     const clearButton = document.getElementById('clearButton');
+        //                 const socket = new WebSocket('ws://127.0.0.1:3000/wsproxy/clear');
+        //     socket.onmessage = function(event) {
+        //         const data = JSON.parse(event.data);
+        //         console.log('Message from server:', data);
+        //     };
+        //     clearButton.addEventListener('click', function() {
+        //         const isConfirmed = confirm("Are you sure you want to clear?");
+        //         if (isConfirmed) {
+        //             const message = { action: "clear" };
+        //             socket.send(JSON.stringify(message));
+        //             socket.onmessage = function(event) {
+        //                 const data = JSON.parse(event.data);
+        //                 if (data.status === 'success') {
+        //                     location.reload();
+        //                 } else {
+        //                     console.error("Error while clearing:", data.error);
+        //                 }
+        //             };
+        //         }
+        //     });
+        // });
+
 
         const processButton = document.getElementById('processButton');
         processButton.addEventListener('click', function() {
-            fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/process`)
+            fetch("http://127.0.0.1:3000/dirt/process")
                 .then(response => response.json())
                 .then(data => {
                     console.log(data);
