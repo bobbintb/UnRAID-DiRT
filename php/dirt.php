@@ -1,7 +1,7 @@
 <script type="module">
     const socket = new WebSocket('ws://127.0.0.1:3001');
 
-    function dirtySock(type, dataObj) {
+    function dirtySock(type, dataObj = null) {
     return new Promise((resolve, reject) => {
         const message = {
             clientId: "dirt.php",
@@ -9,17 +9,24 @@
             data: dataObj
         };
 
+        const handleMessage = (event) => {
+            try {
+                const response = JSON.parse(event.data);
+                resolve(response);
+            } catch {
+                reject("Invalid response format");
+            } finally {
+                socket.removeEventListener("message", handleMessage);
+            }
+        };
+
+        socket.addEventListener("message", handleMessage);
+        socket.addEventListener("error", reject);
+
         socket.send(JSON.stringify(message));
-
-        socket.addEventListener("message", (event) => {
-            resolve(event.data);
-        });
-
-        socket.addEventListener("error", (error) => {
-            reject(error);
-        });
     });
 }
+
 
 
     // async function addToProcessQueue(dataObj) {
@@ -132,33 +139,41 @@
     let groups = {};
     let datetime_format;
 
+    dirtySock("dirt.php", "load").then(response => {
+    const tableData = response.success;
+    console.log(myVariable);
+    }).catch(console.error);
+
+
     const table = new Tabulator("#dirt", {
+        reactiveData:true,
+        data:tableData,
         selectableRows: 1,
         dataTree: true,
         dataTreeStartExpanded: true,
         dataTreeElementColumn: "path",
-        ajaxURL: `http://192.168.1.2:3000/load`,
-        ajaxConfig: { method: "GET" },
-        ajaxResponse: function(url, params, response) {
-            datetime_format = response.datetime_format
-            this.options.columns[6].formatterParams.outputFormat=datetime_format
-            this.options.columns[7].formatterParams.outputFormat=datetime_format
-            this.options.columns[8].formatterParams.outputFormat=datetime_format
-            this.ogs = response.ogs
-            this.jobs = response.jobs
-            response.result = response.result.flatMap(obj =>
-                obj.path.length === 1
-                    ? [{ ...obj, path: obj.path[0] }]
-                    : [
-                        {
-                            ...obj,
-                            path: obj.path[0],
-                            _children: obj.path.slice(1).map(p => ({ ...obj, path: p }))
-                        }
-                    ]
-            );
-            return response.result;
-        },
+        // ajaxURL: `http://192.168.1.2:3000/load`,
+        // ajaxConfig: { method: "GET" },
+        // ajaxResponse: function(url, params, response) {
+        //     datetime_format = response.datetime_format
+        //     this.options.columns[6].formatterParams.outputFormat=datetime_format
+        //     this.options.columns[7].formatterParams.outputFormat=datetime_format
+        //     this.options.columns[8].formatterParams.outputFormat=datetime_format
+        //     this.ogs = response.ogs
+        //     this.jobs = response.jobs
+        //     response.result = response.result.flatMap(obj =>
+        //         obj.path.length === 1
+        //             ? [{ ...obj, path: obj.path[0] }]
+        //             : [
+        //                 {
+        //                     ...obj,
+        //                     path: obj.path[0],
+        //                     _children: obj.path.slice(1).map(p => ({ ...obj, path: p }))
+        //                 }
+        //             ]
+        //     );
+        //     return response.result;
+        // },
         groupBy: "hash",
         setGroupStartOpen: true,
         layout:"fitDataStretch",

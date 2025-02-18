@@ -26,12 +26,6 @@ function loadSettings(file) {
     return settings;
 }
 
-process.on('SIGINT', () => {
-    redis.quit(() => {
-        console.log('Redis connection closed');
-        process.exit(0); // Graceful shutdown
-    });
-});
 
 async function removeShare () {
     console.log(req);
@@ -81,13 +75,13 @@ async function load() {
     }, {});
     
     try {
-    const result = await findDuplicateHashes();
-    res.json({
-        result: result,
-        datetime_format: settings.datetime_format,
-        jobs: jobs,
-        ogs: ogs
-    });
+        const result = await findDuplicateHashes();
+        res.json({
+            result: result,
+            datetime_format: settings.datetime_format,
+            jobs: jobs,
+            ogs: ogs
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -125,25 +119,31 @@ dirt.on('connection', (ws) => {
                 default:
                     ws.send(JSON.stringify({ error: "Unknown message type" }));
                     }
-        } catch (error) {
-            ws.send(JSON.stringify({ error: "Invalid message format" }));
-        }
-    });
-    
-    ws.on('close', () => {
-        clients.delete(clientId);
+                } catch (error) {
+                    ws.send(JSON.stringify({ error: "Invalid message format" }));
+                }
+            });
+            
+            ws.on('close', () => {
+                clients.delete(clientId);
+            });
+        });
+        
+        
+        console.log('WebSocket server running on ws://127.0.0.1:3000');
+process.on('SIGINT', () => {
+    redis.quit(() => {
+        console.log('Redis connection closed');
+        process.exit(0); // Graceful shutdown
     });
 });
-
-
-console.log('WebSocket server running on ws://127.0.0.1:3000');
-// app.use(express.json()); // Middleware to parse JSON bodies
-
-// app.use((req, res, next) => {
-    //     res.header('Access-Control-Allow-Origin', '*');
-    //     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    //     res.header('Access-Control-Allow-Methods', 'POST'); // Ensure POST is included
-    //     next();
+        // app.use(express.json()); // Middleware to parse JSON bodies
+        
+        // app.use((req, res, next) => {
+            //     res.header('Access-Control-Allow-Origin', '*');
+            //     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+            //     res.header('Access-Control-Allow-Methods', 'POST'); // Ensure POST is included
+            //     next();
     // });
     
     
@@ -165,11 +165,11 @@ console.log('WebSocket server running on ws://127.0.0.1:3000');
             
             // called from dirtSettings.page
             // app.get('/dirt/load', async (req, res) => {
-//     const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
-//     const ogs = await redis.hGetAll("dirt:process:og")
-//     const jobs = (await processQueue.getJobs('paused')).reduce((acc, job) => {
-    //         acc[job.id] = job.data.action;
-//         return acc;
+                //     const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
+                //     const ogs = await redis.hGetAll("dirt:process:og")
+                //     const jobs = (await processQueue.getJobs('paused')).reduce((acc, job) => {
+                    //         acc[job.id] = job.data.action;
+                    //         return acc;
 //     }, {});
 
 //     try {
