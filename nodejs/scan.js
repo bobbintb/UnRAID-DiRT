@@ -42,7 +42,7 @@ export function getAllFiles(dirPath) {
             for (const entry of entries) {
                 const fullPath = path.join(currentPath, entry.name);
                 if (entry.isFile()) {
-                    const file = getFileStats(fullPath):
+                    const file = getFileStats(fullPath);
                     enqueueCreateFile(fullPath);
                 } else if (entry.isDirectory()) {
                     traverseDir(fullPath);

@@ -85,14 +85,15 @@
 
         const processButton = document.getElementById('processButton');
         processButton.addEventListener('click', function() {
-            fetch("http://127.0.0.1:3000/dirt/process")
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
+            dirtySock("process", data)
+            // fetch("http://127.0.0.1:3000/dirt/process")
+            //     .then(response => response.json())
+            //     .then(data => {
+            //         console.log(data);
+            //     })
+            //     .catch(error => {
+            //         console.error('Error:', error);
+            //     });
             table.setData();
         });
     });

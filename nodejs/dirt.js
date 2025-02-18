@@ -26,15 +26,12 @@ function loadSettings(file) {
     return settings;
 }
 
-
 process.on('SIGINT', () => {
     redis.quit(() => {
         console.log('Redis connection closed');
         process.exit(0); // Graceful shutdown
     });
 });
-
-
 
 async function removeShare () {
     console.log(req);
@@ -113,17 +110,20 @@ dirt.on('connection', (ws) => {
                 case "dirtSettings.page:scan":
                     scan();
                     break;
-                    case "dirtSettings.page:removeShare":
-                        removeShare();
+                case "dirtSettings.page:removeShare":
+                    removeShare();
                     break;
-                    case "dirt.php:addToProcessQueue":
+                case "dirt.php:addToProcessQueue":
                     addToProcessQueue();
+                    break;
+                case "dirt.php:process":
+                    process();
                     break;
                 case "dirt.php:clear":
                     clear();
                     break;
-                    default:
-                        ws.send(JSON.stringify({ error: "Unknown message type" }));
+                default:
+                    ws.send(JSON.stringify({ error: "Unknown message type" }));
                     }
         } catch (error) {
             ws.send(JSON.stringify({ error: "Invalid message format" }));
