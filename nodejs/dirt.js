@@ -26,13 +26,6 @@ function loadSettings(file) {
     return settings;
 }
 
-process.on('SIGINT', () => {
-    redis.quit(() => {
-        console.log('Redis connection closed');
-        process.exit(0); // Graceful shutdown
-    });
-});
-
 async function removeShare () {
     console.log(req);
     req.body.forEach(share=>{
@@ -46,7 +39,7 @@ async function addToProcessQueue () {
     res.send();
 };
 
-async function process () {
+async function processStart () {
     await processQueue.resume()
     await processQueue.pause()
 };
@@ -58,7 +51,7 @@ async function clear () {
     })
 };
 
-async function scan () {
+async function scanStart () {
     console.log('Starting scan...')
     console.time('scan');
     const shares = (Array.isArray(settings.share) ? settings.share : [settings.share])
@@ -108,7 +101,7 @@ dirt.on('connection', (ws) => {
                     load();
                     break;
                 case "dirtSettings.page:scan":
-                    scan();
+                    scanStart();
                     break;
                 case "dirtSettings.page:removeShare":
                     removeShare();
@@ -117,7 +110,7 @@ dirt.on('connection', (ws) => {
                     addToProcessQueue();
                     break;
                 case "dirt.php:process":
-                    process();
+                    processStart();
                     break;
                 case "dirt.php:clear":
                     clear();
@@ -137,6 +130,13 @@ dirt.on('connection', (ws) => {
 
 
 console.log('WebSocket server running on ws://127.0.0.1:3000');
+
+process.on('SIGINT', () => {
+    redis.quit(() => {
+        console.log('Redis connection closed');
+        process.exit(0); // Graceful shutdown
+    });
+});
 // app.use(express.json()); // Middleware to parse JSON bodies
 
 // app.use((req, res, next) => {
