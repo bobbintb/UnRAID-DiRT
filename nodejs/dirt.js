@@ -3,6 +3,8 @@ import * as scan from '../nodejs/scan.js';
 import {enqueueFileAction} from "./processDuplicates.js";
 import {findDuplicateHashes, processQueue, redis, removePathsStartingWith, scanQueue} from "./redisHelper.js";
 import fs from "fs";
+import * as url from 'url';
+
 import {dirtySock} from "./socket.js";
 import {dequeueCreateFile, enqueueCreateFile, enqueueDeleteFile, enqueueMoveFile} from "./queueListener.js";
 import path from "path";
@@ -89,19 +91,29 @@ async function load() {
     }
 }
 
-dirt.on('connection', (ws) => {
+dirt.on('connection', async (ws, req) => {
+    const queryParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
+    const clientId = queryParams.get('clientId');
+    clients.set(clientId, ws);
+    switch (clientId) {
+        case "dirt.php":
+            const data = JSON.stringify(await load());
+            const client = clients.get(clientId);
+            break;
+    }
+
     ws.on('message', (message) => {
         try {
-            const { clientId, type, data } = JSON.parse(message);
+            const { clientId, type, messageData } = JSON.parse(message);
             clients.set(clientId, ws);
             const key = `${clientId}:${type}`;
             
             switch (key) {
-                case "dirt.php:load":
-                    const data = JSON.stringify(load());
-                    const client = clients.get(clientId);
-                    client.send(data);
-                    break;
+                // case "dirt.php:load":
+                //     const data = JSON.stringify(load());
+                //     const client = clients.get(clientId);
+                //     client.send(data);
+                //     break;
                 case "dirtSettings.page:scan":
                     scanStart();
                     break;
@@ -126,9 +138,9 @@ dirt.on('connection', (ws) => {
         }
     });
     
-    ws.on('close', () => {
-        clients.delete(clientId);
-    });
+    // ws.on('close', () => {
+    //     clients.delete(clientId);
+    // });
 });
 
 

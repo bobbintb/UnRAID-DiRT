@@ -1,16 +1,77 @@
 <script type="module">
-    // import {dirt} from "../nodejs/dirt.js";
-    const socket = new WebSocket(`<?php echo "ws://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>`);
-    async function connectWebSocket() {
-        await new Promise(resolve => socket.addEventListener("open", resolve, { once: true }));
+const socket = new WebSocket(`<?php echo "ws://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>`);
+
+socket.on('connection', (ws) => {
+    clientSocket = ws;
+    if (clientSocket && clientSocket.readyState === WebSocket.OPEN) {
+        const message = {
+            clientId: "dirt.php",
+            type: type,
+            data: dataObj
+        };
+        console.loclientSocket.send(message);
     }
+});
+let tableData = null;
 
-    await connectWebSocket();
-    socket.onopen = () => {
-        console.log("WebSocket connected");
-    };
+// Wait until the connection is open
+function waitForOpenConnection() {
+    return new Promise((resolve) => {
+        if (socket.readyState === WebSocket.OPEN) {
+            resolve(); // WebSocket is already open
+        } else {
+            socket.addEventListener('open', () => {
+                resolve(); // Wait for the 'open' event
+            });
+        }
+    });
+}
 
-    function dirtySock(type, dataObj = null) {
+// async function dirtySock(type, dataObj = null) {
+//     return new Promise((resolve, reject) => {
+//         const message = {
+//             clientId: "dirt.php",
+//             type: type,
+//             data: dataObj
+//         };
+
+//         const handleMessage = (event) => {
+//             try {
+//                 const response = JSON.parse(event.data);
+//                 resolve(response);
+//             } catch {
+//                 reject("Invalid response format");
+//             } finally {
+//                 socket.removeEventListener("message", handleMessage);
+//             }
+//         };
+
+//         socket.addEventListener("message", handleMessage);
+//         socket.addEventListener("error", reject);
+
+//         socket.send(JSON.stringify(message));
+//     });
+// }
+
+// Send data once WebSocket is open
+async function sendData() {
+    await waitForOpenConnection(); // Wait for the WebSocket to be ready
+    console.log('WebSocket is connected. Sending data.');
+    socket.send('Your data here'); // Send the message once connected
+}
+
+// Call the function to send data
+sendData();
+
+// Listen for incoming messages
+socket.addEventListener('message', function(event) {
+    tableData = JSON.parse(event.data); // Assuming the data is JSON
+    console.log('Received data:', tableData);
+});
+
+
+
+    async function dirtySock(type, dataObj = null) {
     return new Promise((resolve, reject) => {
         const message = {
             clientId: "dirt.php",
@@ -148,9 +209,9 @@
     let groups = {};
     let datetime_format;
 
-    dirtySock("dirt.php", "load").then(response => {
-    // const tableData = response.success;
-    console.log(myVariable);
+    await dirtySock("dirt.php", "load").then(response => {
+    const tableData = response.success;
+    console.log(tableData);
     }).catch(console.error);
 
 

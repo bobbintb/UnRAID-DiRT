@@ -18,16 +18,20 @@ Icon="fa-search-minus"
 </head>
 <body>
 <script type="module">
-    // import {dirt} from "../nodejs/dirt.js";
-    const socket = new WebSocket(`<?php echo "ws://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>`);
-    async function connectWebSocket() {
-        await new Promise(resolve => socket.addEventListener("open", resolve, { once: true }));
-    }
+    // const socket = new WebSocket(`<?php echo "ws://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>`);
+    const socket = new WebSocket(`ws://<?php echo $_SERVER["SERVER_ADDR"]; ?>:3000?clientId=dirt.php`);
 
-    await connectWebSocket();
+    let receivedMessage = '';
+
     socket.onopen = () => {
-        console.log("WebSocket connected");
+        console.error("WebSocket connected");
     };
+
+    socket.onmessage = (event) => {
+    // Assign the received message to the variable
+    receivedMessage = event.data;
+    };
+
 
     // Listen for messages from the server
     socket.addEventListener('message', (event) => {
@@ -58,5 +62,5 @@ Icon="fa-search-minus"
     <input type="button" id="processButton" value="_(Process)_">
     <input type="button" id="clearButton" value="_(Clear)_">
 </div>
-<div id="dirt"><?php include './plugins/bobbintb.system.dirt/php/dirt.php'; ?></div>
+<!-- <div id="dirt"><?php include './plugins/bobbintb.system.dirt/php/dirt.php'; ?></div> -->
 </body>
