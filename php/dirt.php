@@ -1,5 +1,14 @@
 <script type="module">
-    const socket = new WebSocket('ws://127.0.0.1:3001');
+    // import {dirt} from "../nodejs/dirt.js";
+    const socket = new WebSocket(`<?php echo "ws://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>`);
+    async function connectWebSocket() {
+        await new Promise(resolve => socket.addEventListener("open", resolve, { once: true }));
+    }
+
+    await connectWebSocket();
+    socket.onopen = () => {
+        console.log("WebSocket connected");
+    };
 
     function dirtySock(type, dataObj = null) {
     return new Promise((resolve, reject) => {
@@ -140,7 +149,7 @@
     let datetime_format;
 
     dirtySock("dirt.php", "load").then(response => {
-    const tableData = response.success;
+    // const tableData = response.success;
     console.log(myVariable);
     }).catch(console.error);
 

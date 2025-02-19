@@ -8,7 +8,8 @@ import {dequeueCreateFile, enqueueCreateFile, enqueueDeleteFile, enqueueMoveFile
 import path from "path";
 import { WebSocketServer } from 'ws';
 
-const dirt = new WebSocketServer({ port: 3000 });
+const dirt = new WebSocketServer({ port: 3000, host: '0.0.0.0' });
+
 const clients = new Map();
 
 const plugin = 'bobbintb.system.dirt';
@@ -40,7 +41,7 @@ async function addToProcessQueue () {
     res.send();
 };
 
-async function process () {
+async function processStart () {
     await processQueue.resume()
     await processQueue.pause()
 };
@@ -52,7 +53,7 @@ async function clear () {
     })
 };
 
-async function scan () {
+async function scanStart () {
     console.log('Starting scan...')
     console.time('scan');
     const shares = (Array.isArray(settings.share) ? settings.share : [settings.share])
@@ -76,42 +77,43 @@ async function load() {
     
     try {
         const result = await findDuplicateHashes();
-        res.json({
+        return {
             result: result,
             datetime_format: settings.datetime_format,
             jobs: jobs,
             ogs: ogs
-        });
+        };
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        return{ error: 'Internal Server Error' };
     }
 }
 
 dirt.on('connection', (ws) => {
-    const clientId = generateClientId();
-    clients.set(clientId, ws);
-    
     ws.on('message', (message) => {
         try {
             const { clientId, type, data } = JSON.parse(message);
+            clients.set(clientId, ws);
             const key = `${clientId}:${type}`;
             
             switch (key) {
-                case "dirtSettings.page:load":
-                    load();
+                case "dirt.php:load":
+                    const data = JSON.stringify(load());
+                    const client = clients.get(clientId);
+                    client.send(data);
                     break;
                 case "dirtSettings.page:scan":
-                    scan();
+                    scanStart();
                     break;
                 case "dirtSettings.page:removeShare":
-                    removeShare();
+                    // removeShare();
+                    console.log("removed");
                     break;
                 case "dirt.php:addToProcessQueue":
                     addToProcessQueue();
                     break;
                 case "dirt.php:process":
-                    process();
+                    processStart();
                     break;
                 case "dirt.php:clear":
                     clear();
