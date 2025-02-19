@@ -1,77 +1,31 @@
 <script type="module">
-const socket = new WebSocket(`<?php echo "ws://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>`);
+const socket = new WebSocket(`ws://<?php echo $_SERVER["SERVER_ADDR"]; ?>:3000?clientId=dirt.php`);
 
-socket.on('connection', (ws) => {
-    clientSocket = ws;
-    if (clientSocket && clientSocket.readyState === WebSocket.OPEN) {
-        const message = {
-            clientId: "dirt.php",
-            type: type,
-            data: dataObj
-        };
-        console.loclientSocket.send(message);
-    }
-});
 let tableData = null;
 
-// Wait until the connection is open
-function waitForOpenConnection() {
-    return new Promise((resolve) => {
-        if (socket.readyState === WebSocket.OPEN) {
-            resolve(); // WebSocket is already open
-        } else {
-            socket.addEventListener('open', () => {
-                resolve(); // Wait for the 'open' event
-            });
+
+socket.onmessage = function(event) {
+    const rawData = JSON.parse(event.data);
+    table.options.columns[6].formatterParams.outputFormat = rawData.datetime_format;
+    table.options.columns[7].formatterParams.outputFormat = rawData.datetime_format;
+    table.options.columns[8].formatterParams.outputFormat = rawData.datetime_format;
+    table.ogs = rawData.ogs;
+    table.jobs = rawData.jobs;
+    tableData = rawData.result.flatMap(obj =>
+    obj.path.length === 1
+    ? [{ ...obj, path: obj.path[0] }]
+    : [
+        {
+            ...obj,
+            path: obj.path[0],
+            _children: obj.path.slice(1).map(p => ({ ...obj, path: p }))
         }
-    });
-}
+    ]
+);
+table.setData(tableData);
+};
 
-// async function dirtySock(type, dataObj = null) {
-//     return new Promise((resolve, reject) => {
-//         const message = {
-//             clientId: "dirt.php",
-//             type: type,
-//             data: dataObj
-//         };
-
-//         const handleMessage = (event) => {
-//             try {
-//                 const response = JSON.parse(event.data);
-//                 resolve(response);
-//             } catch {
-//                 reject("Invalid response format");
-//             } finally {
-//                 socket.removeEventListener("message", handleMessage);
-//             }
-//         };
-
-//         socket.addEventListener("message", handleMessage);
-//         socket.addEventListener("error", reject);
-
-//         socket.send(JSON.stringify(message));
-//     });
-// }
-
-// Send data once WebSocket is open
-async function sendData() {
-    await waitForOpenConnection(); // Wait for the WebSocket to be ready
-    console.log('WebSocket is connected. Sending data.');
-    socket.send('Your data here'); // Send the message once connected
-}
-
-// Call the function to send data
-sendData();
-
-// Listen for incoming messages
-socket.addEventListener('message', function(event) {
-    tableData = JSON.parse(event.data); // Assuming the data is JSON
-    console.log('Received data:', tableData);
-});
-
-
-
-    async function dirtySock(type, dataObj = null) {
+async function dirtySock(type, dataObj = null) {
     return new Promise((resolve, reject) => {
         const message = {
             clientId: "dirt.php",
@@ -79,24 +33,12 @@ socket.addEventListener('message', function(event) {
             data: dataObj
         };
 
-        const handleMessage = (event) => {
-            try {
-                const response = JSON.parse(event.data);
-                resolve(response);
-            } catch {
-                reject("Invalid response format");
-            } finally {
-                socket.removeEventListener("message", handleMessage);
-            }
-        };
-
-        socket.addEventListener("message", handleMessage);
-        socket.addEventListener("error", reject);
-
         socket.send(JSON.stringify(message));
+
+        socket.onmessage = (event) => resolve(event.data);
+        socket.onerror = (err) => reject(err);
     });
 }
-
 
 
     // async function addToProcessQueue(dataObj) {
@@ -122,55 +64,15 @@ socket.addEventListener('message', function(event) {
         clearButton.addEventListener('click', function() {
             const isConfirmed = confirm("Are you sure you want to clear?");
             if (isConfirmed) {
-                dirtySock("clear", data)
-                // fetch("http://127.0.0.1:3000/dirt/clear")
-                //     .then(response => response.json())
-                //     .then(data => {
-                //         console.log(data);
-                //     })
-                //     .catch(error => {
-                //         console.error('Error:', error);
-                //     });
+                dirtySock("clear", tableData)
                 location.reload()
             }
         });
     
-        // document.addEventListener("DOMContentLoaded", function() {
-        //     const clearButton = document.getElementById('clearButton');
-        //                 const socket = new WebSocket('ws://127.0.0.1:3000/wsproxy/clear');
-        //     socket.onmessage = function(event) {
-        //         const data = JSON.parse(event.data);
-        //         console.log('Message from server:', data);
-        //     };
-        //     clearButton.addEventListener('click', function() {
-        //         const isConfirmed = confirm("Are you sure you want to clear?");
-        //         if (isConfirmed) {
-        //             const message = { action: "clear" };
-        //             socket.send(JSON.stringify(message));
-        //             socket.onmessage = function(event) {
-        //                 const data = JSON.parse(event.data);
-        //                 if (data.status === 'success') {
-        //                     location.reload();
-        //                 } else {
-        //                     console.error("Error while clearing:", data.error);
-        //                 }
-        //             };
-        //         }
-        //     });
-        // });
-
 
         const processButton = document.getElementById('processButton');
         processButton.addEventListener('click', function() {
             dirtySock("process", data)
-            // fetch("http://127.0.0.1:3000/dirt/process")
-            //     .then(response => response.json())
-            //     .then(data => {
-            //         console.log(data);
-            //     })
-            //     .catch(error => {
-            //         console.error('Error:', error);
-            //     });
             table.setData();
         });
     });
@@ -209,29 +111,22 @@ socket.addEventListener('message', function(event) {
     let groups = {};
     let datetime_format;
 
-    await dirtySock("dirt.php", "load").then(response => {
-    const tableData = response.success;
-    console.log(tableData);
-    }).catch(console.error);
-
-
     const table = new Tabulator("#dirt", {
         reactiveData:true,
-        data:tableData,
+        data: tableData,
+        // data:[{ path: ["Loading table data..."], hash: "Loading table data..."}],
         selectableRows: 1,
         dataTree: true,
         dataTreeStartExpanded: true,
         dataTreeElementColumn: "path",
-        // ajaxURL: `http://192.168.1.2:3000/load`,
-        // ajaxConfig: { method: "GET" },
-        // ajaxResponse: function(url, params, response) {
-        //     datetime_format = response.datetime_format
+        // data: function(tableData) {
+        //     datetime_format = tableData.datetime_format
         //     this.options.columns[6].formatterParams.outputFormat=datetime_format
         //     this.options.columns[7].formatterParams.outputFormat=datetime_format
         //     this.options.columns[8].formatterParams.outputFormat=datetime_format
-        //     this.ogs = response.ogs
-        //     this.jobs = response.jobs
-        //     response.result = response.result.flatMap(obj =>
+        //     this.ogs = tableData.ogs
+        //     this.jobs = tableData.jobs
+        //     tableData.result = tableData.result.flatMap(obj =>
         //         obj.path.length === 1
         //             ? [{ ...obj, path: obj.path[0] }]
         //             : [
@@ -242,7 +137,7 @@ socket.addEventListener('message', function(event) {
         //                 }
         //             ]
         //     );
-        //     return response.result;
+        //     return tableData.result;
         // },
         groupBy: "hash",
         setGroupStartOpen: true,

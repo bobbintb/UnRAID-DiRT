@@ -44,22 +44,45 @@ _(Database directory)_:
 <script src="<?autov('/webGui/javascript/jquery.filetree.js')?>" charset="utf-8"></script>
 <script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
 <script src="<?autov('/plugins/dynamix.vm.manager/javascript/dynamix.vm.manager.js')?>"></script>
-
+<script>
+  document.querySelectorAll('#share option:checked').forEach(opt => opt.selected = true);
+</script>
 <input type="submit" name="#default" value="_(Default)_" onclick="if(confirm('Are you sure?')) {$('input[class^=share]').prop('checked', false);}">
-: <input type="submit" name="#apply" value="_(Apply)_"><input type="button" value="_(Scan)_" onclick="scan()"><input type="button" value="_(Done)_" onclick="done()">
+: <input type="submit" name="#apply" value="_(Apply)_"><input type="button" value="_(Scan)_" onclick="dataObj = Array.from(document.querySelectorAll('#share option:checked')).map(o => o.value); dirtySock('scan', dataObj);">
 </form>
 
 <script>
 $('#dbdir').fileTreeAttach();
-function scan() {
-  fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/scan`)
-    .then(response => response.json())
-    .then(data => {
-      console.log(data);
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
+
+// function scan() {
+//   fetch(`<?php echo "http://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>/scan`)
+//     .then(response => response.json())
+//     .then(data => {
+//       console.log(data);
+//     })
+//     .catch(error => {
+//       console.error('Error:', error);
+//     });
+// }
+
+function dirtySock(type, dataObj) {
+	if (dataObj.length > 0) {
+    const socket = new Promise((resolve, reject) => {
+    const ws = new WebSocket(`ws://<?php echo $_SERVER["SERVER_ADDR"]; ?>:3000?clientId=dirtSettings.page`);
+    ws.onopen = () => resolve(ws);
+    ws.onerror = reject;
+});
+    const message = {
+            clientId: "dirtSettings.page",
+            type: type,
+            data: dataObj
+        };
+        socket.then(ws => {
+    ws.send(JSON.stringify(message));
+    ws.close();
+}).catch(console.error);
+
+  }
 }
 
 function prepareShare(form) {
@@ -83,7 +106,7 @@ function prepareShare(form) {
 
   console.log("Removed:", removed);
   console.log("Added:", added);
-  removeShare(removed)
+  dirtySock('removeShare', removed)
   
   
   item = form.share.options[0];
@@ -92,18 +115,7 @@ function prepareShare(form) {
   $('input.thin').prop('disabled',false);
 }
 
-function removeShare(removed) {
-	if (removed.length > 0) {
-    fetch("http://127.0.0.1:3000/dirt/removeShare", {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(removed)
-    })
-    .then(response => response.json())
-    .then(data => console.log("Remove Response:", data))
-    .catch(error => console.error('Error:', error));
-  }
-}
+
 
 
 $(function() {

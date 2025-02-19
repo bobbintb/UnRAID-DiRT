@@ -30,17 +30,16 @@ function loadSettings(file) {
 }
 
 
-async function removeShare () {
-    console.log(req);
-    req.body.forEach(share=>{
+async function removeShare (messageData) {
+    console.log(messageData);
+    messageData.forEach(share=>{
         console.log((share))
     });
-    // removePathsStartingWith()
+    removePathsStartingWith()
 };
 
-async function addToProcessQueue () {
-    enqueueFileAction(req.body)
-    res.send();
+async function addToProcessQueue (message) {
+    enqueueFileAction(message)
 };
 
 async function processStart () {
@@ -55,13 +54,15 @@ async function clear () {
     })
 };
 
-async function scanStart () {
+async function scanStart (data) {
     console.log('Starting scan...')
     console.time('scan');
-    const shares = (Array.isArray(settings.share) ? settings.share : [settings.share])
-    .map(share => `/mnt/user/${share}`);
-    for (const share of shares) {
-        await scan.getAllFiles(share);
+    for (const share of data) {
+        scan.getAllFiles(`/mnt/user/${share}`);
+    // const shares = (Array.isArray(settings.share) ? settings.share : [settings.share])
+    // .map(share => `/mnt/user/${share}`);
+    // for (const share of shares) {
+    //     await scan.getAllFiles(share);
     }
     console.log('Scan complete.')
     console.timeEnd('scan');
@@ -94,53 +95,55 @@ async function load() {
 dirt.on('connection', async (ws, req) => {
     const queryParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
     const clientId = queryParams.get('clientId');
+    // Close existing connections if the same client is already connected. Fixes page reloading issue.
+    if (clients.has(clientId)) {
+        const existingConnection = clients.get(clientId);
+        existingConnection.close();
+        console.log(`Closed existing connection for client ${clientId}`);
+      }
     clients.set(clientId, ws);
     switch (clientId) {
         case "dirt.php":
             const data = JSON.stringify(await load());
             const client = clients.get(clientId);
+            client.send(data);
             break;
     }
 
     ws.on('message', (message) => {
         try {
-            const { clientId, type, messageData } = JSON.parse(message);
+            const { clientId, type, data } = JSON.parse(message);
             clients.set(clientId, ws);
             const key = `${clientId}:${type}`;
-            
             switch (key) {
-                // case "dirt.php:load":
-                //     const data = JSON.stringify(load());
-                //     const client = clients.get(clientId);
-                //     client.send(data);
-                //     break;
                 case "dirtSettings.page:scan":
-                    scanStart();
+                    console.log("scan");
+                    scanStart(data);
                     break;
                 case "dirtSettings.page:removeShare":
-                    // removeShare();
-                    console.log("removed");
+                    removeShare(data);
                     break;
                 case "dirt.php:addToProcessQueue":
-                    addToProcessQueue();
+                    addToProcessQueue(data);
                     break;
                 case "dirt.php:process":
                     processStart();
                     break;
                 case "dirt.php:clear":
+                    console.log("Clearing queue...")
                     clear();
                     break;
                 default:
                     ws.send(JSON.stringify({ error: "Unknown message type" }));
                     }
         } catch (error) {
-            ws.send(JSON.stringify({ error: "Invalid message format" }));
+            ws.send(JSON.stringify({ error: `Invalid message format: ${message}` }));
         }
     });
     
-    // ws.on('close', () => {
-    //     clients.delete(clientId);
-    // });
+    ws.on('close', () => {
+        clients.delete(clientId);
+    });
 });
 
 

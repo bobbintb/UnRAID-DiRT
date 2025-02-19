@@ -17,40 +17,28 @@ Icon="fa-search-minus"
 
 </head>
 <body>
-<script type="module">
-    // const socket = new WebSocket(`<?php echo "ws://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>`);
-    const socket = new WebSocket(`ws://<?php echo $_SERVER["SERVER_ADDR"]; ?>:3000?clientId=dirt.php`);
+<script>
+    const socket = new WebSocket(`<?php echo "ws://" . $_SERVER["SERVER_ADDR"] . ":3001"; ?>`);
 
-    let receivedMessage = '';
+// Listen for messages from the server
+socket.addEventListener('message', (event) => {
+    const consoleOutput = document.getElementById('console-output');
+    consoleOutput.innerHTML = event.data;  // Append new messages to the console output
+});
 
-    socket.onopen = () => {
-        console.error("WebSocket connected");
-    };
+$(function() {
+    let current_progress = 0;
+    const interval = setInterval(function () {
+        current_progress += 10;
+        $("#dynamic")
+            .css("width", current_progress + "%")
+            .attr("aria-valuenow", current_progress)
+            .text(current_progress + "% Complete");
+        if (current_progress >= 100)
+            clearInterval(interval);
+    }, 1000);
+});
 
-    socket.onmessage = (event) => {
-    // Assign the received message to the variable
-    receivedMessage = event.data;
-    };
-
-
-    // Listen for messages from the server
-    socket.addEventListener('message', (event) => {
-        const consoleOutput = document.getElementById('console-output');
-        consoleOutput.innerHTML = event.data;  // Append new messages to the console output
-    });
-
-    $(function() {
-        let current_progress = 0;
-        const interval = setInterval(function () {
-            current_progress += 10;
-            $("#dynamic")
-                .css("width", current_progress + "%")
-                .attr("aria-valuenow", current_progress)
-                .text(current_progress + "% Complete");
-            if (current_progress >= 100)
-                clearInterval(interval);
-        }, 1000);
-    });
 </script>
 <div class="progress">
     <div id="dynamic" class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
@@ -62,5 +50,5 @@ Icon="fa-search-minus"
     <input type="button" id="processButton" value="_(Process)_">
     <input type="button" id="clearButton" value="_(Clear)_">
 </div>
-<!-- <div id="dirt"><?php include './plugins/bobbintb.system.dirt/php/dirt.php'; ?></div> -->
+<div id="dirt"><?php include './plugins/bobbintb.system.dirt/php/dirt.php'; ?></div>
 </body>
