@@ -8,7 +8,8 @@ import {dequeueCreateFile, enqueueCreateFile, enqueueDeleteFile, enqueueMoveFile
 import path from "path";
 import { WebSocketServer } from 'ws';
 
-const dirt = new WebSocketServer({ port: 3000 });
+const dirt = new WebSocketServer({ port: 3000, host: '0.0.0.0' });
+
 const clients = new Map();
 
 const plugin = 'bobbintb.system.dirt';
@@ -25,6 +26,7 @@ function loadSettings(file) {
     });
     return settings;
 }
+
 
 async function removeShare () {
     console.log(req);
@@ -74,37 +76,38 @@ async function load() {
     }, {});
     
     try {
-    const result = await findDuplicateHashes();
-    res.json({
-        result: result,
-        datetime_format: settings.datetime_format,
-        jobs: jobs,
-        ogs: ogs
-    });
+        const result = await findDuplicateHashes();
+        return {
+            result: result,
+            datetime_format: settings.datetime_format,
+            jobs: jobs,
+            ogs: ogs
+        };
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        return{ error: 'Internal Server Error' };
     }
 }
 
 dirt.on('connection', (ws) => {
-    const clientId = generateClientId();
-    clients.set(clientId, ws);
-    
     ws.on('message', (message) => {
         try {
             const { clientId, type, data } = JSON.parse(message);
+            clients.set(clientId, ws);
             const key = `${clientId}:${type}`;
             
             switch (key) {
-                case "dirtSettings.page:load":
-                    load();
+                case "dirt.php:load":
+                    const data = JSON.stringify(load());
+                    const client = clients.get(clientId);
+                    client.send(data);
                     break;
                 case "dirtSettings.page:scan":
                     scanStart();
                     break;
                 case "dirtSettings.page:removeShare":
-                    removeShare();
+                    // removeShare();
+                    console.log("removed");
                     break;
                 case "dirt.php:addToProcessQueue":
                     addToProcessQueue();
@@ -165,11 +168,11 @@ process.on('SIGINT', () => {
             
             // called from dirtSettings.page
             // app.get('/dirt/load', async (req, res) => {
-//     const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
-//     const ogs = await redis.hGetAll("dirt:process:og")
-//     const jobs = (await processQueue.getJobs('paused')).reduce((acc, job) => {
-    //         acc[job.id] = job.data.action;
-//         return acc;
+                //     const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
+                //     const ogs = await redis.hGetAll("dirt:process:og")
+                //     const jobs = (await processQueue.getJobs('paused')).reduce((acc, job) => {
+                    //         acc[job.id] = job.data.action;
+                    //         return acc;
 //     }, {});
 
 //     try {

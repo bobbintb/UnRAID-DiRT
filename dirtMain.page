@@ -17,8 +17,17 @@ Icon="fa-search-minus"
 
 </head>
 <body>
-<script>
-    const socket = new WebSocket('ws://127.0.0.1:3001');  // Connect to WebSocket server
+<script type="module">
+    // import {dirt} from "../nodejs/dirt.js";
+    const socket = new WebSocket(`<?php echo "ws://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>`);
+    async function connectWebSocket() {
+        await new Promise(resolve => socket.addEventListener("open", resolve, { once: true }));
+    }
+
+    await connectWebSocket();
+    socket.onopen = () => {
+        console.log("WebSocket connected");
+    };
 
     // Listen for messages from the server
     socket.addEventListener('message', (event) => {
