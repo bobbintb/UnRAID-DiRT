@@ -121,7 +121,8 @@ async function dirtySock(type, dataObj = null) {
         dataTreeElementColumn: "path",
         groupBy: "hash",
         setGroupStartOpen: true,
-        layout:"fitDataStretch",
+        // layout:"fitData",
+        layout: "fitColumns",
         rowSelectableCheck: function (row) {
             return !row.getElement().classList.contains('disabled');
         },
@@ -160,7 +161,7 @@ async function dirtySock(type, dataObj = null) {
                     </div>`,
                 headerHozAlign: "center",
                 headerSort: false,
-                // maxWidth: 40,
+                width: 1,
                 formatter: function (cell) {
                     let rowData = cell.getRow().getData();
                     return `<div style='display: flex;
@@ -169,7 +170,8 @@ async function dirtySock(type, dataObj = null) {
                                         height: 100%;'>
                             <input type='radio' name=${rowData.hash}></div>`;
                 },
-                cellClick: actionChange
+                cellClick: actionChange,
+                resizable: false
             },
             {
                 // Trash column
@@ -182,7 +184,7 @@ async function dirtySock(type, dataObj = null) {
                             <i class="fa fa-trash"></i>
                         </div>`,
                 headerSort: false,
-                maxWidth: 40,
+                width: 1,
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
                     return `<label class="icon-checkbox trash-checkbox" ${disabled}>
@@ -192,7 +194,8 @@ async function dirtySock(type, dataObj = null) {
                                 </span>
                             </label>`;
                 },
-                cellClick: actionChange
+                cellClick: actionChange,
+                resizable: false
             },
             {
                 // Link column
@@ -204,7 +207,7 @@ async function dirtySock(type, dataObj = null) {
                             <i class="fa fa-link"></i>
                         </div>`,
                 headerSort: false,
-                maxWidth: 40,
+                width: 1,
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
                     return `<label class="icon-checkbox link-checkbox" ${disabled}>
@@ -214,13 +217,15 @@ async function dirtySock(type, dataObj = null) {
                                 </span>
                             </label>`;
                 },
-                cellClick: actionChange
+                cellClick: actionChange,
+                resizable: false
             },
             {
                 title: "Hash",
                 field: "hash",
                 sorter: "string",
-                visible: false
+                visible: false,
+                resizable: false
             },
             {
                 title: "File",
@@ -235,7 +240,9 @@ async function dirtySock(type, dataObj = null) {
                 sorter: "number",
                 formatter: convertCellFileSize,
                 bottomCalc: "recoverableSize",
-                bottomCalcFormatter: convertCellFileSize
+                bottomCalcFormatter: convertCellFileSize,
+                resizable: false,
+                width: 90
             },
             {
                 title: "Last Accessed",
@@ -246,7 +253,9 @@ async function dirtySock(type, dataObj = null) {
                     inputFormat: "iso",
                     // outputFormat: datetime_format,
                     invalidPlaceholder:"(invalid date)",
-                }
+                },
+                resizable: false,
+                width:165
             },
             {
                 title: "Last Modified",
@@ -257,7 +266,9 @@ async function dirtySock(type, dataObj = null) {
                     inputFormat: "iso",
                     // outputFormat: datetime_format,
                     invalidPlaceholder:"(invalid date)",
-                }
+                },
+                resizable: false,
+                width:165
             },
             {
                 title: "Last Metadata Change",
@@ -268,7 +279,9 @@ async function dirtySock(type, dataObj = null) {
                     inputFormat: "iso",
                     // outputFormat:datetime_format,
                     invalidPlaceholder:"(invalid date)",
-                }
+                },
+                resizable: false,
+                width:165
             }
         ],
         // This selects the first radio button as original or loads it from saved
