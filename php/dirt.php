@@ -119,26 +119,6 @@ async function dirtySock(type, dataObj = null) {
         dataTree: true,
         dataTreeStartExpanded: true,
         dataTreeElementColumn: "path",
-        // data: function(tableData) {
-        //     datetime_format = tableData.datetime_format
-        //     this.options.columns[6].formatterParams.outputFormat=datetime_format
-        //     this.options.columns[7].formatterParams.outputFormat=datetime_format
-        //     this.options.columns[8].formatterParams.outputFormat=datetime_format
-        //     this.ogs = tableData.ogs
-        //     this.jobs = tableData.jobs
-        //     tableData.result = tableData.result.flatMap(obj =>
-        //         obj.path.length === 1
-        //             ? [{ ...obj, path: obj.path[0] }]
-        //             : [
-        //                 {
-        //                     ...obj,
-        //                     path: obj.path[0],
-        //                     _children: obj.path.slice(1).map(p => ({ ...obj, path: p }))
-        //                 }
-        //             ]
-        //     );
-        //     return tableData.result;
-        // },
         groupBy: "hash",
         setGroupStartOpen: true,
         layout:"fitDataStretch",

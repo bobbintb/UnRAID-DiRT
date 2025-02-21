@@ -69,25 +69,50 @@ export async function hashFilesInIntervals(files) {
 
                 await Promise.all(fileChunkPromises);                                                                   // Wait for all chunk reads to complete
                 let ogHash = hashers[0].digest('hex');
-                let message = `Currently processing: ${files[0].path}<br>`;                                             // Compare the intermediate hashes
-                message += `file size: ${files[0].size}<br>`;
-                message += `number of files: ${files.length}<br>`;
-                message += `iteration: ${progressIndex}<br>`;
-                message += `Progress: ${((processedBytes[0] / files[0].size) * 100).toFixed(2)}%<br>`;
+                let current_progress = ((processedBytes[0] / files[0].size) * 100).toFixed(1);
+
+                
+                // let message = `<div class="progress" style="width: 50%;">
+                //                 <div id="dynamic" class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" 
+                //                     aria-valuenow="${current_progress}" aria-valuemin="0" aria-valuemax="100" 
+                //                     style="width: ${current_progress}%">
+                //                     ${current_progress}% Complete
+                //                     <span id="current-progress"></span>
+                //                 </div>
+                //             </div>`;
+                            
+                let message = `<span style="font-family: Consolas, monospace;">Currently processing: ${files[0].path} (${files[0].size.toLocaleString()} bytes)<br>`;                                             // Compare the intermediate hashes
+                // message += `file size: ${files[0].size.toLocaleString()} bytes<br>`;
+                // message += `number of files: ${files.length}<br>`;
+                // message += `iteration: ${progressIndex}<br>`;
+                // message = `<div class="progress" style="width: 500px;">
+                //                 <div id="dynamic" class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" 
+                //                     aria-valuenow="${current_progress}" aria-valuemin="0" aria-valuemax="100" 
+                //                     style="width: ${current_progress}%">
+                //                     ${current_progress}% Complete
+                //                 </div>
+                //             </div>`;
+                message += `<div class="progress" style="width: 50%;">
+                                <div id="dynamic" class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" 
+                                    aria-valuenow="${current_progress}" aria-valuemin="0" aria-valuemax="100" 
+                                    style="width: ${current_progress}%">
+                                    <span style="text-shadow: 1px 1px 2px black, 1px 1px 2px black;">${current_progress}%</span>
+                                </div>
+                            </div>`;
                 message += `File 0: ${ogHash}<br>`
                 for (let index = files.length - 1; index >= 1; index--) {
                     const currentHash = hashers[index].digest('hex');
                     if (currentHash === ogHash) {                                      // Keep the file if it matches the first file's hash
                         message += `File ${index}: ${currentHash}: <span style="color: green;">${files[index].path}</span><br>`
                     } else {
-                        message += `File ${index}: ${currentHash}: <span style="color: yellow;">${files[index].path}</span> (No match, removing from further processing.)<br>`
+                        message += `File ${index}: ${currentHash}: <span style="color: yellow;">${files[index].path} (No match, removing from further processing.)<br>`
                             files.splice(index, 1);
                             hashers.splice(index, 1);
                             processedBytes.splice(index, 1);
                     }
                 }
 
-                message += `current number of files: ${files.length}<br>`;
+                message += `</span><br>`;
 
                 sendToClient(message)
                 const progress = ((processedBytes[0] / files[0].size) * 100).toFixed(2);
@@ -104,12 +129,13 @@ export async function hashFilesInIntervals(files) {
                 return resolve(files);
             }
 
-            message = `Done.`;
-            sendToClient(message)
-
+            
         } catch (error) {
             console.error('Error during file hashing:', error);
             reject(error);                                                                                              // Reject the promise if there's any error
         }
+        
+        message = `Done.`;
+        sendToClient(message)
     });
 }
