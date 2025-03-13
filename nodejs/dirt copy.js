@@ -38,7 +38,7 @@ export function loadSettings(file) {
     });
     return settings;
 }
-function sharesUpdated {
+function sharesUpdated() {
     const { added, removed } = compareShares();
     removed.forEach(element => removeShare(element));
     const results = added.map(getAllFiles);
