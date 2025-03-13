@@ -1,13 +1,7 @@
-import express from 'express';
 import * as scan from '../nodejs/scan.js';
 import {enqueueFileAction} from "./processDuplicates.js";
 import {findDuplicateHashes, processQueue, redis, removePathsStartingWith, scanQueue} from "./redisHelper.js";
 import fs from "fs";
-import * as url from 'url';
-
-import {dirtySock} from "./socket.js";
-import {dequeueCreateFile, enqueueCreateFile, enqueueDeleteFile, enqueueMoveFile} from "./queueListener.js";
-import path from "path";
 import { WebSocketServer } from 'ws';
 
 const dirt = new WebSocketServer({ port: 3000, host: '0.0.0.0' });
@@ -59,10 +53,6 @@ async function scanStart (data) {
     console.time('scan');
     for (const share of data) {
         scan.getAllFiles(`/mnt/user/${share}`);
-    // const shares = (Array.isArray(settings.share) ? settings.share : [settings.share])
-    // .map(share => `/mnt/user/${share}`);
-    // for (const share of shares) {
-    //     await scan.getAllFiles(share);
     }
     console.log('Scan complete.')
     console.timeEnd('scan');
@@ -155,133 +145,3 @@ process.on('SIGINT', () => {
         process.exit(0); // Graceful shutdown
     });
 });
-// app.use(express.json()); // Middleware to parse JSON bodies
-
-// app.use((req, res, next) => {
-    //     res.header('Access-Control-Allow-Origin', '*');
-    //     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    //     res.header('Access-Control-Allow-Methods', 'POST'); // Ensure POST is included
-    //     next();
-    // });
-    
-    
-    // called from dirtSettings.page
-    // app.get("/dirt/scan", async () => {
-        //     console.log('Starting scan...')
-        //     console.time('scan');
-        //     const shares = (Array.isArray(settings.share) ? settings.share : [settings.share])
-        //         .map(share => `/mnt/user/${share}`);
-        //     for (const share of shares) {
-            //         await scan.getAllFiles(share);
-            //     }
-            //     console.log('Scan complete.')
-            //     console.timeEnd('scan');
-            //     console.debug("Saving files to database.");
-            //     console.debug("Done saving files to database.");
-            // });
-            
-            
-            // called from dirtSettings.page
-            // app.get('/dirt/load', async (req, res) => {
-                //     const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
-                //     const ogs = await redis.hGetAll("dirt:process:og")
-                //     const jobs = (await processQueue.getJobs('paused')).reduce((acc, job) => {
-                    //         acc[job.id] = job.data.action;
-                    //         return acc;
-//     }, {});
-
-//     try {
-    //     const result = await findDuplicateHashes();
-    //       res.json({
-//           result: result,
-//           datetime_format: settings.datetime_format,
-//           jobs: jobs,
-//           ogs: ogs
-//       });
-//   } catch (error) {
-    //     console.error(error);
-    //     res.status(500).json({ error: 'Internal Server Error' });
-    //   }
-    // });
-    
-    // called from dirtSettings.page
-    // app.post("/dirt/removeShare", async (req, res) => {
-        //     console.log(req);
-        //     req.body.forEach(share=>{
-//         console.log((share))
-//     });
-//     // removePathsStartingWith()
-// });
-
-// // called from dirt.php
-// app.post("/dirt/addToProcessQueue", (req, res) => {
-    //     enqueueFileAction(req.body)
-    //     res.send();
-    // });
-    
-    // app.get("/dirt/process", async () => {
-        //     await processQueue.resume()
-        //     await processQueue.pause()
-        // });
-        
-        // // called from dirt.php
-        // app.get("/dirt/clear", async () => {
-            //     console.log('clearing')
-//     await processQueue.obliterate()
-//     await redis.del('dirt:process:og').then(result => {
-    //     })
-    // });
-    
-    // MAIN
-    // if (!process.argv.includes('--debug')) {
-//     console.debug = function () {
-//     }
-// }
-
-
-
-// const PORT = 3000;
-
-
-// const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
-//console.log(util.inspect(settings, false, null, true /* enable colors */ ));
-// app.listen(PORT, () => {
-    //     console.log(`dirt is running on port ${PORT}`);
-    // });
-    // dirtySock((messages) => {
-    //     console.log(messages)
-        // try {
-        //     if (messages[0].data.key) {
-            //     switch (messages[0].data.key) {
-                //         case 'create':
-        //             // enqueueCreateFile()
-        //             break;
-        //         case 'move':
-        //             // enqueueMoveFile()
-        //             break;
-        //         case 'delete_monitor':
-        //             console.log('delete triggered')
-        //             console.log(messages)
-        //             // delete from terminal. does not work for SMB.
-        //             enqueueDeleteFile(messages[3].data.name.toString());
-        //             break;
-        //     }}
-        // } catch (err) {
-            //     console.error('Failed to parse data:', messages.toString(), err);
-        // }
-    // });
-   
-    // scanQueue.process(async (job, done) => {
-        //     switch (job.data.task) {
-    //         case 'create':
-    //             await dequeueCreateFile(job.data.src)
-    //             break;
-    //         case 'move':
-    //             await dequeueMoveFile(job.data.src, job.data.dest)
-    //             break;
-    //         case 'delete':
-    //             await dequeueDeleteFile(job.data)
-    //             break;
-    //     }
-    //     done();
-    // });
