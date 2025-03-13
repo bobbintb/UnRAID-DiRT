@@ -138,19 +138,22 @@ export function getAllFiles(dirPath, fileMap = new MultiMap()) {
           getAllFiles(fullPath, fileMap);
       }
   }
-
+  fileMap._.forEach((files, size) => {
+    if (files.length === 1) fileMap._.delete(size);
+  })
   return fileMap._;
 }
 
 
 const fileMap = getAllFiles('/mnt/user/TV')
 // console.log(mymap)
+
+
+
 fileMap.forEach((files, size) => {
     // console.log(`Size: ${size}`);
-    if (files.length > 1) {
     console.log(files.length)
     files.forEach(file => console.dir(file, { depth: null }));
-    }
 });
 
 
