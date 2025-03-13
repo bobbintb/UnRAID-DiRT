@@ -270,12 +270,7 @@ process.on('SIGINT', () => {
             //     console.error('Failed to parse data:', messages.toString(), err);
         // }
     // });
-    
-    //   - -a always,exit -F arch=b64 -F success=1 -F dir=/mnt/user/downloads/ -S unlink -S unlinkat -S rmdir -k delete_monitor
-    //   - -a always,exit -F arch=b32 -F success=1 -F dir=/mnt/user/downloads/ -S unlink -S unlinkat -S rmdir -k delete_monitor
-    
-    //   - -a always,exit -F arch=b64 -F success=1 -F dir=/mnt/user/downloads/ -S rename -S renameat -S renameat2 -k move_monitor
-    
+   
     // scanQueue.process(async (job, done) => {
         //     switch (job.data.task) {
     //         case 'create':
