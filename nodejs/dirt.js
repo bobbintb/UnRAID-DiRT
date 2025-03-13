@@ -9,7 +9,17 @@ const dirt = new WebSocketServer({ port: 3000, host: '0.0.0.0' });
 const clients = new Map();
 
 const plugin = 'bobbintb.system.dirt';
-// const app = express();
+const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
+
+function compareShares() {
+    const oldShares = settings.share
+    const newSettings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
+    const newShares = newSettings.share
+    const added = newShares.filter(x => !oldShares.includes(x));
+    const removed = oldShares.filter(x => !newShares.includes(x));
+    Object.assign(settings, newSettings);
+    return { added, removed };
+}
 
 function loadSettings(file) {
     const data = fs.readFileSync(file, 'utf8');
@@ -23,6 +33,12 @@ function loadSettings(file) {
     return settings;
 }
 
+function sharesUpdated() {
+    const { added, removed } = compareShares();
+    removed.forEach(element => removeShare(element));
+    const results = added.map(getAllFiles);
+    results.forEach(hashFilesInIntervals);
+}
 
 async function removeShare (messageData) {
     console.log(messageData);
@@ -60,8 +76,7 @@ async function scanStart (data) {
     console.debug("Done saving files to database.");
 }
 
-async function load() {
-    const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
+async function loadTableData() {
     const ogs = await redis.hGetAll("dirt:process:og")
     const jobs = (await processQueue.getJobs('paused')).reduce((acc, job) => {
         acc[job.id] = job.data.action;
@@ -94,7 +109,7 @@ dirt.on('connection', async (ws, req) => {
     clients.set(clientId, ws);
     switch (clientId) {
         case "dirt.php":
-            const data = JSON.stringify(await load());
+            const data = JSON.stringify(await loadTableData());
             const client = clients.get(clientId);
             client.send(data);
             break;
