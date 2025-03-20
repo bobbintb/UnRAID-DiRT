@@ -22,6 +22,6 @@ jobs:
         wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/refs/heads/main/test.py
         wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/refs/heads/main/bobbintb.system.dirt.yaml
         pip install requests ruamel.yaml xmltodict
+        python test.py bobbintb.system.dirt.yaml
         pwd
         ls -lsa
-        python test.py bobbintb.system.dirt.yaml
