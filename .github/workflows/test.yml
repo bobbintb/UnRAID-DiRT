@@ -23,6 +23,7 @@ jobs:
         wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/refs/heads/main/bobbintb.system.dirt.yaml
         pip install requests ruamel.yaml xmltodict
         touch CHANGELOG.md
+        find / -name CHANGELOG.md
         python test.py bobbintb.system.dirt.yaml
         pwd
         ls -lsa
