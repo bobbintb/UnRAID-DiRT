@@ -24,4 +24,4 @@ jobs:
         pip install requests ruamel.yaml xmltodict
         pwd
         ls -lsa
-        python test.py bobbbintb.system.dirt.yaml
+        python test.py bobbintb.system.dirt.yaml
