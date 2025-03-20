@@ -13,8 +13,8 @@ jobs:
       uses: actions/checkout@v4
     - name: Update and install packages
       run: |
-        echo "================================= Updating packages ================================="
-        slackpkg update <<< y
+        # echo "================================= Updating packages ================================="
+        # slackpkg update <<< y
         # slackpkg upgrade-all
     - name: Build
       run: |
