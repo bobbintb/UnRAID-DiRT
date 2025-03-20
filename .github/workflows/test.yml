@@ -14,11 +14,6 @@ jobs:
     - name: Update and install packages
       run: |
         echo "================================= Updating packages ================================="
-        CONF_FILE="/etc/slackpkg/slackpkg.conf"
-        sed -i "s/^DIALOG=.*/DIALOG=off/" "$CONF_FILE"
-        sed -i "s/^BATCH=.*/BATCH=on/" "$CONF_FILE"
-        sed -i "s/^DEFAULT_ANSWER=.*/DEFAULT_ANSWER=y/" "$CONF_FILE"
-        sed -i '$s/.*/https:\/\/mirrors\.slackware\.com\/slackware\/slackware64-15.0\//' /etc/slackpkg/mirrors
         slackpkg update <<< y
         # slackpkg upgrade-all
     - name: Build
