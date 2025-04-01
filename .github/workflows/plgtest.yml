@@ -12,9 +12,11 @@ jobs:
       - name: Download UnRAID-Plugin-Generator
         run: |
           wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/test.py
+          wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/requirements.txt
           chmod +x test.py
       - name: Run UnRAID-Plugin-Generator
         run: |
+          pip install -r requirements.txt
           ./test.py bobbintb.system.dirt.yaml
           rm test.py
           ls -ls
