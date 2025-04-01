@@ -17,7 +17,7 @@ jobs:
       - name: Run UnRAID-Plugin-Generator
         run: |
           pip install -r requirements.txt
-          ./test.py bobbintb.system.dirt.yaml
+          ./test.py ./.plugin/bobbintb.system.dirt.yaml
           rm test.py
           ls -ls
       # - name: Release
