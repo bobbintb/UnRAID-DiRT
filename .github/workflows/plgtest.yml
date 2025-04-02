@@ -17,8 +17,9 @@ jobs:
       - name: Run UnRAID-Plugin-Generator
         run: |
           pip install -r requirements.txt
+          rm requirements.txt
           ./test.py ./.plugin/bobbintb.system.dirt.yaml
-          rm test.py requirements.txt
+          rm test.py
           ls -ls
       - name: Release
         uses: softprops/action-gh-release@v2
