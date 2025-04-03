@@ -22,5 +22,7 @@ preserve_perms() {
   config $NEW
 }
 
-# config etc/program/program.conf.new
+#config etc/valkey/valkey.conf.new
+#config etc/valkey/sentinel.conf.new
+#config etc/logrotate.d/valkey.new
 preserve_perms etc/rc.d/rc.dirt.new
