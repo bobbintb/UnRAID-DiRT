@@ -2,7 +2,7 @@ import fs from "fs";
 import {hashFilesInIntervals} from "./hashHelper.js"
 import {fileRepository, filesOfSize, scanQueue, redis} from "./redisHelper.js";
 
-
+// combine all these to just add to the queue and create a `task` parameter
 export function enqueueDeleteFile(src) {
     console.log(src)
     const jobData = {

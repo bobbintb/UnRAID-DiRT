@@ -67,7 +67,7 @@ install_package() {
 }
 
 declare -A packages
-urls["https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/builds/nodejs/nodejs-22.13.1-x86_64-1_SBo.tgz"]="nodejs"
+urls["https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/builds/nodejs/nodejs-22.14.0-x86_64-1_SBo.tgz"]="nodejs"
 urls["https://slackware.uk/slackware/slackware64-15.0/patches/packages/openssl-1.1.1zb-x86_64-1_slack15.0.txz"]="openssl 1.x"
 urls["https://ftp.sotirov-bg.net/pub/contrib/slackware/packages/slackware64-15.0/protobuf-3.19.6-x86_64-1gds.txz"]="protobuf"
 urls["https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/builds/valkey/valkey-8.0.1-x86_64-1_SBo.tgz"]="valkey"

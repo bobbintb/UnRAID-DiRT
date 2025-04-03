@@ -10,3 +10,4 @@ bobbintb.system.dedupe.txz
 /node_modules/
 /package-lock.json
 /files.json
+.dependencygraph/setting.json
