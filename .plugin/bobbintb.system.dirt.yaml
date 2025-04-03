@@ -9,14 +9,8 @@ ENTITIES:
   source : /boot/config/plugins/&name;/&name;
   icon : fa-search-minus
   min : 6.1.9
-  version : 2025.02.11
-  MD5 : b31ca4f4cc86325d132739c93f79b922
 CHANGES: CHANGELOG.md
 FILE:
-- #STARTUP SCRIPT
-  '@Name': /etc/rc.d/rc.dirt
-  '@Mode': '0775'
-  INLINE: ./.plugin/rc.dirt
 - #PRE-INSTALL SCRIPT
   '@Run': /bin/bash
   '@Method': install
