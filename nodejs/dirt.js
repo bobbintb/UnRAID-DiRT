@@ -11,13 +11,17 @@ import path from "path";
 import { WebSocketServer } from 'ws';
 
 const dirt = new WebSocketServer({ port: 3000, host: '0.0.0.0' });
-
 const clients = new Map();
 
 const plugin = 'bobbintb.system.dirt';
+const configFile = `/boot/config/plugins/${plugin}/${plugin}.cfg`
+const settings = loadSettings(configFile);
+
+
 // const app = express();
 
 function loadSettings(file) {
+    createDefaultConfig(file)
     const data = fs.readFileSync(file, 'utf8');
     const settings = {};
     data.split(/\r?\n/).forEach(line => {
@@ -29,6 +33,24 @@ function loadSettings(file) {
     return settings;
 }
 
+function createDefaultConfig(filePath) {
+    if (!fs.existsSync(filePath)) {
+        fs.writeFileSync(filePath, `share=""\ndatetime_format="f"\ndbdir="/boot/config/plugins/${plugin}/"
+`);
+    }
+}
+
+
+
+async function settingsChanged () {
+    const oldSettings = settings
+    settings = loadSettings(configFile);
+    console.log("old settings:")
+    console.log(oldSettings);
+    console.log("new settings:")
+    console.log(settings);
+
+};
 
 async function removeShare (messageData) {
     console.log(messageData);
@@ -71,25 +93,25 @@ async function scanStart (data) {
 }
 
 async function load() {
-    const settings = loadSettings(`/boot/config/plugins/${plugin}/${plugin}.cfg`);
+    const settings = loadSettings(configFile);
     const ogs = await redis.hGetAll("dirt:process:og")
     const jobs = (await processQueue.getJobs('paused')).reduce((acc, job) => {
         acc[job.id] = job.data.action;
         return acc;
     }, {});
     
-    try {
-        const result = await findDuplicateHashes();
-        return {
-            result: result,
-            datetime_format: settings.datetime_format,
-            jobs: jobs,
-            ogs: ogs
-        };
-    } catch (error) {
-        console.error(error);
-        return{ error: 'Internal Server Error' };
-    }
+    // try {
+    //     const result = await findDuplicateHashes();
+    //     return {
+    //         result: result,
+    //         datetime_format: settings.datetime_format,
+    //         jobs: jobs,
+    //         ogs: ogs
+    //     };
+    // } catch (error) {
+    //     console.error(error);
+    //     return{ error: 'Internal Server Error' };
+    // }
 }
 
 dirt.on('connection', async (ws, req) => {
@@ -120,7 +142,7 @@ dirt.on('connection', async (ws, req) => {
                     console.log("scan");
                     scanStart(data);
                     break;
-                case "dirtSettings.page:removeShare":
+                case "dirtSettings.page:settingsChanged":
                     removeShare(data);
                     break;
                 case "dirt.php:addToProcessQueue":
@@ -148,6 +170,8 @@ dirt.on('connection', async (ws, req) => {
 
 
 console.log('WebSocket server running on ws://127.0.0.1:3000');
+console.log("Settings:")
+console.log(settings);
 
 process.on('SIGINT', () => {
     redis.quit(() => {
