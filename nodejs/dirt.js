@@ -1,6 +1,11 @@
 import express from 'express';
+import { exec } from 'child_process';
+exec('valkey start')
+
 import * as scan from '../nodejs/scan.js';
 import {enqueueFileAction} from "./processDuplicates.js";
+
+
 import {findDuplicateHashes, processQueue, redis, removePathsStartingWith, scanQueue} from "./redisHelper.js";
 import fs from "fs";
 import * as url from 'url';
@@ -9,13 +14,14 @@ import {dirtySock} from "./socket.js";
 import {dequeueCreateFile, enqueueCreateFile, enqueueDeleteFile, enqueueMoveFile} from "./queueListener.js";
 import path from "path";
 import { WebSocketServer } from 'ws';
+import { group } from 'console';
 
 const dirt = new WebSocketServer({ port: 3000, host: '0.0.0.0' });
 const clients = new Map();
 
 const plugin = 'bobbintb.system.dirt';
 const configFile = `/boot/config/plugins/${plugin}/${plugin}.cfg`
-const settings = loadSettings(configFile);
+var settings = loadSettings(configFile);
 
 
 // const app = express();
@@ -40,19 +46,26 @@ function createDefaultConfig(filePath) {
     }
 }
 
+async function addShares (messageData) {
+    var fileMap = scan.getAllFiles(messageData)
+    // also need to query redis for files of same size and merge the results 
+    // filesOfSize(size)
 
-
-async function settingsChanged () {
-    const oldSettings = settings
-    settings = loadSettings(configFile);
-    console.log("old settings:")
-    console.log(oldSettings);
-    console.log("new settings:")
-    console.log(settings);
-
+    // find groups where length > 1
+    var morthan1 = [...fileMap.entries()].filter(([_, group]) => group.length > 1)
+    morthan1.forEach(async group=>{
+        // console.log("messageData:")
+        // console.log(group[0]);
+        // console.log(group[1]);
+        if (group[0] != 0) {
+            const hashedFiles = await scan.hashFilesInIntervals(group[0], group[1])
+            console.log(`HASHED FILES: ${hashedFiles}`)
+        }
+    });
+    console.error("DONE")
 };
 
-async function removeShare (messageData) {
+async function removeShares (messageData) {
     console.log(messageData);
     messageData.forEach(share=>{
         console.log((share))
@@ -142,8 +155,15 @@ dirt.on('connection', async (ws, req) => {
                     console.log("scan");
                     scanStart(data);
                     break;
-                case "dirtSettings.page:settingsChanged":
-                    removeShare(data);
+                case "dirtSettings.page:addShare":
+                    // console.error("added shares")
+                    // console.error(data);
+                    addShares(data);
+                    break;
+                case "dirtSettings.page:removeShare":
+                    console.error("removeShare")
+                    console.error(data);
+                    removeShares(data);
                     break;
                 case "dirt.php:addToProcessQueue":
                     addToProcessQueue(data);
@@ -156,6 +176,7 @@ dirt.on('connection', async (ws, req) => {
                     clear();
                     break;
                 default:
+                    console.log(`Unknown message type: ${type}`)
                     ws.send(JSON.stringify({ error: "Unknown message type" }));
                     }
         } catch (error) {
@@ -172,6 +193,12 @@ dirt.on('connection', async (ws, req) => {
 console.log('WebSocket server running on ws://127.0.0.1:3000');
 console.log("Settings:")
 console.log(settings);
+// try {
+//     console.log("Checking if Valkey is running...")
+//     exec('valkey start')
+//   } catch {
+//     exec('/etc/rc.d/rc.valkey start')
+//   }
 
 process.on('SIGINT', () => {
     redis.quit(() => {

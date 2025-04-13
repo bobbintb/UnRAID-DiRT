@@ -27,17 +27,24 @@ function delHash(files,hashers,processedBytes,index) {
     });
 }
 
-async function processFileChunks(files, hashers, processedBytes, CHUNK_SIZE) {
+export async function processFileChunks(files, hashers, processedBytes, size, CHUNK_SIZE) {
     // await new Promise(resolve => setTimeout(resolve, 3000));
     return files.map((file, index) => {
         // let end = files[0].size < CHUNK_SIZE ? files[0].size : Math.min(processedBytes[index] + CHUNK_SIZE - 1, file.size - 1);
         return new Promise((chunkResolve, chunkReject) => {
-                const stream = fs.createReadStream(file.path[0], { // Read the next chunk from the file
-                    start: processedBytes[index],
-                    end: Math.min(processedBytes[index] + CHUNK_SIZE - 1, files[0].size - 1)
-                });
-
-                const chunks = [];
+            let stream
+            try {
+              stream = fs.createReadStream(file.path[0], {
+                start: processedBytes[index],
+                end: Math.min(processedBytes[index] + CHUNK_SIZE - 1, size - 1)
+              })
+            } catch (err) {
+              console.error("ERROR")
+              console.error(size)
+              console.error(err)
+              console.error(file)
+            }
+            
                 stream.on('data', (chunk) => { // Update the hash with the current chunk
                     hashers[index].update(chunk);
                     processedBytes[index] += chunk.length; // Update the progress

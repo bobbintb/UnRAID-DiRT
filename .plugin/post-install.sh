@@ -10,17 +10,19 @@ echo "-----------------------------------------------------------"
 echo "Configuring..."
 echo "-----------------------------------------------------------"
 
-mkdir -p /var/log/go-audit/
 ln -s /usr/local/etc/rc.d/rc.valkey /etc/rc.d/rc.valkey
 chmod +x /etc/rc.d/rc.valkey
-# ln -s /etc/rc.d/rc.redis /usr/local/etc/rc.d/rc.redis
-# sed -i '54 i\loadmodule /opt/keydb/lib/redisearch.so' /etc/keydb/keydb.conf
-# sed -i '54 i\loadmodule /opt/redis/lib/redisearch.so' /etc/redis/redis.conf
 
-#sed -i 's/^write_logs.*/write_logs = no/' /etc/audit/auditd.conf
+echo "alias valkey='/etc/rc.d/rc.valkey'" >> /etc/profile
+echo "alias dirt='/etc/rc.d/rc.dirt'" >> /etc/profile
+
+. /etc/profile
 
 config_file="/etc/valkey/valkey.conf"
 new_value="/usr/bin/valkey-modules/redisearch.so"
+
+
+
 
 awk -v new_value="$new_value" '
   /^#? *loadmodule / && !found {

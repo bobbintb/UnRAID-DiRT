@@ -107,16 +107,13 @@ function prepareShare(form) {
   console.log("Removed:", removed);
   console.log("Added:", added);
   dirtySock('removeShare', removed)
-  
+  dirtySock('addShare', added)
   
   item = form.share.options[0];
   item.value = share;
   item.selected = true;
   $('input.thin').prop('disabled',false);
 }
-
-
-
 
 $(function() {
   $('#share').dropdownchecklist({emptyText:'_(None)_', width:<?=$width[0]?>, explicitClose:'..._(close)_'});
