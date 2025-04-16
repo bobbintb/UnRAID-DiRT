@@ -48,18 +48,18 @@ function createDefaultConfig(filePath) {
 
 async function addShares (messageData) {
     var fileMap = scan.getAllFiles(messageData)
-    // also need to query redis for files of same size and merge the results 
-    // filesOfSize(size)
-
+    // use util.inspect to show full arrays
+    const util = await import('util');
+    // console.debug('Current fileMap:', util.inspect(fileMap, {depth: null, maxArrayLength: null}));
     // find groups where length > 1
     var morthan1 = [...fileMap.entries()].filter(([_, group]) => group.length > 1)
     for (const group of morthan1) {
-        // console.log("messageData:")
-        // console.log(group[0]);
-        // console.log(group[1]);
+        console.log("messageData:")
+        console.log(group[0]);
+        console.log(group[1]);
         if (group[0] != 0) {
-            const hashedFiles = await scan.hashFilesInIntervals(group[0], group[1])
-            console.log(`HASHED FILES: ${hashedFiles}`)
+            const hashedFiles = await scan.hashFilesInIntervals(group[0], group[1]);
+            // console.log('HASHED FILES:', JSON.stringify(hashedFiles, null, 2));
         }
     };
     console.error("DONE")

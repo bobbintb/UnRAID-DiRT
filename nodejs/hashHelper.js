@@ -28,42 +28,63 @@ function delHash(files,hashers,processedBytes,index) {
 }
 
 export async function processFileChunks(files, hashers, processedBytes, size, CHUNK_SIZE) {
-    // if (processedBytes[index] >= size) return chunkResolve(true);
-
-    return files.map((file, index) => {
-        return new Promise((chunkResolve, chunkReject) => {
-            let stream;
-            try {
-                const chunkEnd = processedBytes[index] + CHUNK_SIZE - 1;
-                const end = Math.min(chunkEnd, size - 1);
-                stream = fs.createReadStream(file.path[0], {
-                    start: processedBytes[index],
-                    end: end
-                });
-
-                stream.on('data', (chunk) => { 
-                    hashers[index].update(chunk);
-                    processedBytes[index] += chunk.length;
-                });
-
-                stream.on('end', () => {
-                    // If the stream reaches the end, resolve the promise
-                    if (processedBytes[index] >= size) {
-                        chunkResolve(true);
-                    }
-                });
-
-                stream.on('error', (error) => {
-                    console.error(`Error processing file: ${file.path[0]}`, error);
-                    chunkReject(error); 
-                });
-            } catch (err) {
-                console.error("ERROR: ", err);
-                chunkReject(err); 
-            }
+    const promises = files.map((file, index) => {
+      if (processedBytes >= size) return;
+      const start = processedBytes;
+      const end = Math.min(processedBytes + CHUNK_SIZE, size);
+      const buffer = Buffer.alloc(end - start);
+      return new Promise((resolve, reject) => {
+        const fd = fs.openSync(file.path[0], 'r');
+        fs.read(fd, buffer, 0, buffer.length, start, (err) => {
+          if (err) return reject(err);
+          hashers[index].update(buffer);
+          fs.closeSync(fd);
+          resolve();
         });
+      });
     });
-}
+  
+    await Promise.all(promises);
+  }
+
+
+// export async function processFileChunks(files, hashers, processedBytes, size, CHUNK_SIZE) {
+//     // if (processedBytes[index] >= size) return chunkResolve(true);
+
+//     return files.map((file, index) => {
+//         return new Promise((chunkResolve, chunkReject) => {
+//             let stream;
+//             try {
+//                 const chunkEnd = processedBytes[index] + CHUNK_SIZE - 1;
+//                 const end = Math.min(chunkEnd, size - 1);
+//                 stream = fs.createReadStream(file.path[0], {
+//                     start: processedBytes[index],
+//                     end: end
+//                 });
+
+//                 stream.on('data', (chunk) => { 
+//                     hashers[index].update(chunk);
+//                     processedBytes[index] += chunk.length;
+//                 });
+
+//                 stream.on('end', () => {
+//                     // If the stream reaches the end, resolve the promise
+//                     if (processedBytes[index] >= size) {
+//                         chunkResolve(true);
+//                     }
+//                 });
+
+//                 stream.on('error', (error) => {
+//                     console.error(`Error processing file: ${file.path[0]}`, error);
+//                     chunkReject(error); 
+//                 });
+//             } catch (err) {
+//                 console.error("ERROR: ", err);
+//                 chunkReject(err); 
+//             }
+//         });
+//     });
+// }
 
 
 // TODO: this needs to handle files being moved before starting hash. If it moved during it's fine, as it uses the file descriptor.
