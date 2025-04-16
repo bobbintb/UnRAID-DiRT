@@ -53,7 +53,7 @@ async function addShares (messageData) {
 
     // find groups where length > 1
     var morthan1 = [...fileMap.entries()].filter(([_, group]) => group.length > 1)
-    morthan1.forEach(async group=>{
+    for (const group of morthan1) {
         // console.log("messageData:")
         // console.log(group[0]);
         // console.log(group[1]);
@@ -61,7 +61,7 @@ async function addShares (messageData) {
             const hashedFiles = await scan.hashFilesInIntervals(group[0], group[1])
             console.log(`HASHED FILES: ${hashedFiles}`)
         }
-    });
+    };
     console.error("DONE")
 };
 

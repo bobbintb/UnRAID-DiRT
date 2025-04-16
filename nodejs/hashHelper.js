@@ -28,39 +28,43 @@ function delHash(files,hashers,processedBytes,index) {
 }
 
 export async function processFileChunks(files, hashers, processedBytes, size, CHUNK_SIZE) {
-    // await new Promise(resolve => setTimeout(resolve, 3000));
+    // if (processedBytes[index] >= size) return chunkResolve(true);
+
     return files.map((file, index) => {
-        // let end = files[0].size < CHUNK_SIZE ? files[0].size : Math.min(processedBytes[index] + CHUNK_SIZE - 1, file.size - 1);
         return new Promise((chunkResolve, chunkReject) => {
-            let stream
+            let stream;
             try {
-              stream = fs.createReadStream(file.path[0], {
-                start: processedBytes[index],
-                end: Math.min(processedBytes[index] + CHUNK_SIZE - 1, size - 1)
-              })
-            } catch (err) {
-              console.error("ERROR")
-              console.error(size)
-              console.error(err)
-              console.error(file)
-            }
-            
-                stream.on('data', (chunk) => { // Update the hash with the current chunk
+                const chunkEnd = processedBytes[index] + CHUNK_SIZE - 1;
+                const end = Math.min(chunkEnd, size - 1);
+                stream = fs.createReadStream(file.path[0], {
+                    start: processedBytes[index],
+                    end: end
+                });
+
+                stream.on('data', (chunk) => { 
                     hashers[index].update(chunk);
-                    processedBytes[index] += chunk.length; // Update the progress
+                    processedBytes[index] += chunk.length;
                 });
 
                 stream.on('end', () => {
-                    chunkResolve(true); // Resolve the promise after the stream ends
+                    // If the stream reaches the end, resolve the promise
+                    if (processedBytes[index] >= size) {
+                        chunkResolve(true);
+                    }
                 });
 
                 stream.on('error', (error) => {
                     console.error(`Error processing file: ${file.path[0]}`, error);
-                    chunkReject(error); // Reject if there's a stream error
+                    chunkReject(error); 
                 });
+            } catch (err) {
+                console.error("ERROR: ", err);
+                chunkReject(err); 
+            }
         });
     });
 }
+
 
 // TODO: this needs to handle files being moved before starting hash. If it moved during it's fine, as it uses the file descriptor.
 // Maybe consider using the inode instead of filepath so you can get the filepath when needed or the file descriptor.

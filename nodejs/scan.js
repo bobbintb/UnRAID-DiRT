@@ -104,19 +104,19 @@ export async function hashFilesInIntervals(size, files) {
                 let fileChunkPromises = await processFileChunks(files, hashers, processedBytes, size, CHUNK_SIZE);
 
                 await Promise.all(fileChunkPromises);                                                                   // Wait for all chunk reads to complete
-                // console.debug(`PRE-FILTER: ${JSON.stringify(files, null, 2)}`);
+                console.debug(`PRE-FILTER: ${JSON.stringify(files, null, 2)}`);
                 // Filter out unique hashes
                 const fileHashes = files.map((_, index) => hashers[index].digest('hex'));
-                const resultFiles = files.filter((index) => 
-                    fileHashes.indexOf(fileHashes[index]) !== fileHashes.lastIndexOf(fileHashes[index])
-                );
+                console.debug("fileHashes")
+                console.debug(fileHashes)
+                const resultFiles = files.filter((_, i) =>
+                    fileHashes.indexOf(fileHashes[i]) !== fileHashes.lastIndexOf(fileHashes[i])
+                  );
                 files = resultFiles; // Keep only files with non-unique hashes
-                
-
 
                 let current_progress = ((processedBytes[0] / size) * 100).toFixed(1);
-                // console.debug("POST-FILTER")
-                // console.debug(JSON.stringify(files, null, 2))
+                console.debug("POST-FILTER")
+                console.debug(JSON.stringify(files, null, 2))
                 if (files.length === 0) {
                     return resolve(files);
                 }
@@ -130,8 +130,8 @@ export async function hashFilesInIntervals(size, files) {
             reject(error);                                                                                              // Reject the promise if there's any error
         }
         
-        message = `Done.`;
-        sendToClient(message)
+        // message = `Done.`;
+        // sendToClient(message)
     });
 }
 
