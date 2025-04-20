@@ -3,7 +3,7 @@
   "dependencies": {
     "bee-queue": "^1.7.1",
     "blake3": "^3.0.0",
-    "bull": "^4.16.4",
+    "bullmq": "^5.49.1",
     "collections": "5.1.13",
     "crypto-js": "^4.2.0",
     "express": "^4.19.2",

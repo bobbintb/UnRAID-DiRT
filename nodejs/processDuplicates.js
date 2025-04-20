@@ -1,4 +1,4 @@
-import {fileRepository, processQueue, scanQueue, redis} from "./redisHelper.js"
+// import {fileRepository, processQueue, scanQueue, redis} from "./redisHelper.js"
 import fs from "fs";
 import crypto from 'crypto';
 

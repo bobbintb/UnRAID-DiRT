@@ -3,15 +3,16 @@ import { exec } from 'child_process';
 exec('valkey start')
 
 import * as scan from '../nodejs/scan.js';
-import {enqueueFileAction} from "./processDuplicates.js";
+// import {enqueueFileAction} from "./processDuplicates.js";
 
+import { FlowProducer } from "bullmq";
 
-import {findDuplicateHashes, processQueue, redis, removePathsStartingWith, scanQueue} from "./redisHelper.js";
+// import {findDuplicateHashes, processQueue, redis, removePathsStartingWith, scanQueue} from "./redisHelper.js";
 import fs from "fs";
 import * as url from 'url';
 
 import {dirtySock} from "./socket.js";
-import {dequeueCreateFile, enqueueCreateFile, enqueueDeleteFile, enqueueMoveFile} from "./queueListener.js";
+import { addShares } from "./scanQueueListener.js";
 import path from "path";
 import { WebSocketServer } from 'ws';
 import { group } from 'console';
@@ -46,45 +47,50 @@ function createDefaultConfig(filePath) {
     }
 }
 
-async function addShares (messageData) {
-    var fileMap = scan.getAllFiles(messageData)
-    // use util.inspect to show full arrays
-    const util = await import('util');
-    // console.debug('Current fileMap:', util.inspect(fileMap, {depth: null, maxArrayLength: null}));
-    // find groups where length > 1
-    var morthan1 = [...fileMap.entries()].filter(([_, group]) => group.length > 1)
-    for (const group of morthan1) {
-        console.log("messageData:")
-        console.log(group[0]);
-        console.log(group[1]);
-        if (group[0] != 0) {
-            const hashedFiles = await scan.hashFilesInIntervals(group[0], group[1]);
-            // console.log('HASHED FILES:', JSON.stringify(hashedFiles, null, 2));
-        }
-    };
-    console.error("DONE")
-};
 
-async function removeShares (messageData) {
-    console.log(messageData);
-    messageData.forEach(share=>{
+
+
+
+
+// async function addShares (dirPaths) {
+//     var fileMap = scan.getAllFiles(dirPaths)
+//     // use util.inspect to show full arrays
+//     const util = await import('util');
+//     // console.debug('Current fileMap:', util.inspect(fileMap, {depth: null, maxArrayLength: null}));
+//     // find groups where length > 1
+//     var morthan1 = [...fileMap.entries()].filter(([_, group]) => group.length > 1)
+//     for (const group of morthan1) {
+//         console.log("dirPaths:")
+//         console.log(group[0]);
+//         console.log(group[1]);
+//         if (group[0] != 0) {
+//             const hashedFiles = await scan.hashFilesInIntervals(group[0], group[1]);
+//             // console.log('HASHED FILES:', JSON.stringify(hashedFiles, null, 2));
+//         }
+//     };
+//     console.error("DONE")
+// };
+
+async function removeShares (dirPaths) {
+    console.log(dirPaths);
+    dirPaths.forEach(share=>{
         console.log((share))
     });
     removePathsStartingWith()
 };
 
-async function addToProcessQueue (message) {
-    enqueueFileAction(message)
-};
+// async function addToProcessQueue (message) {
+//     enqueueFileAction(message)
+// };
 
-async function processStart () {
-    await processQueue.resume()
-    await processQueue.pause()
-};
+// async function processStart () {
+//     await processQueue.resume()
+//     await processQueue.pause()
+// };
 
 async function clear () {
     console.log('clearing')
-    await processQueue.obliterate()
+    // await processQueue.obliterate()
     await redis.del('dirt:process:og').then(result => {
     })
 };
@@ -108,10 +114,10 @@ async function scanStart (data) {
 async function load() {
     const settings = loadSettings(configFile);
     const ogs = await redis.hGetAll("dirt:process:og")
-    const jobs = (await processQueue.getJobs('paused')).reduce((acc, job) => {
-        acc[job.id] = job.data.action;
-        return acc;
-    }, {});
+    // const jobs = (await processQueue.getJobs('paused')).reduce((acc, job) => {
+    //     acc[job.id] = job.data.action;
+    //     return acc;
+    // }, {});
     
     // try {
     //     const result = await findDuplicateHashes();
@@ -157,7 +163,7 @@ dirt.on('connection', async (ws, req) => {
                     break;
                 case "dirtSettings.page:addShare":
                     // console.error("added shares")
-                    // console.error(data);
+                    console.debug("dirt.js: adding shares");
                     addShares(data);
                     break;
                 case "dirtSettings.page:removeShare":

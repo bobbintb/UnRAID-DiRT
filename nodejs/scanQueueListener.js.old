@@ -1,6 +1,32 @@
 import fs from "fs";
 import {hashFilesInIntervals} from "./hashHelper.js"
 import {fileRepository, filesOfSize, scanQueue, redis} from "./redisHelper.js";
+import { FlowProducer } from "bullmq";
+
+async function addShares(dirPaths) {
+    const flowProducer = new FlowProducer();
+    const flow = await flowProducer.add({
+        name: 'add-share',  // A name for the flow
+        queueName: scanQueue.name,  // The queue the flow jobs will go into
+        data: { someData: dirPaths },  // Initial data for the flow
+        children: [
+        {
+            name: 'step1',
+            data: { stepData: scan.getAllFiles(dirPaths) },
+        },
+        {
+            name: 'step2',
+            data: {
+                stepData: [...'{{step1.result}}'.entries()].filter(([_, group]) => group.length > 1),
+                parentResult: '{{step1.result}}'  // Reference the result of step1
+            },
+        },
+        // You can add more child jobs as needed
+        ],
+    });
+
+  console.log(`Flow created with job IDs: ${flow.jobIds}`);
+}
 
 // combine all these to just add to the queue and create a `task` parameter
 export function enqueueDeleteFile(src) {
@@ -91,6 +117,9 @@ async function dequeueMoveFile(src, dest) {
 // Must be called to process the queue
 scanQueue.process(async (job, done) => {
     switch (job.data.task) {
+        case 'add-share':
+            await addShares(job.data.dirPaths)
+            break;
         case 'create':
             await dequeueCreateFile(job.data.src)
             break;

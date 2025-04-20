@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import util from "util";
-import {enqueueCreateFile} from "./queueListener.js";
+// import {enqueueCreateFile} from "./scanQueueListener.js";
 // import {processFileChunks} from "./hashHelper.js";
 // import MultiMap from 'collections/multi-map';   
 import blake3 from 'blake3';
