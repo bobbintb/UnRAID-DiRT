@@ -6,43 +6,37 @@ const connection = {
     port: 6379
 };
 
-// Create queue with connection config and prefix
-export const scanQueue = new Queue('scanQueue', {
-    connection,
-    prefix: 'dirt'  // Change default 'bull' prefix to 'dirt'
-});
+const QUEUE_NAME = 'scanQueue';
 
-// Create a flow producer with connection config
-const flowProducer = new FlowProducer({ connection });
+const queueConfig = {
+    connection,
+    prefix: 'dirt'
+};
+
+// Create queue with connection config and prefix
+export const scanQueue = new Queue(QUEUE_NAME, queueConfig);
+
+// Create a flow producer with connection config and prefix
+const flowProducer = new FlowProducer(queueConfig);
 
 // Example flow creation function
 export async function addShares(dirPaths) {
     console.debug('scanQueueListener.js: addShares() called with dirPaths:', dirPaths);
     const flow = await flowProducer.add({
         name: 'scanQueue-flow',
-        queueName: scanQueue,
+        queueName: QUEUE_NAME,
         children: [
             {
-                name: 'summarize',
+                name: 'removeUniques',
+                queueName: QUEUE_NAME,
                 data: {}, // Only needs child_result
                 children: [
                     {
-                        name: 'hashFiles',
-                        data: {}, // Only needs child_result
-                        children: [
-                            {
-                                name: 'removeUniques',
-                                data: {}, // Only needs child_result
-                                children: [
-                                    {
-                                        name: 'getAllFiles',
-                                        data: {
-                                            input: dirPaths
-                                        }
-                                    }
-                                ]
-                            }
-                        ]
+                        name: 'getAllFiles',
+                        queueName: QUEUE_NAME,
+                        data: {
+                            input: dirPaths
+                        }
                     }
                 ]
             }
@@ -51,38 +45,27 @@ export async function addShares(dirPaths) {
     return flow;
 }
 
-// Worker uses the same queue name, connection config and prefix
-const worker = new Worker('scanQueue', async job => {
+// Worker uses the same queue name and config to ensure consistent prefix
+const worker = new Worker(QUEUE_NAME, async job => {
     console.debug('starting worker...');
     switch (job.name) {
         case 'getAllFiles':
-            console.log('Starting file scan...');
-            return scan.getAllFiles(job.data.input);
+            console.debug('Starting file scan...');
+            let results = scan.getAllFiles(job.data.input);
+            // console.debug('File scan results:', results);
+            return Array.from(results);
             
         case 'removeUniques':
-            console.log('Removing unique files...');
-            const filesData = job.data.child_result;
-            return [...filesData.entries()].filter(([_, group]) => group.length > 1);
-            
-        case 'hashFiles':
-            console.log('Hashing files...');
-            const uniqueFiles = job.data.child_result;
-            return uniqueFiles;
-            
-        case 'summarize':
-            console.log('Creating summary...');
-            const analyzed = job.data.child_result;
-            return {
-                ...analyzed,
-                summary: 'Processing completed successfully',
-                completed: true
-            };
+            console.debug('Removing unique files...');
+            const filesData = await job.getChildrenValues();
+            console.debug('Files data:', filesData);
+            return Array.from(filesData).filter(([_, group]) => group.length > 1);
     }
-}, { connection });
+}, queueConfig);
 
 // Handle worker completion events
 worker.on('completed', job => {
-    console.log(`Job ${job.name} completed. Result:`, job.returnvalue);
+    console.debug(`Job ${job.name} completed.`);
 });
 
 worker.on('failed', (job, err) => {
