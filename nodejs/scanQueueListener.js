@@ -57,9 +57,15 @@ const worker = new Worker(QUEUE_NAME, async job => {
             
         case 'removeUniques':
             console.debug('Removing unique files...');
-            const filesData = await job.getChildrenValues();
+            // const childrenValues = await job.getChildrenValues();           
+            const filesData = Object.values(await job.getChildrenValues())[0];
             console.debug('Files data:', filesData);
-            return Array.from(filesData).filter(([_, group]) => group.length > 1);
+            
+            if (!Array.isArray(filesData)) {
+                throw new Error('Files data is not in the expected format');
+            }
+            
+            return filesData.filter(([_, group]) => group.length > 1);
     }
 }, queueConfig);
 
