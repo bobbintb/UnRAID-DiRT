@@ -147,13 +147,13 @@ export async function hashFilesInIntervals(size, files) {
             return acc;
         }, { files: [], hashers: [], processedBytes: [] });
 
-        files = result.files;
+        // files = result.files;
         hashers = result.hashers;
         processedBytes = result.processedBytes;
 
         // console.log(`Filtered files from ${beforeLength} to ${files.length}`);
 
-        if (files.every((_file, index) => processedBytes[index] >= size)) {
+        if (result.files.every((_file, index) => processedBytes[index] >= size)) {
             // console.log('All files processed');
             break;
         }

@@ -27,16 +27,23 @@ export async function addShares(dirPaths) {
         queueName: QUEUE_NAME,
         children: [
             {
-                name: 'removeUniques',
+                name: 'groupBySize',
                 queueName: QUEUE_NAME,
                 data: {}, // Only needs child_result
                 children: [
                     {
-                        name: 'getAllFiles',
+                        name: 'removeUniques',
                         queueName: QUEUE_NAME,
-                        data: {
-                            input: dirPaths
-                        }
+                        data: {}, // Only needs child_result
+                        children: [
+                            {
+                                name: 'getAllFiles',
+                                queueName: QUEUE_NAME,
+                                data: {
+                                    input: dirPaths
+                                }
+                            }
+                        ]
                     }
                 ]
             }
@@ -52,8 +59,8 @@ const worker = new Worker(QUEUE_NAME, async job => {
         case 'getAllFiles':
             console.debug('Starting file scan...');
             let results = scan.getAllFiles(job.data.input);
-            // console.debug('File scan results:', results);
-            return Array.from(results);
+            console.debug('File scan results:', ...results.entries());
+            return [...results.entries()];
             
         case 'removeUniques':
             console.debug('Removing unique files...');
@@ -66,6 +73,22 @@ const worker = new Worker(QUEUE_NAME, async job => {
             }
             
             return filesData.filter(([_, group]) => group.length > 1);
+
+        case 'groupBySize':
+            // TODO: hashFilesInIntervals needs to be fixed. It was only returning files if they had duplicate hashes, instead of all files.
+            const stepthree = Object.values(await job.getChildrenValues())[0];
+            // console.debug('stepthree data:', stepthree);
+            for (const group of stepthree) {
+                        console.log("dirPaths:")
+                        console.log(group[0]);
+                        console.log(group[1]);
+                        if (group[0] != 0) {
+                            const hashedFiles = await scan.hashFilesInIntervals(group[0], group[1]);
+                            console.debug('HASHED FILES:', JSON.stringify(hashedFiles, null, 2));
+                        }
+                    };
+
+            return hashedFiles;
     }
 }, queueConfig);
 
