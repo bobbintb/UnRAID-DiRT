@@ -161,8 +161,8 @@ export async function hashFilesInIntervals(size, files) {
         // console.log('Processed bytes:', processedBytes);
     }
 
-    files.forEach((file, index) => {
-        file.hash = hashers[index].digest('hex');
+    hashers.forEach((hasher, index) => {
+        files[index].hash = hasher.digest('hex');
     });
 
     console.log('Final result:', JSON.stringify(files, null, 2));

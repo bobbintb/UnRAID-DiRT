@@ -1,5 +1,6 @@
 import { Queue, Worker, FlowProducer } from 'bullmq';
 import * as scan from './scan.js';
+import { fileRepository } from './redisHelper.js';
 
 const connection = {
     host: 'localhost',
@@ -19,6 +20,11 @@ export const scanQueue = new Queue(QUEUE_NAME, queueConfig);
 // Create a flow producer with connection config and prefix
 const flowProducer = new FlowProducer(queueConfig);
 
+// step 1: Scan all files in the given directories
+// step 2: For each size group, query redis for other files with the same size
+// step 3: If the group has only one file, add it to redis.
+// step 4: If the group has more than one file, hash the files in intervals and add them to redis.
+
 // Example flow creation function
 export async function addShares(dirPaths) {
     console.debug('scanQueueListener.js: addShares() called with dirPaths:', dirPaths);
@@ -27,7 +33,7 @@ export async function addShares(dirPaths) {
         queueName: QUEUE_NAME,
         children: [
             {
-                name: 'groupBySize',
+                name: 'saveToRedis',
                 queueName: QUEUE_NAME,
                 data: {}, // Only needs child_result
                 children: [
@@ -59,38 +65,51 @@ const worker = new Worker(QUEUE_NAME, async job => {
         case 'getAllFiles':
             console.debug('Starting file scan...');
             let results = scan.getAllFiles(job.data.input);
-            console.debug('File scan results:', ...results.entries());
             return [...results.entries()];
             
         case 'removeUniques':
             console.debug('Removing unique files...');
-            // const childrenValues = await job.getChildrenValues();           
             const filesData = Object.values(await job.getChildrenValues())[0];
-            console.debug('Files data:', filesData);
             
             if (!Array.isArray(filesData)) {
                 throw new Error('Files data is not in the expected format');
             }
             
-            return filesData.filter(([_, group]) => group.length > 1);
+            const duplicateGroups = filesData.filter(([_, group]) => group.length > 1);
+            duplicateGroups.forEach(([size, files]) => {
+                return files;
+            });
+            
 
-        case 'groupBySize':
-            // TODO: hashFilesInIntervals needs to be fixed. It was only returning files if they had duplicate hashes, instead of all files.
-            const stepthree = Object.values(await job.getChildrenValues())[0];
-            // console.debug('stepthree data:', stepthree);
-            for (const group of stepthree) {
-                        console.log("dirPaths:")
-                        console.log(group[0]);
-                        console.log(group[1]);
-                        if (group[0] != 0) {
-                            const hashedFiles = await scan.hashFilesInIntervals(group[0], group[1]);
-                            console.debug('HASHED FILES:', JSON.stringify(hashedFiles, null, 2));
-                        }
-                    };
-
-            return hashedFiles;
+        case 'saveToRedis':
+            console.debug('Saving duplicate groups to Redis...');
+            const groups = Object.values(await job.getChildrenValues())[0];
+            console.debug('Groups:', groups);
+            // Process each size group and save to Redis
+            for (const [size, files] of groups) {
+                // Hash the files in the group if they have the same size
+                const hashedFiles = await scan.hashFilesInIntervals(size, files);
+                
+                // Save each file's metadata to Redis
+                for (const file of hashedFiles) {
+                    await fileRepository.save(file.ino, file);
+                }
+            }
+            return;
     }
 }, queueConfig);
+
+//   const job2Worker = new Worker('main-queue', async (job) => {
+//     if (job.name === 'job2' && !job.returnvalue.condition) {
+//       // Only add job2b if condition is false
+//       await flowProducer.add({
+//         name: 'job2b',
+//         queueName: 'scanQueue',
+//         data: {},
+//         children: [] // job3 is already scheduled
+//       });
+//     }
+//   }, { autorun: false });
 
 // Handle worker completion events
 worker.on('completed', job => {
