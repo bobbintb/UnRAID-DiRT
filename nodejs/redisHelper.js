@@ -202,19 +202,33 @@ export async function findDuplicateHashes() {
     }
 }
 
-export async function removePathsStartingWith(before) {
-    const entities = await fileRepository.search()
-        .where('path').matches(`${before}*`)
-        .return.all();
+function getEntityId(entity) {
+    return entity[Object.getOwnPropertySymbols(entity).find(sym => sym.description === 'entityId')];
+}
 
+// TODO: figure out why this only does 200 on each function call
+export async function removePathsStartingWith(before) {
+    // console.debug('Removing paths starting with:', before);
+    let entities = await fileRepository.search().where('path').contains(`${before}*`).return.all();
+    // console.debug('Entities found:', entities);
+while (entities.length > 0) {
+    console.debug('length:', entities.length);
     for (const entity of entities) {
         const updatedPaths = entity.path.filter(p => !p.startsWith(before));
+        // console.debug('Updated paths:', updatedPaths);
 
         if (updatedPaths.length > 0) {
             await fileRepository.save({ ...entity, path: updatedPaths });
         } else {
-            await fileRepository.remove(entity[Object.getOwnPropertySymbols(entity).find(sym => sym.description === 'entityId')]);
+            const test = await fileRepository.fetch(getEntityId(entity))
+            console.debug('Test:', test);
+            // console.debug('Entity:', getEntityId(entity));
+            // console.debug(`entityId: ${entity[Object.getOwnPropertySymbols(entity).find(sym => sym.description === 'entityId')]}`);
+            // console.debug(`entityKeyName: ${entity[Object.getOwnPropertySymbols(entity).find(sym => sym.description === 'entityKeyName')]}`);
+            await fileRepository.remove(getEntityId(entity));
         }
     }
+    entities = await fileRepository.search().where('path').contains(`${before}*`).return.all();
+    console.debug('Entities found:', entities);
 }
-
+}

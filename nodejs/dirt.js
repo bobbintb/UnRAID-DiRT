@@ -72,11 +72,11 @@ function createDefaultConfig(filePath) {
 // };
 
 async function removeShares (dirPaths) {
-    console.log(dirPaths);
     dirPaths.forEach(share=>{
         console.log((share))
+        removePathsStartingWith(share)
     });
-    removePathsStartingWith()
+    
 };
 
 // async function addToProcessQueue (message) {
@@ -167,8 +167,8 @@ dirt.on('connection', async (ws, req) => {
                     addShares(data);
                     break;
                 case "dirtSettings.page:removeShare":
+                    // This should probably be added to the queue, on the off chance that the user is removing a share while the scan is running.
                     console.error("removeShare")
-                    console.error(data);
                     removeShares(data);
                     break;
                 case "dirt.php:addToProcessQueue":

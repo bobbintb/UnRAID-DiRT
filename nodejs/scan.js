@@ -123,7 +123,7 @@ export async function hashFilesInIntervals(size, inputFiles) {
     while (files.length > 1) {
         await processFileChunks(files, hashers, processedBytes, size, CHUNK_SIZE);
         const intermediateHashes = files.map((_, index) => hashers[index].digest('hex'));
-        console.debug('Intermediate hashes:', intermediateHashes);
+        // console.debug('Intermediate hashes:', intermediateHashes);
         const hashCounts = {};
         for (const hash of intermediateHashes) {
             hashCounts[hash] = (hashCounts[hash] || 0) + 1;
@@ -150,7 +150,7 @@ export async function hashFilesInIntervals(size, inputFiles) {
     }
     
     // Remove the final hash assignment that was affecting all files
-    console.log('Final result:', JSON.stringify(files, null, 2));
+    // console.log('Final result:', JSON.stringify(files, null, 2));
     return inputFiles;
 }
 
