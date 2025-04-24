@@ -7,7 +7,7 @@ import * as scan from '../nodejs/scan.js';
 
 import { FlowProducer } from "bullmq";
 
-// import {findDuplicateHashes, processQueue, redis, removePathsStartingWith, scanQueue} from "./redisHelper.js";
+import {findDuplicateHashes, processQueue, redis, removePathsStartingWith} from "./redisHelper.js";
 import fs from "fs";
 import * as url from 'url';
 
@@ -114,23 +114,23 @@ async function scanStart (data) {
 async function load() {
     const settings = loadSettings(configFile);
     const ogs = await redis.hGetAll("dirt:process:og")
-    // const jobs = (await processQueue.getJobs('paused')).reduce((acc, job) => {
-    //     acc[job.id] = job.data.action;
-    //     return acc;
-    // }, {});
+    const jobs = (await processQueue.getJobs('paused')).reduce((acc, job) => {
+        acc[job.id] = job.data.action;
+        return acc;
+    }, {});
     
-    // try {
-    //     const result = await findDuplicateHashes();
-    //     return {
-    //         result: result,
-    //         datetime_format: settings.datetime_format,
-    //         jobs: jobs,
-    //         ogs: ogs
-    //     };
-    // } catch (error) {
-    //     console.error(error);
-    //     return{ error: 'Internal Server Error' };
-    // }
+    try {
+        const result = await findDuplicateHashes();
+        return {
+            result: result,
+            datetime_format: settings.datetime_format,
+            jobs: jobs,
+            ogs: ogs
+        };
+    } catch (error) {
+        console.error(error);
+        return{ error: 'Internal Server Error' };
+    }
 }
 
 dirt.on('connection', async (ws, req) => {

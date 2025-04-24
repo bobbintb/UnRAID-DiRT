@@ -99,7 +99,6 @@ export async function processFileChunks(files, hashers, processedBytes, size, CH
         const start = processedBytes[index];
         const end = Math.min(start + CHUNK_SIZE, size);
         const buffer = Buffer.alloc(end - start);
-
         return new Promise((resolve, reject) => {
             const fd = fs.openSync(file.path[0], 'r');
             fs.read(fd, buffer, 0, buffer.length, start, (err) => {
@@ -111,33 +110,24 @@ export async function processFileChunks(files, hashers, processedBytes, size, CH
             });
         });
     });
-
     await Promise.all(promises);
 }
 
-export async function hashFilesInIntervals(size, files) {
+export async function hashFilesInIntervals(size, inputFiles) {
+    let files = inputFiles;
     if (!Array.isArray(files)) {
         throw new TypeError("Expected 'files' to be an array, but received: " + typeof files);
     }
     let hashers = files.map(() => blake3.createHash());
     let processedBytes = files.map(() => 0);
-
     while (files.length > 1) {
         await processFileChunks(files, hashers, processedBytes, size, CHUNK_SIZE);
-
         const intermediateHashes = files.map((_, index) => hashers[index].digest('hex'));
-        // console.log('Intermediate hashes:', intermediateHashes);
-
-        // Count occurrences of each hash
+        console.debug('Intermediate hashes:', intermediateHashes);
         const hashCounts = {};
         for (const hash of intermediateHashes) {
             hashCounts[hash] = (hashCounts[hash] || 0) + 1;
         }
-        // console.log('Hash counts:', hashCounts);
-
-        const beforeLength = files.length;
-        
-        // Filter out files whose hash appears exactly once
         const result = files.reduce((acc, file, index) => {
             if (hashCounts[intermediateHashes[index]] !== 1) {
                 acc.files.push(file);
@@ -147,26 +137,21 @@ export async function hashFilesInIntervals(size, files) {
             return acc;
         }, { files: [], hashers: [], processedBytes: [] });
 
-        // files = result.files;
-        hashers = result.hashers;
-        processedBytes = result.processedBytes;
-
-        // console.log(`Filtered files from ${beforeLength} to ${files.length}`);
-
         if (result.files.every((_file, index) => processedBytes[index] >= size)) {
-            // console.log('All files processed');
+            // Only add hashes to the files that made it through filtering
+            result.files.forEach((file, index) => {
+                file.hash = result.hashers[index].digest('hex');
+            });
             break;
         }
-
-        // console.log('Processed bytes:', processedBytes);
+        files = result.files;
+        hashers = result.hashers;
+        processedBytes = result.processedBytes;
     }
-
-    hashers.forEach((hasher, index) => {
-        files[index].hash = hasher.digest('hex');
-    });
-
+    
+    // Remove the final hash assignment that was affecting all files
     console.log('Final result:', JSON.stringify(files, null, 2));
-    return files;
+    return inputFiles;
 }
 
 // export function getAllFiles(dirPath) {

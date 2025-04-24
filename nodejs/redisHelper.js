@@ -1,4 +1,4 @@
-// import { Queue, Worker, FlowProducer } from "bullmq";
+import { Queue, Worker, FlowProducer } from "bullmq";
 import {AggregateGroupByReducers, AggregateSteps, createClient} from "redis";
 import {Repository, Schema} from "redis-om";
 import fs from "fs";
@@ -17,18 +17,18 @@ import { exec } from 'child_process';
 //     }
 // });
 
-// export const processQueue = await new Queue('process', {
-//     connection: {
-//         host: '127.0.0.1',
-//         port: 6379,
-//         db: 0,
-//         options: {},
-//     },
-//     prefix: 'dirt',
-//     defaultJobOptions: {
-//         removeOnComplete: true
-//     }
-// });
+export const processQueue = await new Queue('process', {
+    connection: {
+        host: '127.0.0.1',
+        port: 6379,
+        db: 0,
+        options: {},
+    },
+    prefix: 'dirt',
+    defaultJobOptions: {
+        removeOnComplete: true
+    }
+});
 
 // processQueue.pause();
 // processQueue.process(async (job, done) => {
