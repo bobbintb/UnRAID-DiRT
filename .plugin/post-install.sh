@@ -32,6 +32,6 @@ awk -v new_value="$new_value" '
   { print }
 ' "$config_file" > "$config_file.tmp" && mv "$config_file.tmp" "$config_file"
 
-#sed -i '54 i\loadmodule /usr/bin/valkey-modules/redisearch.so' /etc/valkey/valkey.conf
+sed -i '54 i\loadmodule /usr/bin/valkey-modules/redisearch.so MAXEXPANSIONS 10000000' /etc/valkey/valkey.conf
 sysctl vm.overcommit_memory=1
 echo "Done."
