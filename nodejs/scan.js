@@ -8,7 +8,7 @@ import blake3 from 'blake3';
 import { WebSocketServer, WebSocket } from 'ws';
 
 const CHUNK_SIZE = 1048576; // 1MB chunk size
-const wss = new WebSocketServer({ port: 3005 })
+const wss = new WebSocketServer({ port: 3001 })
 await blake3.load();
 export let clientSocket = null;
 

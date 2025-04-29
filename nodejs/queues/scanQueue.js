@@ -1,13 +1,12 @@
 import { Queue, Worker, FlowProducer } from 'bullmq';
-import * as scan from './scan.js';
-import { fileRepository } from './redisHelper.js';
+import * as scan from '../scan.js';
+import { fileRepository } from '../redisHelper.js';
 
 const connection = {
     host: 'localhost',
     port: 6379
 };
 
-const QUEUE_NAME = 'scanQueue';
 
 const queueConfig = {
     connection,
@@ -15,7 +14,9 @@ const queueConfig = {
 };
 
 // Create queue with connection config and prefix
-export const scanQueue = new Queue(QUEUE_NAME, queueConfig);
+export const scanQueue = new Queue('scanQueue', queueConfig);
+export const hashQueue = new Queue('hashQueue', queueConfig);
+
 
 // Create a flow producer with connection config and prefix
 const flowProducer = new FlowProducer(queueConfig);
@@ -25,41 +26,56 @@ const flowProducer = new FlowProducer(queueConfig);
 // step 3: If the group has only one file, add it to redis.
 // step 4: If the group has more than one file, hash the files in intervals and add them to redis.
 
+// TODO: need to account for a file in the new share being a hardlink to a file in the old share
+
 // Example flow creation function
 export async function addShares(dirPaths) {
     console.debug('scanQueueListener.js: addShares() called with dirPaths:', dirPaths);
-    const flow = await flowProducer.add({
+    await flowProducer.add({
         name: 'scanQueue-flow',
-        queueName: QUEUE_NAME,
+        queueName: 'scanQueue',
         children: [
             {
-                name: 'saveToRedis',
-                queueName: QUEUE_NAME,
+                name: 'removeUniques',
+                queueName: 'scanQueue',
                 data: {}, // Only needs child_result
                 children: [
                     {
-                        name: 'removeUniques',
-                        queueName: QUEUE_NAME,
-                        data: {}, // Only needs child_result
-                        children: [
-                            {
-                                name: 'getAllFiles',
-                                queueName: QUEUE_NAME,
-                                data: {
-                                    input: dirPaths
-                                }
-                            }
-                        ]
+                        name: 'getAllFiles',
+                        queueName: 'scanQueue',
+                        data: {
+                        input: dirPaths
                     }
-                ]
+                }
+            ]
             }
         ]
     });
-    return flow;
 }
 
+await flowProducer.add({
+    name: 'hashQueue-flow',
+    queueName: 'hashQueue',
+    children: [
+        {
+            name: 'removeUniques',
+            queueName: 'hashQueue',
+            data: {}, // Only needs child_result
+            children: [
+                {
+                    name: 'getAllFiles',
+                    queueName: 'hashQueue',
+                    data: {
+                    input: dirPaths
+                }
+            }
+        ]
+        }
+    ]
+});
+
 // Worker uses the same queue name and config to ensure consistent prefix
-const worker = new Worker(QUEUE_NAME, async job => {
+const scanQueueWorker = new Worker('scanQueue', async job => {
     console.debug('starting worker...');
     switch (job.name) {
         case 'getAllFiles':
@@ -79,6 +95,38 @@ const worker = new Worker(QUEUE_NAME, async job => {
             duplicateGroups.forEach(([size, files]) => {
                 return files;
             });
+
+            // if (duplicateGroups.length > 1) {
+            //     console.log('Adding flow2 to queue2');
+        
+            //     // Flow2: job3 should run after job4 in queue1
+            //     await flow.add({
+            //       name: 'job4',
+            //       queueName: 'queue2',
+            //       data: { step: 4 },
+            //       children: [
+            //         {
+            //           name: 'job3',
+            //           queueName: 'queue1',
+            //           data: { step: 5 }
+            //         }
+            //       ]
+            //     });
+            //   } else {
+            //     console.log('Adding job3 to flow1');
+                
+            //     // Add job3 to flow1 (queue1)
+            //     await flow.add({
+            //       name: 'job3',
+            //       queueName: 'queue1',
+            //       data: { step: 3 },
+            //       parent: {
+            //         id: job.id,
+            //         queue: job.queue
+            //       }
+            //     });
+            //   }
+        
             
 
         case 'saveToRedis':
@@ -99,6 +147,14 @@ const worker = new Worker(QUEUE_NAME, async job => {
     }
 }, queueConfig);
 
+const hashWorker = new Worker('hashQueue', async job => {
+    for (const [size, files] of groups) {
+        // Hash the files in the group if they have the same size
+        const hashedFiles = await scan.hashFilesInIntervals(size, files);
+    }
+    return;
+})
+
 //   const job2Worker = new Worker('main-queue', async (job) => {
 //     if (job.name === 'job2' && !job.returnvalue.condition) {
 //       // Only add job2b if condition is false
@@ -112,10 +168,10 @@ const worker = new Worker(QUEUE_NAME, async job => {
 //   }, { autorun: false });
 
 // Handle worker completion events
-worker.on('completed', job => {
+scanQueueWorker.on('completed', job => {
     console.debug(`Job ${job.name} completed.`);
 });
 
-worker.on('failed', (job, err) => {
+scanQueueWorker.on('failed', (job, err) => {
     console.error(`Job ${job.name} failed:`, err);
 });

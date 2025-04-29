@@ -12,7 +12,7 @@ import fs from "fs";
 import * as url from 'url';
 
 import {dirtySock} from "./socket.js";
-import { addShares } from "./scanQueueListener.js";
+import { addShares } from "./queues/scanQueue.js";
 import path from "path";
 import { WebSocketServer } from 'ws';
 import { group } from 'console';

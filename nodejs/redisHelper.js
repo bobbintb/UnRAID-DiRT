@@ -19,12 +19,12 @@ import { exec } from 'child_process';
 
 export const processQueue = await new Queue('process', {
     connection: {
-        host: '127.0.0.1',
+        host: 'localhost',
         port: 6379,
         db: 0,
         options: {},
     },
-    prefix: 'dirt',
+    prefix: 'queues',
     defaultJobOptions: {
         removeOnComplete: true
     }
