@@ -1,9 +1,5 @@
 import fs from "fs";
 import path from "path";
-import util from "util";
-// import {enqueueCreateFile} from "./scanQueueListener.js";
-// import {processFileChunks} from "./hashHelper.js";
-// import MultiMap from 'collections/multi-map';   
 import blake3 from 'blake3';
 import { WebSocketServer, WebSocket } from 'ws';
 
@@ -153,58 +149,3 @@ export async function hashFilesInIntervals(size, inputFiles) {
     // console.log('Final result:', JSON.stringify(files, null, 2));
     return inputFiles;
 }
-
-// export function getAllFiles(dirPath) {
-//     function traverseDir(currentPath) {
-//         try {
-//             const entries = fs.readdirSync(currentPath, {withFileTypes: true});
-//             for (const entry of entries) {
-//                 const fullPath = path.join(currentPath, entry.name);
-//                 if (entry.isFile()) {
-//                     const file = getFileStats(fullPath);
-//                     enqueueCreateFile(fullPath);
-//                 } else if (entry.isDirectory()) {
-//                     traverseDir(fullPath);
-//                 }
-//             }
-//         } catch (err) {
-//             console.error(`Error processing directory ${currentPath}:`, err);
-//         }
-//     }
-
-//     try {
-//         traverseDir(dirPath);
-//     } catch (err) {
-//         console.error(`Error processing root directory ${dirPath}:`, err);
-//     }
-// }
-
-// export function getAllFiles(dirPath) {
-//     const fileMap = new MultiMap();
-//     const entries = fs.readdirSync(dirPath, {withFileTypes: true});
-//     for (const entry of entries) {
-//       if (entry.isFile()) {
-//         const fullPath = [dirPath, entry.name];
-//         const stats = fs.statSync(path.join(...fullPath), {bigint: true});
-//         const currentFileInfo = {
-//           id: nanoid(),
-//           path: [fullPath],
-//           nlink: Number(stats.nlink),
-//           ino: stats.ino.toString(),
-//           size: Number(stats.size),
-//           atimeMs: Number(stats.atimeMs),
-//           mtimeMs: Number(stats.mtimeMs),
-//           ctimeMs: Number(stats.ctimeMs),
-//           birthtimeMs: Number(stats.birthtimeMs)
-//         };
-//         const sizeGroup = fileMap.get(currentFileInfo.size) || [];
-//         if (sizeGroup.some(file => file.ino === currentFileInfo.ino)) {
-//           sizeGroup.find(file => file.ino === currentFileInfo.ino).path.push(fullPath);
-//         } else {
-//           fileMap.set(Number(stats.size), currentFileInfo);
-//         }
-//         console.log('Adding file: ' + path.join(...fullPath));
-//       }
-//     }
-//     return fileMap._;
-//   }

@@ -3,14 +3,14 @@ import * as scan from '../scan.js';
 import { fileRepository } from '../redisHelper.js';
 
 const connection = {
-    host: 'localhost',
-    port: 6379
+	host: "localhost",
+	port: 6379,
 };
 
 
 const queueConfig = {
-    connection,
-    prefix: 'dirt'
+	connection,
+	prefix: "dirt",
 };
 
 // Create queue with connection config and prefix
