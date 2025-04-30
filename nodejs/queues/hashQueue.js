@@ -1,49 +1,31 @@
-// const { queue1, queue2, flowProducer } = require('./queues');
+import { Queue, Worker, FlowProducer } from 'bullmq';
+import { defaultQueueConfig, fileRepository } from '../redisHelper.js';
+import { fileQueue } from './fileQueue.js';
+import { hashFilesInIntervals } from '../scan.js';
 
-// // This processor handles job2
-// const job2Processor = async (job) => {
-//   if (needsJob2a(job.data)) {
-//     // If job2a is needed, we add job2a to queue2 and job3 to queue1, but we link job3 to job2a's completion
-//     const job2a = await queue2.add('job2a', job.data);
+export const hashQueue = new Queue('hashQueue', defaultQueueConfig);
 
-//     // Add job3 to queue1, but it should depend on the completion of job2a
-//     await queue1.add('job3', {
-//       from: 'job2a',
-//       dependsOn: [job2a.id] // Ensure job3 doesn't start until job2a finishes
-//     });
-//   } else {
-//     // No need for job2a, add job3 directly after job2
-//     await queue1.add('job3', { from: 'job2' });
-//   }
-// };
-export const hashQueue = new Queue('hashQueue', queueConfig);
+const hashQueueWorker = new Worker('hashQueue', async job => {
+    console.debug('starting worker...');
+            const file = job.data;
+            console.debug('hashQueueWorker', file);
+            let results = await hashFilesInIntervals(file[0], file[1]);
+            results = results.map(obj => ({ ...obj, size: file[0] }))
+            console.debug('hashQueueWorker results', results);
+            await fileQueue.addBulk(
+                results.map((group) => ({
+                    name: "upsert",
+                    data: group
+                }))
+            );
+            return true;
+}, defaultQueueConfig);
 
-await flowProducer.add({
-    name: 'hashQueue-flow',
-    queueName: 'hashQueue',
-    children: [
-        {
-            name: 'removeUniques',
-            queueName: 'hashQueue',
-            data: {}, // Only needs child_result
-            children: [
-                {
-                    name: 'getAllFiles',
-                    queueName: 'hashQueue',
-                    data: {
-                    input: dirPaths
-                }
-            }
-        ]
-        }
-    ]
+hashQueueWorker.on('completed', job => {
+    console.debug(`Job ${job.name} completed.`);
 });
 
-const hashWorker = new Worker('hashQueue', async job => {
-    for (const [size, files] of groups) {
-        // Hash the files in the group if they have the same size
-        const hashedFiles = await scan.hashFilesInIntervals(size, files);
-    }
-    return;
-})
+hashQueueWorker.on('failed', (job, err) => {
+    console.error(`Job ${job.name} failed:`, err);
+});
 

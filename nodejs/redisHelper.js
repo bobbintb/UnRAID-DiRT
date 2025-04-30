@@ -17,6 +17,17 @@ export const processQueue = await new Queue('process', {
     }
 });
 
+export const defaultQueueConfig = {
+	connection: {
+        host: 'localhost',
+        port: 6379
+    },
+	prefix: "queues",
+	defaultJobOptions: {
+        removeOnComplete: true
+    }
+};
+
 // processQueue.pause();
 // processQueue.process(async (job, done) => {
 //     switch (job.data.action) {
