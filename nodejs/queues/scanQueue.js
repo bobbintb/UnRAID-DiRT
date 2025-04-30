@@ -10,12 +10,11 @@ const connection = {
 
 const queueConfig = {
 	connection,
-	prefix: "dirt",
+	prefix: "queues",
 };
 
 // Create queue with connection config and prefix
 export const scanQueue = new Queue('scanQueue', queueConfig);
-export const hashQueue = new Queue('hashQueue', queueConfig);
 
 
 // Create a flow producer with connection config and prefix
@@ -28,8 +27,7 @@ const flowProducer = new FlowProducer(queueConfig);
 
 // TODO: need to account for a file in the new share being a hardlink to a file in the old share
 
-// Example flow creation function
-export async function addShares(dirPaths) {
+export async function addSharesFlow(dirPaths) {
     console.debug('scanQueueListener.js: addShares() called with dirPaths:', dirPaths);
     await flowProducer.add({
         name: 'scanQueue-flow',
@@ -53,31 +51,22 @@ export async function addShares(dirPaths) {
     });
 }
 
-await flowProducer.add({
-    name: 'hashQueue-flow',
-    queueName: 'hashQueue',
-    children: [
-        {
-            name: 'removeUniques',
-            queueName: 'hashQueue',
-            data: {}, // Only needs child_result
-            children: [
-                {
-                    name: 'getAllFiles',
-                    queueName: 'hashQueue',
-                    data: {
-                    input: dirPaths
-                }
-            }
-        ]
-        }
-    ]
-});
+export async function removeSharesJob(dirPaths) {
+    await scanQueue.add('removeShares', { paths: dirPaths });
+}
 
 // Worker uses the same queue name and config to ensure consistent prefix
 const scanQueueWorker = new Worker('scanQueue', async job => {
     console.debug('starting worker...');
     switch (job.name) {
+        case 'removeShares':
+            console.debug('Removing shares...');
+            const paths = job.data.paths;
+            for (const path of paths) {
+                await fileRepository.removePathsStartingWith(path);
+            }
+            return true;
+
         case 'getAllFiles':
             console.debug('Starting file scan...');
             let results = scan.getAllFiles(job.data.input);
@@ -91,13 +80,31 @@ const scanQueueWorker = new Worker('scanQueue', async job => {
                 throw new Error('Files data is not in the expected format');
             }
             
-            const duplicateGroups = filesData.filter(([_, group]) => group.length > 1);
-            duplicateGroups.forEach(([size, files]) => {
-                return files;
-            });
+            // const duplicateGroups = filesData.filter(([_, group]) => group.length > 1);
+            // duplicateGroups.forEach(([size, files]) => {
+            //     return files;
+            // });
 
-            // if (duplicateGroups.length > 1) {
-            //     console.log('Adding flow2 to queue2');
+            for (const [size, files] of filesData) {
+                if (files.length > 1) {
+                    // const hashedFiles = await scan.hashFilesInIntervals(size, files);
+                } else {
+                    console.debug('Adding saveToRedis job with parent:', job.id, 'queue:', job.queueName);
+                    await scanQueue.add('saveToRedis', 
+                        { size, files },
+                        { parent: { id: job.id, queue: 'scanQueue' } }  // Use explicit queue name
+                    );
+                }
+            }
+
+            // filesData.forEach(([size, files]) => {
+            //     if (files.length > 1) {
+            //         console.debug(`files.length > 1: ${files.length}, size: ${size}`);
+            //     } else {
+            //         console.debug(`files.length = 1: ${files.length}, size: ${size}`);
+            //     }
+            // })
+            // return
         
             //     // Flow2: job3 should run after job4 in queue1
             //     await flow.add({
@@ -126,34 +133,35 @@ const scanQueueWorker = new Worker('scanQueue', async job => {
             //       }
             //     });
             //   }
+            return true;
         
             
 
         case 'saveToRedis':
             console.debug('Saving duplicate groups to Redis...');
-            const groups = Object.values(await job.getChildrenValues())[0];
-            console.debug('Groups:', groups);
-            // Process each size group and save to Redis
-            for (const [size, files] of groups) {
-                // Hash the files in the group if they have the same size
-                const hashedFiles = await scan.hashFilesInIntervals(size, files);
-                
-                // Save each file's metadata to Redis
-                for (const file of hashedFiles) {
-                    await fileRepository.save(file.ino, file);
-                }
+            const { size, files } = job.data;
+            console.debug(`Saving size: ${size}, files: ${files}`);
+            for (const file of files) {
+                file.size = size;
+                await fileRepository.save(file.ino, file);
             }
-            return;
+            // const groups = Object.values(await job.getChildrenValues())[0];
+            // console.debug('Groups:', groups);
+            // // Process each size group and save to Redis
+            // for (const [size, files] of groups) {
+            //     // Hash the files in the group if they have the same size
+            //     const hashedFiles = await scan.hashFilesInIntervals(size, files);
+                
+            //     // Save each file's metadata to Redis
+            //     for (const file of hashedFiles) {
+            //         await fileRepository.save(file.ino, file);
+            //     }
+            // }
+            return true;
     }
 }, queueConfig);
 
-const hashWorker = new Worker('hashQueue', async job => {
-    for (const [size, files] of groups) {
-        // Hash the files in the group if they have the same size
-        const hashedFiles = await scan.hashFilesInIntervals(size, files);
-    }
-    return;
-})
+
 
 //   const job2Worker = new Worker('main-queue', async (job) => {
 //     if (job.name === 'job2' && !job.returnvalue.condition) {

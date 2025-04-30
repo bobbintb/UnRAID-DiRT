@@ -1,7 +1,7 @@
 import * as scan from "../nodejs/scan.js";
 import { findDuplicateHashes, processQueue, redis, filesOfSize, removePathsStartingWith } from "./redisHelper.js";
 import fs from "fs";
-import { addSharesFlow, removeSharesJob } from "./scanQueueListener.js";
+import { addSharesFlow, removeSharesJob } from "./queues/scanQueue.js";
 import { WebSocketServer } from "ws";
 
 const dirt = new WebSocketServer({ port: 3000, host: "0.0.0.0" });
