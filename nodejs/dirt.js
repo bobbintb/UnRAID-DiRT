@@ -109,22 +109,24 @@ dirt.on("connection", async (ws, req) => {
 			clients.set(clientId, ws);
 			const key = `${clientId}:${type}`;
 			switch (key) {
-				case "dirtSettings.page:scan":
-					console.log("scan");
-					scanStart(data);
-					break;
 				case "dirtSettings.page:addShare":
 					console.debug("dirt.js: adding shares");
 					addSharesFlow(data);
+					break;
+				case "dirt.php:addToOriginals":
+					console.debug(`addToOriginals: ${JSON.stringify(data)}`);
+					await redis.hSet("dirt:process:og", data.hash, data.path);
+					break;
+
+
+				case "dirtSettings.page:scan":
+					console.log("scan");
+					scanStart(data);
 					break;
 				case "dirtSettings.page:removeShare":
 					// This should probably be added to the queue, on the off chance that the user is removing a share while the scan is running.
 					console.error("removeShare");
 					removeSharesJob(data);
-					break;
-				case "dirt.php:addToOriginals":
-					console.debug(`addToOriginals: ${JSON.stringify(data)}`);
-					await redis.hSet("dirt:process:og", data.hash, data.path);
 					break;
 				case "dirt.php:process":
 					processStart();
