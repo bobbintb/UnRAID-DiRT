@@ -114,7 +114,6 @@ dirt.on("connection", async (ws, req) => {
 					scanStart(data);
 					break;
 				case "dirtSettings.page:addShare":
-					// console.error("added shares")
 					console.debug("dirt.js: adding shares");
 					addSharesFlow(data);
 					break;
