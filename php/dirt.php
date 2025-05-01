@@ -370,7 +370,7 @@ async function dirtySock(type, dataObj = null) {
             ['fa-trash', 'fa-link'].forEach(icon => row.getElement().querySelector(`.fa.${icon}`).style.border = 'initial');
             ['delete', 'link'].forEach(id => row.getElement().querySelector(`input[type="checkbox"]#${id}`).checked = false);
             rowData.action = 'og';
-            dirtySock("addToProcessQueue", rowData);
+            dirtySock("addToOriginals", {hash: rowData.hash, jobId: rowData.path});
         } else
         if (e.target.type === 'checkbox') {
             const targetId = e.target.id === 'delete' ? 'link' : 'delete';

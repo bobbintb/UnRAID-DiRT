@@ -123,8 +123,9 @@ dirt.on("connection", async (ws, req) => {
 					console.error("removeShare");
 					removeSharesJob(data);
 					break;
-				case "dirt.php:addToProcessQueue":
-					addToProcessQueue(data);
+				case "dirt.php:addToOriginals":
+					console.debug(`addToOriginals: ${JSON.stringify(data)}`);
+					// await originalsRepository.save({ hash: data.hash, path: data.path });
 					break;
 				case "dirt.php:process":
 					processStart();

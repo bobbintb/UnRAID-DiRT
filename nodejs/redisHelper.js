@@ -51,11 +51,22 @@ export const fileMetadataSchema = new Schema(
 	}
 );
 
+// const originalsSchema = new Schema("originals", {
+// 	hash: { type: 'string' },
+// 	path: { type: 'string[]' },
+//   });
+
 export const fileRepository = await (async () => {
 	const repo = new Repository(fileMetadataSchema, redis);
 	await repo.createIndex();
 	return repo;
 })();
+
+// export const originalsRepository = await (async () => {
+// 	const repo = new Repository(originalsSchema, redis);
+// 	await repo.createIndex();
+// 	return repo;
+// })();
 
 export async function filesOfSize(size) {
 	return await fileRepository.search().where("size").equals(size).return.all();

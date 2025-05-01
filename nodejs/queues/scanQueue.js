@@ -37,7 +37,7 @@ export async function removeSharesJob(dirPaths) {
 	await scanQueue.add("removeShares", { paths: dirPaths });
 }
 
-async function removeUniques() {
+async function removeUniques(job) {
     console.debug("    Starting file filtering...");
 				const filesData = Object.values(await job.getChildrenValues())[0];
                 console.debug(`        filesData: ${JSON.stringify(filesData)}`);
@@ -104,7 +104,7 @@ const scanQueueWorker = new Worker(
 				return [...results.entries()];
 
 			case "removeUniques":
-				removeUniques();
+				removeUniques(job);
 		}
 	},
 	defaultQueueConfig
