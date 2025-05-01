@@ -52,8 +52,7 @@ export const fileMetadataSchema = new Schema(
 );
 
 // const originalsSchema = new Schema("originals", {
-// 	hash: { type: 'string' },
-// 	path: { type: 'string[]' },
+// 	hash: { type: 'string[]' }
 //   });
 
 export const fileRepository = await (async () => {

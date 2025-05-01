@@ -299,7 +299,7 @@ async function dirtySock(type, dataObj = null) {
                     rowElement.classList.add('disabled');
                     let rowData = row.getData();
                     rowData.action = "og";
-                    if (table.ogs[rowData.hash] === undefined) dirtySock("addToProcessQueue", rowData);
+                    if (table.ogs[rowData.hash] === undefined) dirtySock("addToOriginals", {hash: rowData.hash, path: rowData.path});
                 }
             }
         },
@@ -370,7 +370,7 @@ async function dirtySock(type, dataObj = null) {
             ['fa-trash', 'fa-link'].forEach(icon => row.getElement().querySelector(`.fa.${icon}`).style.border = 'initial');
             ['delete', 'link'].forEach(id => row.getElement().querySelector(`input[type="checkbox"]#${id}`).checked = false);
             rowData.action = 'og';
-            dirtySock("addToOriginals", {hash: rowData.hash, jobId: rowData.path});
+            dirtySock("addToOriginals", {hash: rowData.hash, path: rowData.path});
         } else
         if (e.target.type === 'checkbox') {
             const targetId = e.target.id === 'delete' ? 'link' : 'delete';

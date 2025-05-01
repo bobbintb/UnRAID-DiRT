@@ -125,7 +125,7 @@ dirt.on("connection", async (ws, req) => {
 					break;
 				case "dirt.php:addToOriginals":
 					console.debug(`addToOriginals: ${JSON.stringify(data)}`);
-					// await originalsRepository.save({ hash: data.hash, path: data.path });
+					await redis.hSet("dirt:process:og", data.hash, data.path);
 					break;
 				case "dirt.php:process":
 					processStart();
