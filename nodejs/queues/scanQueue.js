@@ -1,20 +1,11 @@
 import { Queue, Worker, FlowProducer } from "bullmq";
 import * as scan from "../scan.js";
-import { defaultQueueConfig, fileRepository } from "../redisHelper.js";
+import { defaultQueueConfig, fileRepository, filesOfSize } from "../redisHelper.js";
 import { fileQueue } from "./fileQueue.js";
 import { hashQueue } from "./hashQueue.js";
 
-
-// Create queue with connection config and prefix
 export const scanQueue = new Queue("scanQueue", defaultQueueConfig);
-
-// Create a flow producer with connection config and prefix
 const flowProducer = new FlowProducer(defaultQueueConfig);
-
-// step 1: Scan all files in the given directories
-// step 2: For each size group, query redis for other files with the same size
-// step 3: If the group has only one file, add it to redis.
-// step 4: If the group has more than one file, hash the files in intervals and add them to redis.
 
 // TODO: need to account for a file in the new share being a hardlink to a file in the old share
 
@@ -46,39 +37,35 @@ export async function removeSharesJob(dirPaths) {
 	await scanQueue.add("removeShares", { paths: dirPaths });
 }
 
-// Worker uses the same queue name and config to ensure consistent prefix
-const scanQueueWorker = new Worker(
-	"scanQueue",
-	async (job) => {
-		console.debug("starting worker...");
-		switch (job.name) {
-			case "removeShares":
-				console.debug("Removing shares...");
-				const paths = job.data.paths;
-				for (const path of paths) {
-					await fileRepository.removePathsStartingWith(path);
-				}
-				return true;
-
-			case "getAllFiles":
-				console.debug("Starting file scan...");
-				let results = scan.getAllFiles(job.data.input);
-				return [...results.entries()];
-
-			case "removeUniques":
-				console.debug("Removing unique files...");
+async function removeUniques() {
+    console.debug("    Starting file filtering...");
 				const filesData = Object.values(await job.getChildrenValues())[0];
+                console.debug(`        filesData: ${JSON.stringify(filesData)}`);
+                console.debug("        Querying redis for files of the same size...");
+                const filesDataWithRedis = await Promise.all(
+                    filesData.map(async ([size, files]) => {
+                        const redisResults = await filesOfSize(size);
+                        console.debug(`        Redis Results for size ${size}: ${redisResults}`);
+                        return [size, [...files, ...redisResults]];
+                    })
+                );
+
+                console.debug(`        filesDataWithRedis: ${JSON.stringify(filesDataWithRedis)}`);
+
 				// Transform single file groups to flatten structure and include size
-				const singleFileItems = filesData
+				const singleFileItems = filesDataWithRedis
 					.filter(([_, files]) => files.length === 1)
 					.map(([size, files]) => ({
 						...files[0], // spread the first (and only) file's properties
 						size, // add the size property
 					}));
+                
+                console.debug(`        singleFileItems: ${JSON.stringify(singleFileItems)}`);
 
-				const multiFileGroups = filesData.filter(([_, files]) => files.length > 1);
+				const multiFileGroups = filesDataWithRedis.filter(([_, files]) => files.length > 1);
 
-
+                console.debug(`        multiFileGroups: ${JSON.stringify(multiFileGroups)}`);
+                console.debug("        Sending single file items to fileQueue...");
 
 				await fileQueue.addBulk(
 					singleFileItems.map((item) => ({
@@ -87,12 +74,37 @@ const scanQueueWorker = new Worker(
 					}))
 				);
 
+                console.debug("        Sending multi file items to hashQueue...");
                 await hashQueue.addBulk(
 					multiFileGroups.map((group) => ({
 						name: "hash",
 						data: group
 					}))
 				);
+                console.debug("    done.");
+}
+
+const scanQueueWorker = new Worker(
+	"scanQueue",
+	async (job) => {
+		console.debug("Starting scanQueueWorker...");
+		switch (job.name) {
+			case "removeShares":
+				console.debug("    Removing shares...");
+				const paths = job.data.paths;
+				for (const path of paths) {
+					await fileRepository.removePathsStartingWith(path);
+				}
+				return true;
+
+			case "getAllFiles":
+				console.debug("    Starting file scan...");
+				let results = scan.getAllFiles(job.data.input);
+                console.debug("    done.");
+				return [...results.entries()];
+
+			case "removeUniques":
+				removeUniques();
 		}
 	},
 	defaultQueueConfig

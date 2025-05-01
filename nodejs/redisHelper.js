@@ -28,71 +28,6 @@ export const defaultQueueConfig = {
     }
 };
 
-// processQueue.pause();
-// processQueue.process(async (job, done) => {
-//     switch (job.data.action) {
-//         case 'delete':
-//             console.log('rm', job.data.path);
-//             // fs.unlink(job.data.path, (err) => {
-//             //     if (err) {
-//             //         console.error('Error deleting file:', err);
-//             //     } else {
-//             //         console.log('File deleted successfully');
-//             //     }
-//             // });
-//             break;
-//         case 'link':
-//             exec(`ln -f ${existingFilePath} ${hardLinkPath}`, (err, stdout, stderr) => {
-//                 if (err) {
-//                     console.error('Error creating hard link:', err);
-//                     return;
-//                 }
-//                 if (stderr) {
-//                     console.error('stderr:', stderr);
-//                     return;
-//                 }
-//                 console.log('Hard link created successfully');
-//             });
-//             break;
-//     }
-//     console.log(`Processing job ${job.data.path}`);
-//     done();
-// })
-
-// const worker = new Worker('queueName', async (job) => {
-//     switch (job.data.action) {
-//         case 'delete':
-//             console.log('rm', job.data.path);
-//             // fs.unlink(job.data.path, (err) => {
-//             //     if (err) {
-//             //         console.error('Error deleting file:', err);
-//             //     } else {
-//             //         console.log('File deleted successfully');
-//             //     }
-//             // });
-//             break;
-//         case 'link':
-//             exec(`ln -f ${existingFilePath} ${hardLinkPath}`, (err, stdout, stderr) => {
-//                 if (err) {
-//                     console.error('Error creating hard link:', err);
-//                     return;
-//                 }
-//                 if (stderr) {
-//                     console.error('stderr:', stderr);
-//                     return;
-//                 }
-//                 console.log('Hard link created successfully');
-//             });
-//             break;
-//     }
-//     console.log(`Processing job ${job.data.path}`);
-// }, {
-//     connection: { host: '127.0.0.1', port: 6379 }
-// });
-
-// Pause the worker when needed
-// worker.pause();
-
 export const redis = await (async () => {
 	const client = await createClient();
 	await client.connect();
@@ -204,14 +139,14 @@ function getEntityId(entity) {
 	return entity[Object.getOwnPropertySymbols(entity).find((sym) => sym.description === "entityId")];
 }
 
-export async function removePathsStartingWith(before) {
+export async function removePathsStartingWith(sharePrefix) {
 	// console.debug('Removing paths starting with:', before);
-	var entities = await fileRepository.search().where("path").contains(`${before}*`).return.all();
+	var entities = await fileRepository.search().where("path").contains(`${sharePrefix}*`).return.all();
 	// console.debug('Entities found:', entities);
 	while (entities.length > 0) {
 		console.debug("length:", entities.length);
 		for (const entity of entities) {
-			const updatedPaths = entity.path.filter((p) => !p.startsWith(before));
+			const updatedPaths = entity.path.filter((p) => !p.startsWith(sharePrefix));
 			// console.debug('Updated paths:', updatedPaths);
 
 			if (updatedPaths.length > 0) {
@@ -222,7 +157,7 @@ export async function removePathsStartingWith(before) {
 				await fileRepository.remove(getEntityId(entity));
 			}
 		}
-		entities = await fileRepository.search().where("path").contains(`${before}*`).return.all();
+		entities = await fileRepository.search().where("path").contains(`${sharePrefix}*`).return.all();
 		console.debug("Entities found:", entities);
 	}
 }
