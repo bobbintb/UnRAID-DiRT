@@ -5,7 +5,7 @@ import { defaultQueueConfig, fileRepository } from '../redisHelper.js';
 export const fileQueue = new Queue('fileQueue', defaultQueueConfig);
 
 const fileQueueWorker = new Worker('fileQueue', async job => {
-    console.debug('starting worker...');
+    console.debug('Starting fileQueueWorker...');
     switch (job.name) {
         case 'upsert':
             const file = job.data;

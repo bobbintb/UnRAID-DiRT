@@ -4,18 +4,18 @@ import { Repository, Schema } from "redis-om";
 import fs from "fs";
 import { exec } from "child_process";
 
-export const processQueue = await new Queue('process', {
-    connection: {
-        host: 'localhost',
-        port: 6379,
-        db: 0,
-        options: {},
-    },
-    prefix: 'queues',
-    defaultJobOptions: {
-        removeOnComplete: true
-    }
-});
+// export const processQueue = await new Queue('process', {
+//     connection: {
+//         host: 'localhost',
+//         port: 6379,
+//         db: 0,
+//         options: {},
+//     },
+//     prefix: 'queues',
+//     defaultJobOptions: {
+//         removeOnComplete: true
+//     }
+// });
 
 export const defaultQueueConfig = {
 	connection: {

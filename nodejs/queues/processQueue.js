@@ -1,29 +1,52 @@
 import { Queue, Worker, FlowProducer } from 'bullmq';
-import * as scan from '../scan.js';
-import { fileRepository } from '../redisHelper.js';
-
-const connection = {
-    host: 'localhost',
-    port: 6379
-};
-
-
-const queueConfig = {
-    connection,
-    prefix: 'queues'
-};
+import { defaultQueueConfig, fileRepository } from '../redisHelper.js';
+import { data } from 'jquery';
 
 // Create queue with connection config and prefix
-export const processQueue = new Queue('processQueue', queueConfig);
+export const processQueue = new Queue('processQueue', defaultQueueConfig);
+processQueue.pause();
 
-const flowProducer = new FlowProducer(queueConfig);
+const processQueueWorker = new Worker('processQueue', async job => {
+    console.debug('Starting processQueueWorker...');
+    console.debug('processQueueWorker', job.data.input);
+    switch (job.name) {
+        case 'delete':
+            // check if original file exists in file system
+            // double check if metadata in redis matches file system
+            // delete file from file system
+            const data = job.data.input;
+            const filenames = data.path;
+            
 
-
-
-const processWorker = new Worker('hashQueue', async job => {
-    for (const [size, files] of groups) {
-        // Hash the files in the group if they have the same size
-        const hashedFiles = await scan.hashFilesInIntervals(size, files);
+            const checkFilesExist = async (filenames, expectedMetadata) => {
+                const results = await Promise.all(filenames.map(async (file) => {
+                  try {
+                    const stats = await fs.stat(file)
+                    const mismatchedProperties = []
+              
+                    if (stats.size !== expectedMetadata.size) mismatchedProperties.push('size')
+                    if (stats.mtime.getTime() !== expectedMetadata.mtime.getTime()) mismatchedProperties.push('mtime')
+              
+                    if (mismatchedProperties.length > 0) {
+                      console.log(`File ${file} failed because the following properties don't match: ${mismatchedProperties.join(', ')}`)
+                    }
+              
+                    return { file, exists: true, mismatchedProperties }
+                  } catch {
+                    return { file, exists: false }
+                  }
+                }))
+                
+                return results.filter(result => result.mismatchedProperties.length > 0)
+              }
+            return true;
     }
-    return;
-})
+}, defaultQueueConfig);
+
+processQueueWorker.on('completed', job => {
+    console.debug(`Job ${job.name} completed.`);
+});
+
+processQueueWorker.on('failed', (job, err) => {
+    console.error(`Job ${job.name} failed:`, err);
+});

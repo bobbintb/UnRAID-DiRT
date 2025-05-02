@@ -1,8 +1,9 @@
 import * as scan from "../nodejs/scan.js";
-import { findDuplicateHashes, processQueue, redis, filesOfSize, removePathsStartingWith } from "./redisHelper.js";
+import { findDuplicateHashes, redis, filesOfSize, removePathsStartingWith } from "./redisHelper.js";
 import fs from "fs";
 import { addSharesFlow, removeSharesJob } from "./queues/scanQueue.js";
 import { WebSocketServer } from "ws";
+import { processQueue } from "./queues/processQueue.js";
 
 const dirt = new WebSocketServer({ port: 3000, host: "0.0.0.0" });
 const clients = new Map();
@@ -116,6 +117,12 @@ dirt.on("connection", async (ws, req) => {
 				case "dirt.php:addToOriginals":
 					console.debug(`addToOriginals: ${JSON.stringify(data)}`);
 					await redis.hSet("dirt:process:og", data.hash, data.path);
+					break;
+
+
+				case "dirt.php:addToProcessQueue":
+					console.debug(`addToProcessQueue: ${JSON.stringify(data)}`);
+					await processQueue.add(data.action, data);
 					break;
 
 
