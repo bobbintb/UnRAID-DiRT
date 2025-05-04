@@ -1,9 +1,9 @@
 import { Queue, Worker, FlowProducer } from 'bullmq';
 import { defaultQueueConfig, fileRepository } from '../redisHelper.js';
-import { data } from 'jquery';
+import { newQueue } from './newQueue.js';
 
-// Create queue with connection config and prefix
-export const processQueue = new Queue('processQueue', defaultQueueConfig);
+
+export const processQueue = new newQueue('processQueue', defaultQueueConfig);
 processQueue.pause();
 
 const processQueueWorker = new Worker('processQueue', async job => {

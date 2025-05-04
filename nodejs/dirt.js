@@ -48,17 +48,17 @@ async function clear() {
 	await redis.del("dirt:process:og").then((result) => {});
 }
 
-async function scanStart(data) {
-	console.log("Starting scan...");
-	console.time("scan");
-	for (const share of data) {
-		scan.getAllFiles(`/mnt/user/${share}`);
-	}
-	console.log("Scan complete.");
-	console.timeEnd("scan");
-	console.debug("Saving files to database.");
-	console.debug("Done saving files to database.");
-}
+// async function scanStart(data) {
+// 	console.log("Starting scan...");
+// 	console.time("scan");
+// 	for (const share of data) {
+// 		scan.getAllFiles(`/mnt/user/${share}`);
+// 	}
+// 	console.log("Scan complete.");
+// 	console.timeEnd("scan");
+// 	console.debug("Saving files to database.");
+// 	console.debug("Done saving files to database.");
+// }
 
 async function load() {
 	const settings = loadSettings(configFile);
@@ -110,10 +110,20 @@ dirt.on("connection", async (ws, req) => {
 			clients.set(clientId, ws);
 			const key = `${clientId}:${type}`;
 			switch (key) {
+				
+				// complete
 				case "dirtSettings.page:addShare":
 					console.debug("dirt.js: adding shares");
 					addSharesFlow(data);
 					break;
+				case "dirtSettings.page:removeShare":
+					// This should probably be added to the queue, on the off chance that the user is removing a share while the scan is running.
+					console.error("removeShare");
+					removeSharesJob(data);
+					break;
+				
+				
+				// complete
 				case "dirt.php:addToOriginals":
 					console.debug(`addToOriginals: ${JSON.stringify(data)}`);
 					await redis.hSet("dirt:process:og", data.hash, data.path);
@@ -122,26 +132,21 @@ dirt.on("connection", async (ws, req) => {
 
 				case "dirt.php:addToProcessQueue":
 					console.debug(`addToProcessQueue: ${JSON.stringify(data)}`);
-					await processQueue.add(data.action, data);
-					break;
-
-
-				case "dirtSettings.page:scan":
-					console.log("scan");
-					scanStart(data);
-					break;
-				case "dirtSettings.page:removeShare":
-					// This should probably be added to the queue, on the off chance that the user is removing a share while the scan is running.
-					console.error("removeShare");
-					removeSharesJob(data);
+					await processQueue.upsert(data.action, data.path);
 					break;
 				case "dirt.php:process":
 					processStart();
 					break;
-				case "dirt.php:clear":
+				case "dirt.php:clearProcessQueue":
 					console.log("Clearing queue...");
 					clear();
 					break;
+					
+
+				// case "dirtSettings.page:scan":
+				// 	console.log("scan");
+				// 	scanStart(data);
+				// 	break;
 				case "dirtSettings.page:test":
 					const result = await newproc(0);
 					console.debug("Test result:", result);

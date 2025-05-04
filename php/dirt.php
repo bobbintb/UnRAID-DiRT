@@ -64,7 +64,7 @@ async function dirtySock(type, dataObj = null) {
         clearButton.addEventListener('click', function() {
             const isConfirmed = confirm("Are you sure you want to clear?");
             if (isConfirmed) {
-                dirtySock("clear", tableData)
+                dirtySock("clearProcessQueue", tableData) // Do we need to pass tableData here?
                 location.reload()
             }
         });
@@ -376,7 +376,7 @@ async function dirtySock(type, dataObj = null) {
             const targetId = e.target.id === 'delete' ? 'link' : 'delete';
             rowData.action = e.target.checked ? (targetId === 'link' ? 'delete' : 'link') : '';
             row.getElement().querySelector(`input[type="checkbox"]#${targetId}`).checked = false;
-            dirtySock("addToProcessQueue", rowData);
+            dirtySock("addToProcessQueue", {action: rowData.action, path: rowData.path});
         }
 
     }
