@@ -8,8 +8,11 @@ export class newQueue extends Queue {
   async upsert(name, data, opts = {}) {
     // Attempt to find an existing job based on its data (you may want to query by a unique identifier)
     const jobs = await this.getJobs(['waiting', 'delayed', 'active'])
+    console.debug('jobs', jobs)
 
-    const existingJob = jobs.find(job => JSON.stringify(job.data) === JSON.stringify(data))
+    const existingJob = (await queue.getJobs()).find(job => job.data === inode);
+
+    console.debug('existingJob', existingJob)
 
     if (existingJob) {
       // If the job exists and the data matches, update the name

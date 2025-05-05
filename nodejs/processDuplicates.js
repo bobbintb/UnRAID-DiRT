@@ -7,7 +7,7 @@ export async function enqueueFileAction(data) {
     const existingJob = await processQueue.getJob(jobId);
     switch (data.action) {
         case "og":
-            await redis.hSet("dirt:process:og", data.hash, jobId);
+            await redis.hSet("originals", data.hash, jobId);
             break;
         case "":
             await existingJob.remove()

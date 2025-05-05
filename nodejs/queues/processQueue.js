@@ -3,8 +3,15 @@ import { defaultQueueConfig, fileRepository } from '../redisHelper.js';
 import { newQueue } from './newQueue.js';
 
 
-export const processQueue = new newQueue('processQueue', defaultQueueConfig);
+export const processQueue = new Queue('processQueue', defaultQueueConfig);
 processQueue.pause();
+
+export async function upsert(action, inode) {
+  const jobs = await processQueue.getJobs(['waiting', 'delayed', 'active'])
+  console.debug('jobs', jobs)
+  const existingJob = jobs.find(job => JSON.stringify(job.data) === inode)
+    console.debug('existingJob', existingJob)
+}
 
 const processQueueWorker = new Worker('processQueue', async job => {
     console.debug('Starting processQueueWorker...');

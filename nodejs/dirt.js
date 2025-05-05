@@ -3,7 +3,7 @@ import { findDuplicateHashes, redis, filesOfSize, removePathsStartingWith } from
 import fs from "fs";
 import { addSharesFlow, removeSharesJob } from "./queues/scanQueue.js";
 import { WebSocketServer } from "ws";
-import { processQueue } from "./queues/processQueue.js";
+import { processQueue, upsert } from "./queues/processQueue.js";
 
 const dirt = new WebSocketServer({ port: 3000, host: "0.0.0.0" });
 const clients = new Map();
@@ -45,7 +45,7 @@ function createDefaultConfig(filePath) {
 async function clear() {
 	console.log("clearing");
 	// await processQueue.obliterate()
-	await redis.del("dirt:process:og").then((result) => {});
+	await redis.del("originals").then((result) => {});
 }
 
 // async function scanStart(data) {
@@ -62,11 +62,9 @@ async function clear() {
 
 async function load() {
 	const settings = loadSettings(configFile);
-	const ogs = await redis.hGetAll("dirt:process:og");
-	const jobs = (await processQueue.getJobs("paused")).reduce((acc, job) => {
-		acc[job.id] = job.data.action;
-		return acc;
-	}, {});
+	const ogs = await redis.hGetAll("originals");
+	const jobs = (await processQueue.getJobs("paused")).map(job => ({ name: job.name, data: job.data }));
+	console.debug("Jobs:", jobs);
 
 	try {
 		const result = await findDuplicateHashes();
@@ -126,13 +124,13 @@ dirt.on("connection", async (ws, req) => {
 				// complete
 				case "dirt.php:addToOriginals":
 					console.debug(`addToOriginals: ${JSON.stringify(data)}`);
-					await redis.hSet("dirt:process:og", data.hash, data.path);
+					await redis.hSet("originals", data.hash, data.path);
 					break;
 
 
 				case "dirt.php:addToProcessQueue":
 					console.debug(`addToProcessQueue: ${JSON.stringify(data)}`);
-					await processQueue.upsert(data.action, data.path);
+					await upsert(data.action, data.inode);
 					break;
 				case "dirt.php:process":
 					processStart();

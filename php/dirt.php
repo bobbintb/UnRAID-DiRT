@@ -289,8 +289,9 @@ async function dirtySock(type, dataObj = null) {
             if (row._row.type === 'row') {
                 const rowData = row.getData();
                 const group = row.getGroup();
-                if (rowData.path in table.jobs) {
-                    row.getElement().querySelector(`input[type="checkbox"]#${table.jobs[rowData.path]}`).checked = true;
+                const jobsMap = Object.fromEntries(table.jobs.map(job => [job.data, job.name]));
+                if (rowData.ino in jobsMap) {
+                    row.getElement().querySelector(`input[type="checkbox"]#${jobsMap[rowData.ino]}`).checked = true;
                 }
                 if (table.ogs[rowData.hash] === rowData.path || (table.ogs[rowData.hash] === undefined && group.getRows()[0] === row)) {
                     let rowElement = row.getElement();
@@ -376,8 +377,7 @@ async function dirtySock(type, dataObj = null) {
             const targetId = e.target.id === 'delete' ? 'link' : 'delete';
             rowData.action = e.target.checked ? (targetId === 'link' ? 'delete' : 'link') : '';
             row.getElement().querySelector(`input[type="checkbox"]#${targetId}`).checked = false;
-            dirtySock("addToProcessQueue", {action: rowData.action, path: rowData.path});
+            dirtySock("addToProcessQueue", {action: rowData.action, inode: rowData.ino});
         }
-
     }
 </script>
