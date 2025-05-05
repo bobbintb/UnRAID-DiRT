@@ -64,7 +64,7 @@ async function load() {
 	const settings = loadSettings(configFile);
 	const ogs = await redis.hGetAll("originals");
 	const jobs = (await processQueue.getJobs("paused")).map(job => ({ name: job.name, data: job.data }));
-	console.debug("Jobs:", jobs);
+	// console.debug("Jobs:", jobs);
 
 	try {
 		const result = await findDuplicateHashes();
