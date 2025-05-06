@@ -72,7 +72,7 @@ async function dirtySock(type, dataObj = null) {
 
         const processButton = document.getElementById('processButton');
         processButton.addEventListener('click', function() {
-            dirtySock("process", data)
+            dirtySock("process")
             table.setData();
         });
     });

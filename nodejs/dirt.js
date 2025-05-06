@@ -3,7 +3,7 @@ import { findDuplicateHashes, redis, filesOfSize, removePathsStartingWith } from
 import fs from "fs";
 import { addSharesFlow, removeSharesJob } from "./queues/scanQueue.js";
 import { WebSocketServer } from "ws";
-import { processQueue, upsert } from "./queues/processQueue.js";
+import { processQueue, upsert, clear } from "./queues/processQueue.js";
 
 const dirt = new WebSocketServer({ port: 3000, host: "0.0.0.0" });
 const clients = new Map();
@@ -42,12 +42,6 @@ function createDefaultConfig(filePath) {
 // 	});
 // }
 
-async function clear() {
-	console.log("clearing");
-	// await processQueue.obliterate()
-	await redis.del("originals").then((result) => {});
-}
-
 // async function scanStart(data) {
 // 	console.log("Starting scan...");
 // 	console.time("scan");
@@ -63,9 +57,7 @@ async function clear() {
 async function load() {
 	const settings = loadSettings(configFile);
 	const ogs = await redis.hGetAll("originals");
-	const jobs = (await processQueue.getJobs("paused")).map(job => ({ name: job.name, data: job.data }));
-	// console.debug("Jobs:", jobs);
-
+	const jobs = (await processQueue.getJobs("paused")).map((job) => ({ name: job.name, data: job.data }));
 	try {
 		const result = await findDuplicateHashes();
 		return {
@@ -81,7 +73,7 @@ async function load() {
 }
 
 async function newproc(data) {
-	return await filesOfSize(data)
+	return await filesOfSize(data);
 }
 
 dirt.on("connection", async (ws, req) => {
@@ -108,38 +100,36 @@ dirt.on("connection", async (ws, req) => {
 			clients.set(clientId, ws);
 			const key = `${clientId}:${type}`;
 			switch (key) {
-				
 				// complete
 				case "dirtSettings.page:addShare":
 					console.debug("dirt.js: adding shares");
 					addSharesFlow(data);
+					break;
+				// complete
+				case "dirt.php:addToOriginals":
+					console.debug(`addToOriginals: ${JSON.stringify(data)}`);
+					await redis.hSet("originals", data.hash, data.path);
+					break;
+				// complete
+				case "dirt.php:clearProcessQueue":
+					console.log("Clearing queue...");
+					clear();
+					break;
+				// complete
+				case "dirt.php:addToProcessQueue":
+					console.debug(`addToProcessQueue: ${JSON.stringify(data)}`);
+					await upsert(data.action, data.inode);
+					break;
+
+				case "dirt.php:process":
+					console.debug("dirt.php:process");
+					processQueue.resume();
 					break;
 				case "dirtSettings.page:removeShare":
 					// This should probably be added to the queue, on the off chance that the user is removing a share while the scan is running.
 					console.error("removeShare");
 					removeSharesJob(data);
 					break;
-				
-				
-				// complete
-				case "dirt.php:addToOriginals":
-					console.debug(`addToOriginals: ${JSON.stringify(data)}`);
-					await redis.hSet("originals", data.hash, data.path);
-					break;
-
-
-				case "dirt.php:addToProcessQueue":
-					console.debug(`addToProcessQueue: ${JSON.stringify(data)}`);
-					await upsert(data.action, data.inode);
-					break;
-				case "dirt.php:process":
-					processStart();
-					break;
-				case "dirt.php:clearProcessQueue":
-					console.log("Clearing queue...");
-					clear();
-					break;
-					
 
 				// case "dirtSettings.page:scan":
 				// 	console.log("scan");
