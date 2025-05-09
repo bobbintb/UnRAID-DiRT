@@ -13,7 +13,7 @@ start() {
       echo -n "Starting dirt..."
             cd /usr/local/emhttp/plugins/bobbintb.system.dirt
             nohup node nodejs/dirt.js $DIRT_OPTIONS &
-            /etc/rc.d/rc.valkey start
+            #/etc/rc.d/rc.dragonfly start
       echo
 }
 stop() {
@@ -21,7 +21,7 @@ stop() {
       echo -n "Shutting down dirt..."
       if kill -TERM $(pgrep -f "node nodejs/dirt.js"); then
           echo "Process terminated successfully."
-          /etc/rc.d/rc.valkey stop
+          #/etc/rc.d/rc.dragonfly stop
       else
           echo "Failed to terminate the process."
       fi

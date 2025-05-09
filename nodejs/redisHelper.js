@@ -1,21 +1,5 @@
-import { Queue, Worker, FlowProducer } from "bullmq";
 import { AggregateGroupByReducers, AggregateSteps, createClient } from "redis";
 import { Repository, Schema } from "redis-om";
-import fs from "fs";
-import { exec } from "child_process";
-
-// export const processQueue = await new Queue('process', {
-//     connection: {
-//         host: 'localhost',
-//         port: 6379,
-//         db: 0,
-//         options: {},
-//     },
-//     prefix: 'queues',
-//     defaultJobOptions: {
-//         removeOnComplete: true
-//     }
-// });
 
 export const defaultQueueConfig = {
 	connection: {
@@ -51,21 +35,11 @@ export const fileMetadataSchema = new Schema(
 	}
 );
 
-// const originalsSchema = new Schema("originals", {
-// 	hash: { type: 'string[]' }
-//   });
-
 export const fileRepository = await (async () => {
 	const repo = new Repository(fileMetadataSchema, redis);
 	await repo.createIndex();
 	return repo;
 })();
-
-// export const originalsRepository = await (async () => {
-// 	const repo = new Repository(originalsSchema, redis);
-// 	await repo.createIndex();
-// 	return repo;
-// })();
 
 export async function filesOfSize(size) {
 	return await fileRepository.search().where("size").equals(size).return.all();

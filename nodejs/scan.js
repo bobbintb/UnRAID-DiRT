@@ -41,9 +41,9 @@ export function getFileStats(file) {
         ino: ino,
         path: [file],
         nlink: Number(stats.nlink),
-        atime: new Date(stats.atimeMs),
-        mtime: new Date(stats.mtimeMs),
-        ctime: new Date(stats.ctimeMs)
+        atime: stats.atime,
+        mtime: stats.mtime,
+        ctime: stats.ctime
     };
     return [fileInfo, Number(stats.size)];
 }

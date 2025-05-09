@@ -17,72 +17,54 @@ export async function upsert(action, inode) {
 }
 
 export async function clear() {
-	await processQueue.obliterate()
+	await processQueue.obliterate();
 	await redis.del("originals");
 }
 
-const processQueueWorker = new Worker("processQueue",
+const processQueueWorker = new Worker(
+	"processQueue",
 	async (job) => {
 		try {
 			console.debug("Starting processQueueWorker...");
 			console.debug("processQueueWorker", job.data);
-		  } catch (e) {
+		} catch (e) {
 			console.error("Worker error:", e);
-		  }
-		
-		switch (job.name) {
-			case "delete":
-				// check if original file exists in file system
-				// double check if metadata in redis matches file system
-				// delete file from file system
+		}
+		// this does not yet account for hardlinks
 				const inode = job.data;
-				const file = await fileRepository.fetch(inode);
-				console.debug("File to be deleted", file);
-				console.debug("atime", file.atime.getTime());
-				console.debug("atime", (file.atime));
+				const repoFile = await fileRepository.fetch(inode);
+				const stats = await fs.stat(repoFile.path[0], { bigint: true });
+				const og = await redis.hGet("originals", repoFile.hash);
 
-				const stats = await fs.stat(file.path[0]);
-    			console.log("File stats:", stats);
-				const og = await redis.hGet('originals', file.hash)
-				console.debug("og", og);
-				console.debug("file.atime", file.atime);
-				console.debug("stats.atime", stats.atime);
-				console.debug("stats.atimeMs", stats.atimeMs);
-				if (file.atime.getTime() === stats.atime) {
+				if (
+					repoFile.atime.getTime() === stats.atime.getTime() &&
+					repoFile.mtime.getTime() === stats.mtime.getTime() &&
+					repoFile.ctime.getTime() === stats.ctime.getTime() &&
+					Number(repoFile.size) === Number(stats.size)
+				) {
 					console.debug("Timestamps match");
 				} else {
 					console.debug("Timestamps do not match");
 				}
+				console.debug("repoFile.atime.getTime():            ", repoFile.atime.getTime());
+				console.debug("stats.atime.getTime():               ", stats.atime.getTime());
+				console.debug("repoFile.mtime.getTime():            ", repoFile.mtime.getTime());
+				console.debug("stats.mtime.getTime():               ", stats.mtime.getTime());
+				console.debug("repoFile.ctime.getTime():            ", repoFile.ctime.getTime());
+				console.debug("stats.ctime.getTime():               ", stats.ctime.getTime());
+				console.debug("repoFile.size:            ", Number(repoFile.size));
+				console.debug("stats.size:               ", Number(stats.size));
 
+		switch (job.name) {
+			case "delete":
+				console.debug("Deleting file:", repoFile.path[0]);
+				
 
-				// const checkFilesExist = async (filenames, expectedMetadata) => {
-				// 	const results = await Promise.all(
-				// 		filenames.map(async (file) => {
-				// 			try {
-				// 				const stats = await fs.stat(file);
-				// 				const mismatchedProperties = [];
+				return true;
+			case "link":
+				console.debug("Linking file:", repoFile.path[0]);
+				// require('child_process').execSync(`ln -f source target`)
 
-				// 				if (stats.size !== expectedMetadata.size) mismatchedProperties.push("size");
-				// 				if (stats.mtime.getTime() !== expectedMetadata.mtime.getTime())
-				// 					mismatchedProperties.push("mtime");
-
-				// 				if (mismatchedProperties.length > 0) {
-				// 					console.log(
-				// 						`File ${file} failed because the following properties don't match: ${mismatchedProperties.join(
-				// 							", "
-				// 						)}`
-				// 					);
-				// 				}
-
-				// 				return { file, exists: true, mismatchedProperties };
-				// 			} catch {
-				// 				return { file, exists: false };
-				// 			}
-				// 		})
-				// 	);
-
-				// 	return results.filter((result) => result.mismatchedProperties.length > 0);
-				// };
 				return true;
 		}
 	},
@@ -97,6 +79,6 @@ processQueueWorker.on("failed", (job, err) => {
 	console.error(`Job ${job.name} failed:`, err);
 });
 
-processQueueWorker.on('drained', async () => {
+processQueueWorker.on("drained", async () => {
 	await processQueue.pause();
-  });
+});
