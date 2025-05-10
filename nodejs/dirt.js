@@ -35,25 +35,6 @@ function createDefaultConfig(filePath) {
 	}
 }
 
-// async function removeShares(dirPaths) {
-// 	dirPaths.forEach((share) => {
-// 		console.log(share);
-// 		removePathsStartingWith(share);
-// 	});
-// }
-
-// async function scanStart(data) {
-// 	console.log("Starting scan...");
-// 	console.time("scan");
-// 	for (const share of data) {
-// 		scan.getAllFiles(`/mnt/user/${share}`);
-// 	}
-// 	console.log("Scan complete.");
-// 	console.timeEnd("scan");
-// 	console.debug("Saving files to database.");
-// 	console.debug("Done saving files to database.");
-// }
-
 async function load() {
 	const settings = loadSettings(configFile);
 	const ogs = await redis.hGetAll("originals");
@@ -96,9 +77,9 @@ dirt.on("connection", async (ws, req) => {
 
 	ws.on("message", async (message) => {
 		try {
-			const { clientId, type, data } = JSON.parse(message);
+			const { clientId, action, data } = JSON.parse(message);
 			clients.set(clientId, ws);
-			const key = `${clientId}:${type}`;
+			const key = `${clientId}:${action}`;
 			switch (key) {
 				// complete
 				case "dirtSettings.page:addShare":
@@ -140,8 +121,8 @@ dirt.on("connection", async (ws, req) => {
 					console.debug("Test result:", result);
 					break;
 				default:
-					console.log(`Unknown message type: ${type}`);
-					ws.send(JSON.stringify({ error: "Unknown message type" }));
+					console.log(`Unknown message action: ${action}`);
+					ws.send(JSON.stringify({ error: "Unknown message action" }));
 			}
 		} catch (error) {
 			ws.send(JSON.stringify({ error: `Invalid message format: ${message}` }));
@@ -152,6 +133,15 @@ dirt.on("connection", async (ws, req) => {
 		clients.delete(clientId);
 	});
 });
+
+export const getClient = (id) => clients.get(id);
+
+
+export const sendMessageToClient = (client, message) => {
+  if (client.readyState === WebSocket.OPEN) {
+    client.send(message);
+  }
+};
 
 console.log("WebSocket server running on ws://127.0.0.1:3000");
 console.log("Settings:");

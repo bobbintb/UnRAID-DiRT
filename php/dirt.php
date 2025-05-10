@@ -25,11 +25,11 @@ socket.onmessage = function(event) {
 table.setData(tableData);
 };
 
-async function dirtySock(type, dataObj = null) {
+async function dirtySock(action, dataObj = null) {
     return new Promise((resolve, reject) => {
         const message = {
             clientId: "dirt.php",
-            type: type,
+            action: action,
             data: dataObj
         };
 
@@ -39,25 +39,6 @@ async function dirtySock(type, dataObj = null) {
         socket.onerror = (err) => reject(err);
     });
 }
-
-
-    // async function addToProcessQueue(dataObj) {
-    //     try {
-    //         const response = await fetch("http://127.0.0.1:3000/dirt/addToProcessQueue/", {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json'
-    //             },
-    //             body: JSON.stringify(dataObj)
-    //         });
-    //         if (!response.ok) {
-    //             throw new Error(`HTTP error! status: ${response.status}`);
-    //         }
-    //     } catch (error) {
-    //         console.error('Error fetching data:', error);
-    //         return null;
-    //     }
-    // }
 
     document.addEventListener("DOMContentLoaded", function() {
         const clearButton = document.getElementById('clearButton');
@@ -73,7 +54,7 @@ async function dirtySock(type, dataObj = null) {
         const processButton = document.getElementById('processButton');
         processButton.addEventListener('click', function() {
             dirtySock("process")
-            table.setData();
+            // table.setData();
         });
     });
 

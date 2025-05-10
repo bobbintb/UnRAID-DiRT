@@ -1,6 +1,7 @@
 import { Queue, Worker, FlowProducer } from "bullmq";
 import { defaultQueueConfig, fileRepository, redis } from "../redisHelper.js";
 import fs from "fs/promises";
+import { getClient, sendMessageToClient } from "../dirt.js";
 
 export const processQueue = new Queue("processQueue", defaultQueueConfig);
 processQueue.pause();
@@ -58,6 +59,9 @@ const processQueueWorker = new Worker(
 		switch (job.name) {
 			case "delete":
 				console.debug("Deleting file:", repoFile.path[0]);
+				const client = getClient('dirt.php');
+
+				sendMessageToClient(client, repoFile.path[0]);
 				
 
 				return true;
