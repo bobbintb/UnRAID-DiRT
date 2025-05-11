@@ -90,6 +90,7 @@ const scanQueueWorker = new Worker(
 		console.debug("Starting scanQueueWorker...");
 		switch (job.name) {
 			case "removeShares":
+				// I don't think this will work if stuff is being hashed
 				console.debug("    Removing shares...");
 				const paths = job.data.paths;
 				for (const path of paths) {
