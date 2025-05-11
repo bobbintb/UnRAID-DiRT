@@ -144,13 +144,14 @@ async function dirtySock(action, dataObj = null) {
                 headerSort: false,
                 width: 1,
                 formatter: function (cell) {
-                    let rowData = cell.getRow().getData();
-                    return `<div style='display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        height: 100%;'>
+                let rowData = cell.getRow().getData();
+                if (cell.getRow().getTreeParent()) return "";
+                return `<div style='display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    height: 100%;'>
                             <input type='radio' name=${rowData.hash}></div>`;
-                },
+            },
                 cellClick: actionChange,
                 resizable: false
             },
@@ -168,6 +169,7 @@ async function dirtySock(action, dataObj = null) {
                 width: 1,
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
+                    if (cell.getRow().getTreeParent()) return "";
                     return `<label class="icon-checkbox trash-checkbox" ${disabled}>
                                 <input type="checkbox" id="delete">
                                 <span class="icon">
@@ -191,6 +193,7 @@ async function dirtySock(action, dataObj = null) {
                 width: 1,
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
+                    if (cell.getRow().getTreeParent()) return "";
                     return `<label class="icon-checkbox link-checkbox" ${disabled}>
                                 <input type="checkbox" id="link">
                                 <span class="icon">
