@@ -60,6 +60,9 @@ const processQueueWorker = new Worker(
 			case "delete":
 				console.debug("Deleting file:", repoFile.path[0]);
 				const client = getClient('dirt.php');
+				if (client && client.readyState === WebSocket.OPEN) {
+    client.send(JSON.stringify({ type: "ping", text: "Are you still there?" }));
+}
 
 				sendMessageToClient(client, repoFile.path[0]);
 				

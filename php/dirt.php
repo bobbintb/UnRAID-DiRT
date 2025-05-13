@@ -1,29 +1,39 @@
 <script type="module">
-const socket = new WebSocket(`ws://<?php echo $_SERVER["SERVER_ADDR"]; ?>:3000?clientId=dirt.php`);
+// const socket = new WebSocket(`ws://<?php echo $_SERVER["SERVER_ADDR"]; ?>:3000?clientId=dirt.php`);
 
 let tableData = null;
 
 
 socket.onmessage = function(event) {
-    const rawData = JSON.parse(event.data);
-    table.options.columns[6].formatterParams.outputFormat = rawData.datetime_format;
-    table.options.columns[7].formatterParams.outputFormat = rawData.datetime_format;
-    table.options.columns[8].formatterParams.outputFormat = rawData.datetime_format;
-    table.ogs = rawData.ogs;
-    table.jobs = rawData.jobs;
-    tableData = rawData.result.flatMap(obj =>
-    obj.path.length === 1
-    ? [{ ...obj, path: obj.path[0] }]
-    : [
-        {
-            ...obj,
-            path: obj.path[0],
-            _children: obj.path.slice(1).map(p => ({ ...obj, path: p }))
-        }
-    ]
-);
-table.setData(tableData);
+    const msg = JSON.parse(event.data);
+    switch (msg.type) {
+        case "load":
+            table.options.columns[6].formatterParams.outputFormat = msg.datetime_format;
+            table.options.columns[7].formatterParams.outputFormat = msg.datetime_format;
+            table.options.columns[8].formatterParams.outputFormat = msg.datetime_format;
+            table.ogs = msg.ogs;
+            table.jobs = msg.jobs;
+            tableData = msg.result.flatMap(obj =>
+                obj.path.length === 1
+                ? [{ ...obj, path: obj.path[0] }]
+                : [{
+                    ...obj,
+                    path: obj.path[0],
+                    _children: obj.path.slice(1).map(p => ({ ...obj, path: p }))
+                }]
+            );
+            table.setData(tableData);
+            break;
+        case "ping":
+            showNotification(msg.text);
+            console.log(msg.text);
+            break;
+        default:
+            showNotification(msg.text);
+            break;
+    }
 };
+
 
 async function dirtySock(action, dataObj = null) {
     return new Promise((resolve, reject) => {

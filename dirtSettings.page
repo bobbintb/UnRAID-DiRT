@@ -65,7 +65,7 @@ $('#dbdir').fileTreeAttach();
 //     });
 // }
 
-function dirtySock(type, dataObj) {
+function dirtySock(action, dataObj) {
 	if (dataObj.length > 0) {
     const socket = new Promise((resolve, reject) => {
     const ws = new WebSocket(`ws://<?php echo $_SERVER["SERVER_ADDR"]; ?>:3000?clientId=dirtSettings.page`);
@@ -74,7 +74,7 @@ function dirtySock(type, dataObj) {
 });
     const message = {
             clientId: "dirtSettings.page",
-            type: type,
+            action: action,
             data: dataObj
         };
         socket.then(ws => {
@@ -87,7 +87,7 @@ function dirtySock(type, dataObj) {
 
 function prepareShare(form) {
   var share = '';
-  console.log(JSON.stringify(<?php echo json_encode($_SERVER); ?>, null, 2));
+  // console.log(JSON.stringify(<?php echo json_encode($_SERVER); ?>, null, 2));
 
 
   for (var i=0,item; item=form.share.options[i]; i++) {

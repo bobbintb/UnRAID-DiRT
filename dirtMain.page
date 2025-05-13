@@ -18,12 +18,13 @@ Icon="fa-search-minus"
 </head>
 <body>
 <script>
-    const socket = new WebSocket(`<?php echo "ws://" . $_SERVER["SERVER_ADDR"] . ":3000"; ?>`);
+    const socket = new WebSocket(`ws://<?php echo $_SERVER["SERVER_ADDR"]; ?>:3000?clientId=dirt.php`);
 
 // Listen for messages from the server
 socket.addEventListener('message', (event) => {
     const consoleOutput = document.getElementById('console-output');
     consoleOutput.innerHTML = event.data;  // Append new messages to the console output
+    console.error(event.data);  // Log the message to the console
 });
 
 $(function() {

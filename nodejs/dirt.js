@@ -68,12 +68,15 @@ dirt.on("connection", async (ws, req) => {
 	}
 	clients.set(clientId, ws);
 	switch (clientId) {
-		case "dirt.php":
-			const data = JSON.stringify(await load());
-			const client = clients.get(clientId);
-			client.send(data);
-			break;
-	}
+	case "dirt.php":
+		const raw = await load();
+		const data = JSON.stringify({ type: "load", ...raw });
+		const client = clients.get(clientId);
+		client.send(data);
+		break;
+}
+
+
 
 	ws.on("message", async (message) => {
 		try {
@@ -112,6 +115,16 @@ dirt.on("connection", async (ws, req) => {
 					removeSharesJob(data);
 					break;
 
+				case "ebpf:remove":
+					console.debug("");
+					break;
+				case "ebpf:add":
+					console.debug("");
+					break;
+				case "ebpf:move":
+					console.debug("");
+					break;
+
 				// case "dirtSettings.page:scan":
 				// 	console.log("scan");
 				// 	scanStart(data);
@@ -122,6 +135,7 @@ dirt.on("connection", async (ws, req) => {
 					break;
 				default:
 					console.log(`Unknown message action: ${action}`);
+					console.log(JSON.stringify(message));
 					ws.send(JSON.stringify({ error: "Unknown message action" }));
 			}
 		} catch (error) {
