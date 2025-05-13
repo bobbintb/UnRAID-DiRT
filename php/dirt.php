@@ -2,9 +2,10 @@
 // const socket = new WebSocket(`ws://<?php echo $_SERVER["SERVER_ADDR"]; ?>:3000?clientId=dirt.php`);
 
 let tableData = null;
-
+// const consoleOutput = document.getElementById('console-output');
 
 socket.onmessage = function(event) {
+    const consoleOutput = document.getElementById('console-output');
     const msg = JSON.parse(event.data);
     switch (msg.type) {
         case "load":
@@ -22,14 +23,16 @@ socket.onmessage = function(event) {
                     _children: obj.path.slice(1).map(p => ({ ...obj, path: p }))
                 }]
             );
+            consoleOutput.innerHTML = "test";
+            console.error("test");
             table.setData(tableData);
             break;
         case "ping":
-            showNotification(msg.text);
-            console.log(msg.text);
+            consoleOutput.innerHTML = event.data;
             break;
         default:
-            showNotification(msg.text);
+            consoleOutput.innerHTML = "default";
+            console.error("default");
             break;
     }
 };

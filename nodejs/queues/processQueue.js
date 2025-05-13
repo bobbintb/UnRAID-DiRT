@@ -64,7 +64,7 @@ const processQueueWorker = new Worker(
     client.send(JSON.stringify({ type: "ping", text: "Are you still there?" }));
 }
 
-				sendMessageToClient(client, repoFile.path[0]);
+				sendMessageToClient(client, "ping", repoFile.path[0]);
 				
 
 				return true;

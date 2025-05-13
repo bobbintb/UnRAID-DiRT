@@ -151,9 +151,10 @@ dirt.on("connection", async (ws, req) => {
 export const getClient = (id) => clients.get(id);
 
 
-export const sendMessageToClient = (client, message) => {
+export const sendMessageToClient = (client, type, message) => {
   if (client.readyState === WebSocket.OPEN) {
-    client.send(message);
+	client.send(JSON.stringify({ type: type, message }));
+    // client.send(message);
   }
 };
 
