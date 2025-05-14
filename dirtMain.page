@@ -22,10 +22,10 @@ Icon="fa-search-minus"
     // const consoleOutput = document.getElementById('console-output');
 
 // Listen for messages from the server
-// socket.addEventListener('message', (event) => {
-//     const consoleOutput = document.getElementById('console-output');
-//     consoleOutput.innerHTML = event.data;  // Append new messages to the console output
-// });
+socket.addEventListener('message', (event) => {
+    const consoleOutput = document.getElementById('console-output');
+    consoleOutput.innerHTML = event.data;  // Append new messages to the console output
+});
 
 $(function() {
     let current_progress = 0;

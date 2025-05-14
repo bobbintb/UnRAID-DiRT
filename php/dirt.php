@@ -2,7 +2,7 @@
 // const socket = new WebSocket(`ws://<?php echo $_SERVER["SERVER_ADDR"]; ?>:3000?clientId=dirt.php`);
 
 let tableData = null;
-// const consoleOutput = document.getElementById('console-output');
+const consoleOutput = document.getElementById('console-output');
 
 socket.onmessage = function(event) {
     const consoleOutput = document.getElementById('console-output');
@@ -27,13 +27,13 @@ socket.onmessage = function(event) {
             console.error("test");
             table.setData(tableData);
             break;
-        case "ping":
-            consoleOutput.innerHTML = event.data;
+        case "delete":
+            consoleOutput2.innerHTML = event.data;
             break;
-        default:
-            consoleOutput.innerHTML = "default";
-            console.error("default");
-            break;
+        // default:
+        //     consoleOutput.innerHTML = "default";
+        //     console.error("default");
+        //     break;
     }
 };
 
@@ -47,27 +47,65 @@ async function dirtySock(action, dataObj = null) {
         };
 
         socket.send(JSON.stringify(message));
+        resolve();
 
-        socket.onmessage = (event) => resolve(event.data);
-        socket.onerror = (err) => reject(err);
+        // socket.onmessage = (event) => resolve(event.data);
+        // socket.onerror = (err) => reject(err);
     });
 }
 
     document.addEventListener("DOMContentLoaded", function() {
         const clearButton = document.getElementById('clearButton');
         clearButton.addEventListener('click', function() {
-            const isConfirmed = confirm("Are you sure you want to clear?");
-            if (isConfirmed) {
-                dirtySock("clearProcessQueue", tableData) // Do we need to pass tableData here?
-                location.reload()
+            swal({
+                title: "Are you sure?",
+                text: "Are you sure you want to clear? This will reset any changes you have pending.",
+                type: "warning",
+                html: true,
+                closeOnConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: "Clear",
+                showLoaderOnConfirm: true
+            }, function() {
+                dirtySock("clearProcessQueue").then(() => {
+                swal({
+                    title: "Cleared",
+                    type: "success"
+                }, function() {
+                    // location.reload();
+                    table.redraw(true);
+                });
+                });
             }
+            );
         });
     
 
         const processButton = document.getElementById('processButton');
         processButton.addEventListener('click', function() {
-            dirtySock("process")
-            // table.setData();
+                        swal({
+                title: "Beginning processing duplicates?",
+                text: consoleOutput.outerHTML,
+                type: "warning",
+                html: true,
+                closeOnConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: "Process",
+                showLoaderOnConfirm: true
+            }, function() {
+                dirtySock("process").then(() => {
+                swal({
+                    title: "Done.",
+                    // text: consoleOutput.innerHTML,
+                    // html: true,
+                    type: "success"
+                }, function() {
+                    table.redraw(true);
+                });
+                });
+            }
+            );
+            // dirtySock("process")
         });
     });
 

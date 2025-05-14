@@ -48,7 +48,7 @@ _(Database directory)_:
   document.querySelectorAll('#share option:checked').forEach(opt => opt.selected = true);
 </script>
 <input type="submit" name="#default" value="_(Default)_" onclick="if(confirm('Are you sure?')) {$('input[class^=share]').prop('checked', false);}">
-: <input type="submit" name="#apply" value="_(Apply)_"><input type="button" value="_(Scan)_" onclick="dataObj = Array.from(document.querySelectorAll('#share option:checked')).map(o => o.value); dirtySock('scan', dataObj);"><input type="button" value="_(Test)_" onclick="dirtySock('test', ['testData']);">
+: <input type="submit" name="#apply" value="_(Apply)_"><input type="button" value="_(Scan)_" onclick="dataObj = Array.from(document.querySelectorAll('#share option:checked')).map(o => o.value); dirtySock('scan', dataObj);"><input type="button" value="_(Test)_" onclick="alert();">
 </form>
 
 <script>
@@ -83,6 +83,10 @@ function dirtySock(action, dataObj) {
 }).catch(console.error);
 
   }
+}
+
+function alert() {
+  swal("Hello world!");
 }
 
 function prepareShare(form) {
