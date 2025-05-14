@@ -37,6 +37,25 @@ export async function removeSharesJob(dirPaths) {
 	await scanQueue.add("removeShares", { paths: dirPaths });
 }
 
+// export async function remove(dirPaths) {
+	// const jobs = await hashQueue.getJobs(['waiting', 'active', 'delayed'])
+
+// const match = jobs.find(job =>
+//   Array.isArray(job.data?.[1]) &&
+//   job.data[1].some(entry =>
+//     Array.isArray(entry.path) &&
+//     entry.path.includes(targetPath)
+//   )
+// )
+
+// const depId = match?.id || 'nonexistent-id'
+
+// await queue1.add('jobName', jobData, {
+//   dependencies: [depId]
+// })
+
+
+
 async function removeUniques(job) {
     console.debug("    Starting file filtering...");
 				const filesData = Object.values(await job.getChildrenValues())[0];
