@@ -10,7 +10,7 @@ const flowProducer = new FlowProducer(defaultQueueConfig);
 // TODO: need to account for a file in the new share being a hardlink to a file in the old share
 
 export async function addSharesFlow(dirPaths) {
-	console.debug("scanQueueListener.js: addShares() called with dirPaths:", dirPaths);
+	console.debug("scanQueue.js: addShares() called with dirPaths:", dirPaths);
 	await flowProducer.add({
 		name: "scanQueue-flow",
 		queueName: "scanQueue",

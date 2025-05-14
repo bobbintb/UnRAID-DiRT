@@ -11,6 +11,10 @@ const fileQueueWorker = new Worker('fileQueue', async job => {
             const file = job.data;
             await fileRepository.save(file.ino, file);
             return true;
+        case 'delete':
+            // const file = job.data;
+            // await fileRepository.save(file.ino, file);
+            return true;
     }
 }, defaultQueueConfig);
 
