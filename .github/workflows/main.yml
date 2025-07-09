@@ -11,6 +11,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Download UnRAID-Plugin-Generator
         run: |
+          cd ./.plugin/
           sudo apt update -y
           sudo apt install python3 -y
           wget https://github.com/bobbintb/UnRAID-Plugin-Generator/raw/refs/heads/main/upg.py
@@ -19,8 +20,9 @@ jobs:
           chmod +x upg.py
       - name: Run UnRAID-Plugin-Generator
         run: |
-          python3 ./upg.py
-          rm plugin.sh
+          cd ./.plugin/
+          python3 ./upg.py bobbintb.system.dirt.yaml
+          rm upg.py
           ls -ls
       # - name: Release
       #   uses: softprops/action-gh-release@v2
