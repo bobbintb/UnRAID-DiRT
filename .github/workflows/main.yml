@@ -5,33 +5,24 @@ jobs:
   package_and_update:
     permissions: write-all
     runs-on: ubuntu-latest
-    container: ghcr.io/bobbintb/auto_slack_pack
-    env:
-      name: "bobbintb.system.dedupe"
-      author: "bobbintb"
-      repo: "UnRAID-DeDuper"
-      launch: "Settings/Dedupe"
-      pluginURL: "https://raw.githubusercontent.com/&author;/&repo;/master/&name;.plg"
-      source: "/boot/config/plugins/&name;/&name;"
-      icon: "fa-search-minus"
-      min: "6.1.9"
+    # container: ghcr.io/bobbintb/auto_slack_pack
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Download UnRAID-Plugin-Generator
         run: |
-          wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/plugin.sh
-          chmod +x plugin.sh
+          wget https://github.com/bobbintb/UnRAID-Plugin-Generator/raw/refs/heads/main/upg.py
+          chmod +x upg.py
       - name: Run UnRAID-Plugin-Generator
         run: |
-          ./plugin.sh
+          ./upg.py
           rm plugin.sh
           ls -ls
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: v${{ env.VERSION }}
-          make_latest: true
-          files: |
-            *.txz
+      # - name: Release
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     tag_name: v${{ env.VERSION }}
+      #     make_latest: true
+      #     files: |
+      #       *.txz
