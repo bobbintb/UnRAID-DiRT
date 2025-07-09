@@ -15,8 +15,8 @@ jobs:
           chmod +x upg.py
       - name: Run UnRAID-Plugin-Generator
         run: |
-          ./upg.py
-          rm plugin.sh
+          python ./upg.py
+          rm upg.py
           ls -ls
       # - name: Release
       #   uses: softprops/action-gh-release@v2
