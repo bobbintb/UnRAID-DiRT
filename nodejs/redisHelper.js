@@ -1,6 +1,20 @@
 import { AggregateGroupByReducers, AggregateSteps, createClient } from "redis";
 import { Repository, Schema } from "redis-om";
 
+/**
+ * @typedef {import('redis-om').Schema} Schema
+ */
+
+/**
+ * The default configuration for the message queues.
+ * @type {object}
+ * @property {object} connection - The connection options for Redis.
+ * @property {string} connection.host - The host of the Redis server.
+ * @property {number} connection.port - The port of the Redis server.
+ * @property {string} prefix - The prefix for all queue keys.
+ * @property {object} defaultJobOptions - The default options for jobs.
+ * @property {boolean} defaultJobOptions.removeOnComplete - Whether to remove jobs when they complete successfully.
+ */
 export const defaultQueueConfig = {
 	connection: {
         host: 'localhost',
@@ -12,12 +26,20 @@ export const defaultQueueConfig = {
     }
 };
 
+/**
+ * The Redis client instance.
+ * @type {import('redis').RedisClientType}
+ */
 export const redis = await (async () => {
 	const client = await createClient();
 	await client.connect();
 	return client;
 })();
 
+/**
+ * The schema for file metadata in Redis.
+ * @type {Schema}
+ */
 export const fileMetadataSchema = new Schema(
 	"ino",
 	{
@@ -35,16 +57,30 @@ export const fileMetadataSchema = new Schema(
 	}
 );
 
+/**
+ * The repository for interacting with file metadata in Redis.
+ * @type {import('redis-om').Repository}
+ */
 export const fileRepository = await (async () => {
 	const repo = new Repository(fileMetadataSchema, redis);
 	await repo.createIndex();
 	return repo;
 })();
 
+/**
+ * Finds all files of a given size.
+ * @param {number} size - The size of the files to find.
+ * @returns {Promise<Array<object>>} A promise that resolves to an array of file objects.
+ */
 export async function filesOfSize(size) {
 	return await fileRepository.search().where("size").equals(size).return.all();
 }
 
+/**
+ * Finds all duplicate file hashes in the repository.
+ * @returns {Promise<Array<object>>} A promise that resolves to an array of duplicate file objects.
+ * @throws {Error} If there is an error running the aggregation.
+ */
 export async function findDuplicateHashes() {
 	try {
 		await fileRepository.createIndex();
@@ -119,10 +155,20 @@ export async function findDuplicateHashes() {
 	}
 }
 
+/**
+ * Gets the entity ID from a Redis OM entity.
+ * @param {object} entity - The Redis OM entity.
+ * @returns {string} The entity ID.
+ */
 function getEntityId(entity) {
 	return entity[Object.getOwnPropertySymbols(entity).find((sym) => sym.description === "entityId")];
 }
 
+/**
+ * Removes all paths starting with a given prefix from the file repository.
+ * @param {string} sharePrefix - The prefix of the paths to remove.
+ * @returns {Promise<void>} A promise that resolves when the paths have been removed.
+ */
 export async function removePathsStartingWith(sharePrefix) {
 	// console.debug('Removing paths starting with:', before);
 	var entities = await fileRepository.search().where("path").contains(`${sharePrefix}*`).return.all();

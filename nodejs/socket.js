@@ -8,7 +8,15 @@ if (fs.existsSync(socketPath)) {
     fs.unlinkSync(socketPath);
 }
 
+/**
+ * Creates a Unix socket server to listen for file system events from a syslog-like source.
+ * @param {function} onDataCallback - The callback function to execute when data is received.
+ * @returns {net.Server} The created socket server.
+ */
 export function dirtySock(onDataCallback) {
+    /**
+     * @param {net.Socket} socket - The socket object for the connection.
+     */
     const dirtySockServer = net.createServer((socket) => {
         socket.on('data', (data) => {
             const syslogMessage = data.toString().trim();

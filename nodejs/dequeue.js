@@ -2,6 +2,11 @@ import fs from "fs";
 import {hashFilesInIntervals} from "./hashHelper.js"
 import {fileRepository, filesOfSize, scanQueue, redis} from "./redisHelper.js";
 
+/**
+ * Processes a new file, checking for duplicates and saving it to the repository.
+ * @param {string} file - The path to the new file.
+ * @returns {Promise<void>} A promise that resolves when the file has been processed.
+ */
 export async function dequeueCreateFile(file) {
     const stats = fs.statSync(file, {bigint: true});
     const size = Number(stats.size)
@@ -40,6 +45,11 @@ export async function dequeueCreateFile(file) {
     }
 }
 
+/**
+ * Deletes a file from the repository.
+ * @param {string} file - The path to the file to delete.
+ * @returns {Promise<void>} A promise that resolves when the file has been deleted.
+ */
 async function dequeueDeleteFile(file) {
     console.log('dequeueDeleteFile - file')
     console.log(file)

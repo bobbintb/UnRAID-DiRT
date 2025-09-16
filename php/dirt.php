@@ -4,6 +4,10 @@
 let tableData = null;
 const consoleOutput = document.getElementById('console-output');
 
+/**
+ * Handles messages received from the WebSocket server.
+ * @param {MessageEvent} event - The message event.
+ */
 socket.onmessage = function(event) {
     const consoleOutput = document.getElementById('console-output');
     const msg = JSON.parse(event.data);
@@ -38,6 +42,12 @@ socket.onmessage = function(event) {
 };
 
 
+/**
+ * Sends a message to the WebSocket server.
+ * @param {string} action - The action to be performed by the server.
+ * @param {object} [dataObj=null] - The data to be sent with the action.
+ * @returns {Promise<void>} A promise that resolves when the message is sent.
+ */
 async function dirtySock(action, dataObj = null) {
     return new Promise((resolve, reject) => {
         const message = {
@@ -54,6 +64,9 @@ async function dirtySock(action, dataObj = null) {
     });
 }
 
+    /**
+     * Sets up event listeners when the DOM is fully loaded.
+     */
     document.addEventListener("DOMContentLoaded", function() {
         const clearButton = document.getElementById('clearButton');
         clearButton.addEventListener('click', function() {
@@ -120,10 +133,20 @@ async function dirtySock(action, dataObj = null) {
     //     return date.toDateString();
     // }
 
+    /**
+     * Formatter for Tabulator to convert a cell's file size value to a human-readable format.
+     * @param {import('tabulator-tables').CellComponent} cell - The Tabulator cell component.
+     * @returns {string|null} The formatted file size or null if the size is not defined.
+     */
     function convertCellFileSize(cell) {
         return convertFileSize(cell.getValue(0))
     }
 
+    /**
+     * Converts a file size in bytes to a human-readable format.
+     * @param {number} size - The file size in bytes.
+     * @returns {string|null} The formatted file size or null if the size is not defined.
+     */
     function convertFileSize(size) {
         if (typeof size !== 'undefined' && size !== null) {
             const units = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
@@ -155,9 +178,20 @@ async function dirtySock(action, dataObj = null) {
         setGroupStartOpen: true,
         // layout:"fitData",
         layout: "fitColumns",
+        /**
+         * Checks if a row is selectable.
+         * @param {import('tabulator-tables').RowComponent} row - The row component.
+         * @returns {boolean} True if the row is selectable, false otherwise.
+         */
         rowSelectableCheck: function (row) {
             return !row.getElement().classList.contains('disabled');
         },
+        /**
+         * Formatter for the group headers.
+         * @param {any} value - The value of the group.
+         * @param {number} count - The number of rows in the group.
+         * @returns {string} The HTML for the group header.
+         */
         groupHeader: function (value, count) {
             return `<div class="tabulator-cell"
                          role="gridcell"
@@ -194,6 +228,11 @@ async function dirtySock(action, dataObj = null) {
                 headerHozAlign: "center",
                 headerSort: false,
                 width: 1,
+                /**
+                 * Formatter for the radio button column.
+                 * @param {import('tabulator-tables').CellComponent} cell - The cell component.
+                 * @returns {string} The HTML for the radio button.
+                 */
                 formatter: function (cell) {
                 let rowData = cell.getRow().getData();
                 if (cell.getRow().getTreeParent()) return "";
@@ -218,6 +257,11 @@ async function dirtySock(action, dataObj = null) {
                         </div>`,
                 headerSort: false,
                 width: 1,
+                /**
+                 * Formatter for the trash column.
+                 * @param {import('tabulator-tables').CellComponent} cell - The cell component.
+                 * @returns {string} The HTML for the trash icon.
+                 */
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
                     if (cell.getRow().getTreeParent()) return "";
@@ -242,6 +286,11 @@ async function dirtySock(action, dataObj = null) {
                         </div>`,
                 headerSort: false,
                 width: 1,
+                /**
+                 * Formatter for the link column.
+                 * @param {import('tabulator-tables').CellComponent} cell - The cell component.
+                 * @returns {string} The HTML for the link icon.
+                 */
                 formatter: function (cell) {
                     let disabled = cell.getRow().getElement().classList.contains('disabled') ? 'disabled' : '';
                     if (cell.getRow().getTreeParent()) return "";
@@ -319,6 +368,10 @@ async function dirtySock(action, dataObj = null) {
                 width:165
             }
         ],
+        /**
+         * Formatter for each row in the table.
+         * @param {import('tabulator-tables').RowComponent} row - The row component.
+         */
         // This selects the first radio button as original or loads it from saved
         rowFormatter: async function (row) {
             if (row._row.type === 'row') {
@@ -341,6 +394,11 @@ async function dirtySock(action, dataObj = null) {
         },
     });
 
+    /**
+     * Handles the header click event to toggle the grouping.
+     * @param {Event} e - The event object.
+     * @param {import('tabulator-tables').ColumnComponent} column - The column component.
+     */
     table.on("headerClick", function (e, column) {
         if (column._column.definition.title.includes("custom-arrow")) {
             let arrowCell = document.getElementsByClassName('custom-arrow')[0]
@@ -357,6 +415,11 @@ async function dirtySock(action, dataObj = null) {
         }
     });
 
+    /**
+     * Simulates clicks on the checkboxes in a group of rows.
+     * @param {import('tabulator-tables').GroupComponent} group - The Tabulator group component.
+     * @param {DOMTokenList} id - The class list of the clicked element.
+     */
     function simulateClicksOnGroupCells(group, id) {
         const rows = group.getRows();
         const action = id[1] === 'fa-link' ? 'link' : 'delete';
@@ -380,12 +443,20 @@ async function dirtySock(action, dataObj = null) {
         });
     }
 
+    /**
+     * Handles the group click event to simulate clicks on the group's checkboxes.
+     * @param {Event} e - The event object.
+     * @param {import('tabulator-tables').GroupComponent} group - The group component.
+     */
     table.on("groupClick", function(e, group) {
         let id = e.target.classList
         id.selected = id.selected === undefined ? false : !id.selected;
         simulateClicksOnGroupCells(group, id);
     });
 
+    /**
+     * Handles the table built event to calculate and display the total size and group count.
+     */
     table.on("tableBuilt", function () {
         let totalSum = 0;
         this.getData().forEach(row => {
@@ -397,6 +468,11 @@ async function dirtySock(action, dataObj = null) {
         document.querySelector('.tabulator-footer').innerText = `Total Size: ${totalSumFormatted}, Total Groups: ${groupCount}`;
     });
 
+    /**
+     * Handles the change event for the action checkboxes and radio buttons in the table.
+     * @param {Event} e - The event object.
+     * @param {import('tabulator-tables').CellComponent} cell - The Tabulator cell component.
+     */
     function actionChange(e, cell) {
         let row = cell.getRow();
         let rowData = row.getData();

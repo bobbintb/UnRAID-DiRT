@@ -12,6 +12,11 @@ const plugin = "bobbintb.system.dirt";
 const configFile = `/boot/config/plugins/${plugin}/${plugin}.cfg`;
 var settings = loadSettings(configFile);
 
+/**
+ * Loads settings from a configuration file.
+ * @param {string} file - The path to the configuration file.
+ * @returns {object} The settings object.
+ */
 function loadSettings(file) {
 	createDefaultConfig(file);
 	const data = fs.readFileSync(file, "utf8");
@@ -25,6 +30,10 @@ function loadSettings(file) {
 	return settings;
 }
 
+/**
+ * Creates a default configuration file if one does not exist.
+ * @param {string} filePath - The path to the configuration file.
+ */
 function createDefaultConfig(filePath) {
 	if (!fs.existsSync(filePath)) {
 		fs.writeFileSync(
@@ -35,6 +44,10 @@ function createDefaultConfig(filePath) {
 	}
 }
 
+/**
+ * Loads initial data for the client, including duplicate hashes, settings, and queued jobs.
+ * @returns {Promise<object>} An object containing the initial data.
+ */
 async function load() {
 	const settings = loadSettings(configFile);
 	const ogs = await redis.hGetAll("originals");
@@ -53,10 +66,20 @@ async function load() {
 	}
 }
 
+/**
+ * Retrieves files of a specific size.
+ * @param {number} data - The size of the files to retrieve.
+ * @returns {Promise<Array<object>>} A promise that resolves to an array of file objects.
+ */
 async function newproc(data) {
 	return await filesOfSize(data);
 }
 
+/**
+ * Handles new WebSocket connections.
+ * @param {WebSocket} ws - The WebSocket instance for the connection.
+ * @param {import('http').IncomingMessage} req - The HTTP request object.
+ */
 dirt.on("connection", async (ws, req) => {
 	const queryParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
 	const clientId = queryParams.get("clientId");
@@ -148,9 +171,20 @@ dirt.on("connection", async (ws, req) => {
 	});
 });
 
+/**
+ * Gets a client from the clients map.
+ * @param {string} id - The ID of the client to get.
+ * @returns {WebSocket} The client's WebSocket connection.
+ */
 export const getClient = (id) => clients.get(id);
 
 
+/**
+ * Sends a message to a specific client.
+ * @param {WebSocket} client - The client to send the message to.
+ * @param {string} type - The type of the message.
+ * @param {*} message - The message payload.
+ */
 export const sendMessageToClient = (client, type, message) => {
   if (client.readyState === WebSocket.OPEN) {
 	client.send(JSON.stringify({ type: type, message }));

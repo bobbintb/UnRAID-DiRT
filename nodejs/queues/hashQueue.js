@@ -3,8 +3,17 @@ import { defaultQueueConfig, fileRepository } from '../redisHelper.js';
 import { fileQueue } from './fileQueue.js';
 import { hashFilesInIntervals } from '../scan.js';
 
+/**
+ * The queue for hashing files.
+ * @type {import('bullmq').Queue}
+ */
 export const hashQueue = new Queue('hashQueue', defaultQueueConfig);
 
+/**
+ * Worker for the hash queue.
+ * @param {import('bullmq').Job} job - The job to process.
+ * @returns {Promise<boolean>} A promise that resolves to true if the job is successful.
+ */
 const hashQueueWorker = new Worker('hashQueue', async job => {
     console.debug('starting worker...');
             const file = job.data;

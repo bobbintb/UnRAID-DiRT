@@ -13,11 +13,23 @@ wss.on('connection', (ws) => {
     clientSocket = ws;
 });
 
+/**
+ * Sends a message to the connected WebSocket client.
+ * @param {string} message - The message to send.
+ */
 export function sendToClient(message) {
     if (clientSocket && clientSocket.readyState === WebSocket.OPEN) {
         clientSocket.send(message);
     }
 }
+/**
+ * Deletes a file and its associated data from the arrays.
+ * @param {Array<object>} files - The array of files.
+ * @param {Array<object>} hashers - The array of hashers.
+ * @param {Array<number>} processedBytes - The array of processed byte counts.
+ * @param {number} index - The index of the file to delete.
+ * @returns {Promise<void>} A promise that resolves when the file has been deleted.
+ */
 function delHash(files,hashers,processedBytes,index) {
     return new Promise(resolve => {
         files.splice(index, 1);
@@ -27,6 +39,15 @@ function delHash(files,hashers,processedBytes,index) {
     });
 }
 
+/**
+ * Processes a chunk of each file and updates the corresponding hasher.
+ * @param {Array<object>} files - The files to process.
+ * @param {Array<object>} hashers - The hashers for each file.
+ * @param {Array<number>} processedBytes - The number of bytes processed for each file.
+ * @param {number} size - The total size of the files.
+ * @param {number} CHUNK_SIZE - The size of the chunk to process.
+ * @returns {Promise<void>} A promise that resolves when all chunks have been processed.
+ */
 export async function processFileChunks(files, hashers, processedBytes, size, CHUNK_SIZE) {
     const promises = files.map((file, index) => {
       if (processedBytes >= size) return;
@@ -87,6 +108,11 @@ export async function processFileChunks(files, hashers, processedBytes, size, CH
 // }
 
 
+/**
+ * Hashes files in intervals, filtering out unique files at each step and sending progress updates to the client.
+ * @param {Array<object>} files - The files to hash. Each object should have a `path` property.
+ * @returns {Promise<Array<object>>} A promise that resolves to an array of files with their hashes.
+ */
 // TODO: this needs to handle files being moved before starting hash. If it moved during it's fine, as it uses the file descriptor.
 // Maybe consider using the inode instead of filepath so you can get the filepath when needed or the file descriptor.
 export async function hashFilesInIntervals(files) {
