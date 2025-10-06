@@ -2,6 +2,14 @@
 import fs from "fs";
 import crypto from 'crypto';
 
+/**
+ * Enqueues a file action (original, delete, or link) in the process queue.
+ * @param {object} data - The data for the file action.
+ * @param {string} data.path - The path of the file.
+ * @param {string} data.hash - The hash of the file.
+ * @param {string} data.action - The action to perform ('og', '', 'delete', 'link').
+ * @returns {Promise<void>} A promise that resolves when the action has been enqueued.
+ */
 export async function enqueueFileAction(data) {
     const jobId = data.path
     const existingJob = await processQueue.getJob(jobId);

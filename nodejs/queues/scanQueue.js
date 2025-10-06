@@ -4,11 +4,20 @@ import { defaultQueueConfig, fileRepository, filesOfSize } from "../redisHelper.
 import { fileQueue } from "./fileQueue.js";
 import { hashQueue } from "./hashQueue.js";
 
+/**
+ * The queue for scanning files.
+ * @type {import('bullmq').Queue}
+ */
 export const scanQueue = new Queue("scanQueue", defaultQueueConfig);
 const flowProducer = new FlowProducer(defaultQueueConfig);
 
 // TODO: need to account for a file in the new share being a hardlink to a file in the old share
 
+/**
+ * Adds a flow to the scan queue to scan new shares.
+ * @param {Array<string>} dirPaths - The directory paths of the shares to add.
+ * @returns {Promise<void>} A promise that resolves when the flow has been added.
+ */
 export async function addSharesFlow(dirPaths) {
 	console.debug("scanQueue.js: addShares() called with dirPaths:", dirPaths);
 	await flowProducer.add({
@@ -33,18 +42,40 @@ export async function addSharesFlow(dirPaths) {
 	});
 }
 
+/**
+ * Adds a job to the scan queue to remove shares.
+ * @param {Array<string>} dirPaths - The directory paths of the shares to remove.
+ * @returns {Promise<void>} A promise that resolves when the job has been added.
+ */
 export async function removeSharesJob(dirPaths) {
 	await scanQueue.add("removeShares", { paths: dirPaths });
 }
 
+/**
+ * @todo This function is not fully implemented and currently adds a 'removeShares' job.
+ * Checks the hash queue for a file.
+ * @param {Array<string>} dirPaths - The directory paths of the shares.
+ * @returns {Promise<void>} A promise that resolves when the job has been added.
+ */
 async function checkHashQueueForFile(dirPaths) {
 	await scanQueue.add("removeShares", { paths: dirPaths });
 }
 
+/**
+ * @todo This function is not fully implemented and currently adds a 'removeShares' job.
+ * Checks the hash queue for a size.
+ * @param {Array<string>} dirPaths - The directory paths of the shares.
+ * @returns {Promise<void>} A promise that resolves when the job has been added.
+ */
 async function checkHashQueueForSize(dirPaths) {
 	await scanQueue.add("removeShares", { paths: dirPaths });
 }
 
+/**
+ * Finds jobs in the hash queue by size.
+ * @param {number} size - The size to search for.
+ * @returns {Promise<Array<string>>} A promise that resolves to an array of job IDs.
+ */
 async function findJobsBySize(size) {
   const jobs = await hashQueue.getJobs(['active', 'waiting', 'delayed'])
   return jobs.filter(j => Array.isArray(j.data) && j.data[0] === size).map(j => j.id)
@@ -70,6 +101,11 @@ async function findJobsBySize(size) {
 
 // This needs to account for files of the same size that are currently being hashed
 // maybe split this up
+/**
+ * Removes unique files from the scan results and sends them to the appropriate queues.
+ * @param {import('bullmq').Job} job - The job object.
+ * @returns {Promise<void>} A promise that resolves when the function is complete.
+ */
 async function removeUniques(job) {
 	console.debug("    Starting file filtering...");
 	const filesData = Object.values(await job.getChildrenValues())[0];
@@ -117,6 +153,11 @@ async function removeUniques(job) {
 	console.debug("    done.");
 }
 
+/**
+ * Worker for the scan queue.
+ * @param {import('bullmq').Job} job - The job to process.
+ * @returns {Promise<any>} A promise that resolves with the result of the job.
+ */
 const scanQueueWorker = new Worker(
 	"scanQueue",
 	async (job) => {

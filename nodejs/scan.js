@@ -12,11 +12,20 @@ wss.on('connection', (ws) => {
     clientSocket = ws;
 });
 
+/**
+ * Sends a message to the connected client.
+ * @param {string} message - The message to send.
+ */
 export function sendToClient(message) {
     if (clientSocket && clientSocket.readyState === WebSocket.OPEN) {
         clientSocket.send(message);
     }
 }
+/**
+ * Gets settings from a JSON file.
+ * @returns {object} The settings object.
+ * @throws {Error} If the file is not found or cannot be read.
+ */
 export function getSettings() {
     const filePath = plugin + '.json';
     try {
@@ -34,6 +43,11 @@ export function getSettings() {
     }
 }
 
+/**
+ * Gets file statistics.
+ * @param {string} file - The path to the file.
+ * @returns {[object, number]} A tuple containing the file information and the file size.
+ */
 export function getFileStats(file) {
     const stats = fs.statSync(file, {bigint: true});
     const ino = stats.ino.toString();
@@ -49,6 +63,11 @@ export function getFileStats(file) {
 }
 
 
+/**
+ * Gets all files in the specified directories and groups them by size.
+ * @param {Array<string>} dirPaths - An array of directory paths to scan.
+ * @returns {Map<number, Array<object>>} A map where keys are file sizes and values are arrays of file objects.
+ */
 export function getAllFiles(dirPaths) {
     const fileMap = new Map();
 
@@ -90,6 +109,15 @@ export function getAllFiles(dirPaths) {
     return fileMap;
 }
 
+/**
+ * Processes a chunk of each file and updates the corresponding hasher.
+ * @param {Array<object>} files - The files to process.
+ * @param {Array<object>} hashers - The hashers for each file.
+ * @param {Array<number>} processedBytes - The number of bytes processed for each file.
+ * @param {number} size - The total size of the files.
+ * @param {number} CHUNK_SIZE - The size of the chunk to process.
+ * @returns {Promise<void>} A promise that resolves when all chunks have been processed.
+ */
 export async function processFileChunks(files, hashers, processedBytes, size, CHUNK_SIZE) {
     const promises = files.map((file, index) => {
         const start = processedBytes[index];
@@ -109,6 +137,12 @@ export async function processFileChunks(files, hashers, processedBytes, size, CH
     await Promise.all(promises);
 }
 
+/**
+ * Hashes files in intervals, filtering out unique files at each step.
+ * @param {number} size - The size of the files being hashed.
+ * @param {Array<object>} inputFiles - The files to hash.
+ * @returns {Promise<Array<object>>} A promise that resolves to an array of files with their hashes.
+ */
 export async function hashFilesInIntervals(size, inputFiles) {
     let files = inputFiles;
     if (!Array.isArray(files)) {

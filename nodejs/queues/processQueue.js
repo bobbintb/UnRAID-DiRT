@@ -3,9 +3,19 @@ import { defaultQueueConfig, fileRepository, redis } from "../redisHelper.js";
 import fs from "fs/promises";
 import { getClient, sendMessageToClient } from "../dirt.js";
 
+/**
+ * The queue for processing files (deleting or linking).
+ * @type {import('bullmq').Queue}
+ */
 export const processQueue = new Queue("processQueue", defaultQueueConfig);
 processQueue.pause();
 
+/**
+ * Adds or updates a job in the process queue.
+ * @param {string} action - The action to perform ('delete' or 'link').
+ * @param {string} inode - The inode of the file.
+ * @returns {Promise<void>} A promise that resolves when the job has been added or updated.
+ */
 export async function upsert(action, inode) {
 	const jobs = await processQueue.getJobs(["waiting", "delayed"]);
 	const existingJob = jobs.find((job) => job.data === inode);
@@ -17,11 +27,20 @@ export async function upsert(action, inode) {
 	}
 }
 
+/**
+ * Clears the process queue and the 'originals' hash in Redis.
+ * @returns {Promise<void>} A promise that resolves when the queue and hash have been cleared.
+ */
 export async function clear() {
 	await processQueue.obliterate();
 	await redis.del("originals");
 }
 
+/**
+ * Worker for the process queue.
+ * @param {import('bullmq').Job} job - The job to process.
+ * @returns {Promise<boolean>} A promise that resolves to true if the job is successful.
+ */
 const processQueueWorker = new Worker(
 	"processQueue",
 	async (job) => {
