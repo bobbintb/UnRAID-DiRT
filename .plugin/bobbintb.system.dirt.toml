@@ -11,7 +11,7 @@ icon = "fa-search-minus"
 min = "7.0.0"
 
 [CHANGES]
-File = "./README.md"
+File = "./CHANGELOG.md"
 
 # --- FILES ---
 
