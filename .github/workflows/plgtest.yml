@@ -19,9 +19,9 @@ jobs:
         run: |
           slackpkg update
           slackpkg install expat
+          cd ./.plugin
           pip install -r requirements.txt
           rm requirements.txt
-          cd ./.plugin
           ./upg.py bobbintb.system.dirt.toml -o bobbintb.system.dirt.plg
           rm upg.py
           ls -ls
