@@ -25,6 +25,7 @@ jobs:
           ./upg.py bobbintb.system.dirt.toml -o bobbintb.system.dirt.plg
           rm upg.py
           ls -ls
+          mv bobbintb.system.dirt.plg ../
       - name: Release
         uses: softprops/action-gh-release@v2
         env:
