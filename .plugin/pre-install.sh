@@ -75,7 +75,6 @@ install_package() {
 
 # Array of URLs
 PKGS=(
-    "https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/builds/nodejs/nodejs-22.14.0-x86_64-1_SBo.tgz"
     "https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/builds/dragonfly/dragonfly-1.29.0-x86_64-1_SBo.tgz"
 )
 
