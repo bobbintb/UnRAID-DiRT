@@ -1,0 +1,43 @@
+[ENTITIES]
+name = "bobbintb.system.dirt"
+author = "bobbintb"
+repo = "UnRAID-DiRT"
+tag = "test"
+launch = "Settings/Deduplication in Real-Time"
+pluginURL = "https://github.com/&author;/&repo;/releases/download/&tag;/&name;.plg"
+packageURL = "https://github.com/&author;/&repo;/releases/download/&tag;/&name;.txz"
+source = "/boot/config/plugins/&name;/&name;"
+icon = "fa-search-minus"
+min = "7.0.0"
+
+[CHANGES]
+File = "./README.md"
+
+# --- FILES ---
+
+# 1. Startup Script
+# Note: Name and Mode are attributes of <FILE>, so they go in Attr
+[[FILE]]
+Attr = { Name = "/etc/rc.d/rc.dirt", Mode = "0775" }
+Inline = "./sh/rc.dirt"
+
+# 2. Pre-Install Script
+[[FILE]]
+Attr = { Run = "/bin/bash", Method = "install" }
+Inline = "./sh/pre-install.sh"
+
+# 3. Source Package
+[[FILE]]
+Attr = { Name = "&source;.txz", Run = "upgradepkg --install-new --reinstall" }
+URL = "&packageURL;"
+MD5 = "&MD5;"
+
+# 4. Post-Install Script
+[[FILE]]
+Attr = { Run = "/bin/bash", Method = "install" }
+Inline = "./sh/post-install.sh"
+
+# 5. Removal Script
+[[FILE]]
+Attr = { Run = "/bin/bash", Method = "remove" }
+cdata = "./sh/remove.sh"
