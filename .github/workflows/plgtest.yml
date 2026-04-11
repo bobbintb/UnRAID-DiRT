@@ -20,7 +20,7 @@ jobs:
           slackpkg install expat
           pip install -r requirements.txt
           rm requirements.txt
-          ./upg.py ./.plugin/bobbintb.system.dirt.toml
+          ./upg.py ./.plugin/bobbintb.system.dirt.toml -o bobbintb.system.dirt.plg
           rm upg.py
           ls -ls
       - name: Release
