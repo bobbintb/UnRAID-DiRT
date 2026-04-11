@@ -11,6 +11,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Download UnRAID-Plugin-Generator
         run: |
+          cd ./.plugin
           wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/upg.py
           wget https://raw.githubusercontent.com/bobbintb/UnRAID-Plugin-Generator/main/requirements.txt
           chmod +x upg.py
