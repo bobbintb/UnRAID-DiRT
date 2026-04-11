@@ -11,7 +11,7 @@ icon = "fa-search-minus"
 min = "7.0.0"
 
 [CHANGES]
-File = "./CHANGELOG.md"
+File = "CHANGELOG.md"
 
 # --- FILES ---
 
@@ -19,12 +19,12 @@ File = "./CHANGELOG.md"
 # Note: Name and Mode are attributes of <FILE>, so they go in Attr
 [[FILE]]
 Attr = { Name = "/etc/rc.d/rc.dirt", Mode = "0775" }
-Inline = "./sh/rc.dirt"
+Inline = "rc.dirt"
 
 # 2. Pre-Install Script
 [[FILE]]
 Attr = { Run = "/bin/bash", Method = "install" }
-Inline = "./sh/pre-install.sh"
+Inline = "pre-install.sh"
 
 # 3. Source Package
 [[FILE]]
@@ -35,9 +35,9 @@ MD5 = "&MD5;"
 # 4. Post-Install Script
 [[FILE]]
 Attr = { Run = "/bin/bash", Method = "install" }
-Inline = "./sh/post-install.sh"
+Inline = "post-install.sh"
 
 # 5. Removal Script
 [[FILE]]
 Attr = { Run = "/bin/bash", Method = "remove" }
-cdata = "./sh/remove.sh"
+cdata = "remove.sh"
