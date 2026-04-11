@@ -16,6 +16,8 @@ jobs:
           chmod +x upg.py
       - name: Run UnRAID-Plugin-Generator
         run: |
+          slackpkg update
+          slackpkg install expat
           pip install -r requirements.txt
           rm requirements.txt
           ./upg.py ./.plugin/bobbintb.system.dirt.toml
