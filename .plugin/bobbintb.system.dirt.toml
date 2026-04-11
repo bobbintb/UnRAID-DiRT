@@ -19,12 +19,12 @@ File = "CHANGELOG.md"
 # Note: Name and Mode are attributes of <FILE>, so they go in Attr
 [[FILE]]
 Attr = { Name = "/etc/rc.d/rc.dirt", Mode = "0775" }
-Inline = "rc.dirt"
+script_raw = "rc.dirt"
 
 # 2. Pre-Install Script
 [[FILE]]
 Attr = { Run = "/bin/bash", Method = "install" }
-Inline = "pre-install.sh"
+script_raw = "pre-install.sh"
 
 # 3. Source Package
 [[FILE]]
@@ -35,9 +35,9 @@ MD5 = "&MD5;"
 # 4. Post-Install Script
 [[FILE]]
 Attr = { Run = "/bin/bash", Method = "install" }
-Inline = "post-install.sh"
+script_template = "post-install.sh"
 
 # 5. Removal Script
 [[FILE]]
 Attr = { Run = "/bin/bash", Method = "remove" }
-cdata = "remove.sh"
+script_template = "remove.sh"
