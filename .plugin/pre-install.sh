@@ -75,7 +75,7 @@ install_package() {
 
 # Array of URLs
 PKGS=(
-    "https://github.com/bobbintb/Slackware_Packages/raw/refs/heads/main/builds/dragonfly/dragonfly-1.29.0-x86_64-1_SBo.tgz"
+    "https://bobbintb.github.io/Slackware_Packages/builds/dragonfly/dragonfly-1.37.2-x86_64-1_SBo.tgz"
 )
 
 for url in "${PKGS[@]}"; do
