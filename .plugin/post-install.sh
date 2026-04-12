@@ -22,15 +22,7 @@ config_file="/etc/valkey/valkey.conf"
 new_value="/usr/bin/valkey-modules/redisearch.so"
 
 
-
-
-awk -v new_value="$new_value" '
-  /^#? *loadmodule / && !found {
-    $0 = "loadmodule " new_value
-    found = 1
-  }
-  { print }
-' "$config_file" > "$config_file.tmp" && mv "$config_file.tmp" "$config_file"
+sed -e "0,/^#\? *loadmodule /s|^#\? *loadmodule .*|loadmodule $new_value|" "$config_file" > "$config_file.tmp" && mv "$config_file.tmp" "$config_file"
 
 sed -i '54 i\loadmodule /usr/bin/valkey-modules/redisearch.so MAXEXPANSIONS 10000000' /etc/valkey/valkey.conf
 sysctl vm.overcommit_memory=1
