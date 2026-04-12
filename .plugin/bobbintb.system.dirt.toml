@@ -40,7 +40,7 @@ script_template = "post-install.sh"
 # 5. Configure Script
 [[FILE]]
 Attr = { Run = "/bin/bash", Method = "install" }
-script_template = "configure.sh"
+script_raw = "configure.sh"
 
 # 6. Removal Script
 [[FILE]]
