@@ -75,7 +75,8 @@ install_package() {
 
 # Array of URLs
 PKGS=(
-    "https://bobbintb.github.io/Slackware_Packages/builds/dragonfly/dragonfly-1.37.2-x86_64-1_SBo.tgz"
+    "https://bobbintb.github.io/Slackware_Packages/builds/valkey/valkey-9.0.3-x86_64-1_SBo.tgz"
+    "https://bobbintb.github.io/Slackware_Packages/builds/redisearch/redisearch-2.10.25-x86_64-1_SBo.tgz"
 )
 
 for url in "${PKGS[@]}"; do
