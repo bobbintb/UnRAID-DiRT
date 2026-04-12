@@ -2,7 +2,7 @@ echo "-----------------------------------------------------------"
 echo "Configuring..."
 echo "-----------------------------------------------------------"
 
-ln -s /usr/local/etc/rc.d/rc.valkey /etc/rc.d/rc.valkey
+# ln -s /usr/local/etc/rc.d/rc.valkey /etc/rc.d/rc.valkey
 chmod +x /etc/rc.d/rc.valkey
 
 echo "alias valkey='/etc/rc.d/rc.valkey'" >> /etc/profile
