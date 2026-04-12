@@ -13,7 +13,7 @@ min = "7.0.0"
 [CHANGES]
 File = "CHANGELOG.md"
 
-# --- FILES ---
+# FILES
 
 # 1. Startup Script
 # Note: Name and Mode are attributes of <FILE>, so they go in Attr
