@@ -6,4 +6,4 @@ echo "-----------------------------------------------------------"
 cd "/usr/local/emhttp/plugins/&name;"
 npm install
 
-# MY_RELEASE=$(uname -r | cut -d'-' -f2,3)
+chmod +x /etc/rc.d/rc.valkey
