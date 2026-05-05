@@ -24,11 +24,12 @@ jobs:
           python3 ./upg.py ./bobbintb.system.dirt.toml
           rm upg.py
           ls -ls
-      # - name: Release
-      #   uses: softprops/action-gh-release@v2
-      #   with:
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     tag_name: v${{ env.VERSION }}
-      #     make_latest: true
-      #     files: |
-      #       *.txz
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: v${{ env.VERSION }}
+          make_latest: true
+          files: |
+            *.txz
+            *.plg
