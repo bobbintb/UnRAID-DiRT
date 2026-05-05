@@ -3,7 +3,7 @@
 echo "-----------------------------------------------------------"
 echo "Installing NodeJS libraries..."
 echo "-----------------------------------------------------------"
-cd "/usr/local/emhttp/plugins/&name;"
+cd "/usr/local/emhttp/plugins/bobbintb.system.dirt/"
 npm install
 
 echo "-----------------------------------------------------------"
