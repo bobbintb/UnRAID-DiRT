@@ -35,7 +35,7 @@ MD5 = "&MD5;"
 # 4. Post-Install Script
 [[FILE]]
 Attr = { Run = "/bin/bash", Method = "install" }
-script_template = "post-install.sh"
+script_raw = "post-install.sh"
 
 # 5. Configure Script
 [[FILE]]
