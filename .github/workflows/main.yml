@@ -19,7 +19,7 @@ jobs:
           chmod +x upg.py
       - name: Run UnRAID-Plugin-Generator
         run: |
-          python3 ./upg.py ./.plugin/bobbintb.system.dirt.yaml
+          python3 ./upg.py ./.plugin/bobbintb.system.dirt.toml
           rm upg.py
           ls -ls
       # - name: Release
