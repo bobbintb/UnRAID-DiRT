@@ -21,7 +21,7 @@ jobs:
       - name: Run UnRAID-Plugin-Generator
         run: |
           cd ./.plugin/
-          python3 ./upg.py ./bobbintb.system.dirt.toml bobbintb.system.dirt.plg
+          python3 ./upg.py ./bobbintb.system.dirt.toml -o bobbintb.system.dirt.plg
           rm upg.py
           ls -ls
           mv *.plg ../
