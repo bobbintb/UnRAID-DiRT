@@ -13,13 +13,15 @@ jobs:
         run: |
           sudo apt update -y
           sudo apt install python3 -y
+          cd ./.plugin/
           wget https://github.com/bobbintb/UnRAID-Plugin-Generator/raw/refs/heads/main/upg.py
           wget https://github.com/bobbintb/UnRAID-Plugin-Generator/raw/refs/heads/main/requirements.txt
           pip install --break-system-packages -r requirements.txt
           chmod +x upg.py
       - name: Run UnRAID-Plugin-Generator
         run: |
-          python3 ./upg.py ./.plugin/bobbintb.system.dirt.toml
+          cd ./.plugin/
+          python3 ./upg.py ./bobbintb.system.dirt.toml
           rm upg.py
           ls -ls
       # - name: Release
