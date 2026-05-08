@@ -25,7 +25,7 @@ jobs:
           rm upg.py
           ls -ls
           mv *.plg ../
-          # mv *.txz ../
+          mv *.txz ../
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
@@ -34,5 +34,5 @@ jobs:
           # v${{ env.VERSION }}
           make_latest: true
           files: |
-            # *.txz
+            *.txz
             *.plg
