@@ -1,29 +1,34 @@
 {
-  "type": "module",
-  "dependencies": {
-    "bee-queue": "^1.7.1",
-    "blake3": "^3.0.0",
-    "bullmq": "^5.49.1",
-    "collections": "5.1.13",
-    "crypto-js": "^4.2.0",
-    "express": "^4.19.2",
-    "fs": "^0.0.1-security",
-    "jquery": "^3.6.0",
-    "redis": "^4.7.0",
-    "redis-om": "^0.4.6",
-    "syslog-parse": "^2.0.0",
-    "ws": "^8.18.0"
+  "name": "dirt-backend",
+  "version": "1.0.0",
+  "description": "Backend WebSocket server for the DIRT Unraid plugin.",
+  "main": "dirt.js",
+  "scripts": {
+    "start": "node nodejs/dirt.js >> dirt_server.log 2>&1 &",
+    "stop": "ps aux | grep 'dirt.js' | grep -v grep | awk '{print $2}' | xargs kill -9",
+    "restart": "npm run stop && npm run start",
+    "seed": "node tests/helpers/seed-redis.helper.js",
+    "unraid-workaround": "tail -n +5 dirt-tables.page > index.php",
+    "clean": "rm -rf dirt_server.log index.php jules-scratch",
+    "prep": "npm install && playwright install && npm run seed",
+    "test": "npm run clean && npm run unraid-workaround && npm run start && pytest && npm run stop"
   },
-  "overrides": {
-    "blake3-wasm": "^3.0.0",
-    "@c4312/blake3-internal": "^3.0.0"
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "blake3": "^3.0.0",
+    "bullmq": "^5.7.8",
+    "luxon": "^3.5.0",
+    "redis": "^4.6.13",
+    "redis-om": "^0.4.7",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
-    "@eslint/css": "^0.7.0",
-    "@eslint/js": "^9.25.1",
-    "@eslint/json": "^0.12.0",
-    "@eslint/markdown": "^6.4.0",
-    "eslint": "^9.25.1",
-    "globals": "^16.0.0"
+    "@faker-js/faker": "^8.4.1",
+    "@playwright/test": "^1.44.1"
+  },
+  "overrides": {
+    "blake3-wasm": "3.0.0",
+    "@c4312/blake3-internal": "3.0.0"
   }
 }

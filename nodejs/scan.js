@@ -1,185 +1,219 @@
-import fs from "fs";
-import path from "path";
-import blake3 from 'blake3';
-import { WebSocketServer, WebSocket } from 'ws';
-
-const CHUNK_SIZE = 1048576; // 1MB chunk size
-const wss = new WebSocketServer({ port: 3001 })
-await blake3.load();
-export let clientSocket = null;
-
-wss.on('connection', (ws) => {
-    clientSocket = ws;
-});
+const fs = require('fs').promises;
+const path = require('path');
+const { fileProcessingQueue } = require('./redis.js');
+const { getFileMetadataRepository } = require('./redis.js');
+const { sharedEmitter } = require('./events.js');
 
 /**
- * Sends a message to the connected client.
- * @param {string} message - The message to send.
+ * Retrieves statistics for a single file.
+ *
+ * @param {string} fullPath The full path to the file.
+ * @returns {Promise<object|null>} A Promise that resolves to an object containing file stats
+ * (`ino`, `size`, `nlink`, `atime`, `mtime`, `ctime`), or `null` if an error occurs.
  */
-export function sendToClient(message) {
-    if (clientSocket && clientSocket.readyState === WebSocket.OPEN) {
-        clientSocket.send(message);
-    }
-}
-/**
- * Gets settings from a JSON file.
- * @returns {object} The settings object.
- * @throws {Error} If the file is not found or cannot be read.
- */
-export function getSettings() {
-    const filePath = plugin + '.json';
-    try {
-        const data = fs.readFileSync(filePath, 'utf8');
-        console.log('Settings loaded.');
-        //return JSON.parse(data);
-    } catch (error) {
-        if (error.code === 'ENOENT') {
-            console.warn(`Settings file not found: ${filePath}`);
-            throw error;
-        } else {
-            console.error(`Error reading settings file: ${error}`);
-            throw error;
-        }
-    }
-}
-
-/**
- * Gets file statistics.
- * @param {string} file - The path to the file.
- * @returns {[object, number]} A tuple containing the file information and the file size.
- */
-export function getFileStats(file) {
-    const stats = fs.statSync(file, {bigint: true});
-    const ino = stats.ino.toString();
-    const fileInfo = {
-        ino: ino,
-        path: [file],
-        nlink: Number(stats.nlink),
-        atime: stats.atime,
-        mtime: stats.mtime,
-        ctime: stats.ctime
+async function getFileStats(fullPath) {
+  try {
+    const stats = await fs.stat(fullPath, { bigint: true });
+    return {
+      ino: stats.ino.toString(),
+      size: Number(stats.size),
+      nlink: Number(stats.nlink),
+      atime: stats.atime,
+      mtime: stats.mtime,
+      ctime: stats.ctime,
     };
-    return [fileInfo, Number(stats.size)];
-}
-
-
-/**
- * Gets all files in the specified directories and groups them by size.
- * @param {Array<string>} dirPaths - An array of directory paths to scan.
- * @returns {Map<number, Array<object>>} A map where keys are file sizes and values are arrays of file objects.
- */
-export function getAllFiles(dirPaths) {
-    const fileMap = new Map();
-
-    function traverseDir(currentPath) {
-        // console.debug(`Current directory: ${currentPath}`);
-        try {
-            const entries = fs.readdirSync(currentPath, {withFileTypes: true});
-            for (const entry of entries) {
-                // console.debug(`     Current entry: ${entry.name}`);
-                const fullPath = path.join(currentPath, entry.name);
-                if (entry.isFile()) {
-                    const [file, size] = getFileStats(fullPath);
-                    const sizeGroup = fileMap.get(size) || [];
-                    const existing = sizeGroup.find(f => f.ino === file.ino);
-                    if (existing) {
-                        existing.path.push(...file.path);
-                    } else {
-                        sizeGroup.push(file);
-                    }
-                    fileMap.set(size, sizeGroup);
-                    // console.debug('Current fileMap:', util.inspect(fileMap, {depth: null, maxArrayLength: null}));
-                } else if (entry.isDirectory()) {
-                    traverseDir(fullPath);
-                }
-            }
-        } catch (err) {
-            console.error(`Error processing directory ${currentPath}:`, err);
-        }
-    }
-
-    for (const dirPath of dirPaths) {
-        try {
-        traverseDir(dirPath);
-        } catch (err) {
-            console.error(`Error processing root directory ${dirPath}:`, err);
-        }
-    }
-
-    return fileMap;
+  } catch (error) {
+    console.error(`[DIRT] Error stating file ${fullPath}:`, error.message);
+    return null;
+  }
 }
 
 /**
- * Processes a chunk of each file and updates the corresponding hasher.
- * @param {Array<object>} files - The files to process.
- * @param {Array<object>} hashers - The hashers for each file.
- * @param {Array<number>} processedBytes - The number of bytes processed for each file.
- * @param {number} size - The total size of the files.
- * @param {number} CHUNK_SIZE - The size of the chunk to process.
- * @returns {Promise<void>} A promise that resolves when all chunks have been processed.
+ * Processes a single file, adding it to the filesBySize Map.
+ * It correctly handles hard links by checking the inode number.
+ *
+ * @param {string} fullPath The full path to the file.
+ * @param {Map<number, object[]>} filesBySize The map grouping files by size.
+ * @param {string} share The name of the share the file belongs to.
  */
-export async function processFileChunks(files, hashers, processedBytes, size, CHUNK_SIZE) {
-    const promises = files.map((file, index) => {
-        const start = processedBytes[index];
-        const end = Math.min(start + CHUNK_SIZE, size);
-        const buffer = Buffer.alloc(end - start);
-        return new Promise((resolve, reject) => {
-            const fd = fs.openSync(file.path[0], 'r');
-            fs.read(fd, buffer, 0, buffer.length, start, (err) => {
-                if (err) return reject(err);
-                hashers[index].update(buffer);
-                processedBytes[index] += buffer.length;
-                fs.closeSync(fd);
-                resolve();
-            });
-        });
+async function processFile(fullPath, filesBySize, share) {
+  console.log(`[DIRT] Processing file: ${fullPath}`);
+  const stats = await getFileStats(fullPath);
+  if (!stats) {
+    return; // Error was already logged in getFileStats
+  }
+
+  const { ino, size, nlink, atime, mtime, ctime } = stats;
+  const fileList = filesBySize.get(size);
+
+  if (!fileList) {
+    // This is the first file found of this specific size.
+    console.log(`[DIRT] Creating new size group for size ${size} with file: ${fullPath}`);
+    const newFileObject = { ino, path: [fullPath], shares: [share], nlink, atime, mtime, ctime };
+    filesBySize.set(size, [newFileObject]);
+  } else {
+    // Other files of this size already exist. Check for a hard link.
+    let foundHardLink = false;
+    for (const file of fileList) {
+      if (file.ino === ino) {
+        // Found a hard link. The inode number matches.
+        console.log(`[DIRT] Found hard link for inode ${ino}. Adding path: ${fullPath}`);
+        file.path.push(fullPath);
+        file.shares.push(share); // Also add the new share
+        foundHardLink = true;
+        break;
+      }
+    }
+
+    if (!foundHardLink) {
+      // It's a different file that just happens to be the same size.
+      console.log(`[DIRT] Found new file with existing size ${size} but different inode: ${fullPath}`);
+      const newFileObject = { ino, path: [fullPath], shares: [share], nlink, atime, mtime, ctime };
+      fileList.push(newFileObject);
+    }
+  }
+}
+
+/**
+ * Recursively traverses a directory.
+ * @param {string} directory The path of the directory to traverse.
+ * @param {Map<number, object[]>} filesBySize The map to populate with file data.
+ * @param {string} share The name of the share being traversed.
+ */
+async function traverse(directory, filesBySize, share) {
+  console.log(`[DIRT] Traversing directory: ${directory}`);
+  let entries;
+  try {
+    entries = await fs.readdir(directory, { withFileTypes: true });
+  } catch (error) {
+    console.error(`[DIRT] Error reading directory ${directory}:`, error.message);
+    return;
+  }
+
+  for (const entry of entries) {
+    const fullPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      await traverse(fullPath, filesBySize, share);
+    } else if (entry.isFile()) {
+      await processFile(fullPath, filesBySize, share);
+    }
+  }
+}
+
+/**
+ * Handles zero-byte files by assigning a static hash and logging them.
+ * This function modifies the filesBySize map by removing the zero-byte group.
+ *
+ * @param {Map<number, object[]>} filesBySize The map grouping files by size.
+ */
+function handleZeroByteFiles(filesBySize) {
+  const zeroByteFiles = filesBySize.get(0);
+  if (zeroByteFiles) {
+    console.log(`[DIRT] Found ${zeroByteFiles.length} zero-byte file(s). Assigning static hash.`);
+    const staticHash = 'af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262';
+    for (const file of zeroByteFiles) {
+      file.hash = staticHash;
+      // We still log them for clarity, though they will be saved.
+      for (const filePath of file.path) {
+        console.log(`[DIRT] Zero-byte file identified: ${filePath}`);
+      }
+    }
+    // The group is no longer deleted. It will be handled in the main scan function.
+    console.log('[DIRT] Finished assigning static hash to zero-byte files.');
+  }
+}
+
+/**
+ * Scans directories recursively, groups files by their exact size, and handles hard links.
+ *
+ * @param {object[]} sharesToScan An array of objects, each with a `share` name and a `path` to scan.
+ * @returns {Promise<Map<number, object[]>>} A Promise that resolves to a Map of files grouped by size.
+ */
+async function scan(sharesToScan) {
+  const filesBySize = new Map();
+
+  for (const { share, path: p } of sharesToScan) {
+    console.log(`[DIRT] Starting scan for root path: ${p} (Share: ${share})`);
+    try {
+      const stats = await fs.stat(p);
+      if (stats.isDirectory()) {
+        await traverse(p, filesBySize, share);
+      } else {
+        console.error(`[DIRT] Provided path is not a directory: ${p}`);
+      }
+    } catch (error) {
+      console.error(`[DIRT] Error accessing path ${p}:`, error.message);
+    }
+  }
+
+  console.log('[DIRT] Scan complete. Processing potential duplicates...');
+
+  handleZeroByteFiles(filesBySize);
+
+  const jobs = [];
+  const uniqueFilesToSave = [];
+  for (const [size, files] of filesBySize.entries()) {
+    if (files.length > 1) {
+      // This is a group of potential duplicates, add it to the job queue.
+      // Zero-byte files will now fall into this category and be queued for hashing,
+      // but since they have a pre-assigned hash, the worker will save them directly.
+      jobs.push({
+        name: 'file-group',
+        data: { files, size },
+      });
+    } else if (files.length === 1) {
+      // This file is unique by size, prepare it to be saved to Redis.
+      const file = files[0];
+      // The file object already contains most of what we need. We just add the size.
+      uniqueFilesToSave.push({ ...file, size });
+    }
+  }
+
+  // Save all unique files to Redis concurrently.
+  if (uniqueFilesToSave.length > 0) {
+    try {
+      const fileRepository = getFileMetadataRepository();
+      console.log(`[DIRT] Saving ${uniqueFilesToSave.length} unique file(s) to Redis...`);
+      // Use Promise.all to save files concurrently, which is more performant.
+      await Promise.all(uniqueFilesToSave.map(file => {
+        // Save the full file object, which now includes the 'ino' field,
+        // using the 'ino' as the primary key.
+        return fileRepository.save(file.ino, file);
+      }));
+      console.log('[DIRT] Successfully saved unique files to Redis.');
+    } catch (error) {
+      console.error('[DIRT] Failed to save unique files to Redis:', error.message);
+      // As per requirements, we log the error and continue.
+    }
+  }
+
+  // Add all potential duplicate groups to the queue.
+  if (jobs.length > 0) {
+    // Return a promise that resolves when the queue is idle.
+    return new Promise(async (resolve) => {
+      sharedEmitter.once('queueIdle', () => {
+        console.log('[DIRT] All processing jobs completed.');
+        resolve(filesBySize);
+      });
+
+      // --- PRIORITIZE and RESUME ---
+      // Add the scan's jobs to the front of the queue.
+      await fileProcessingQueue.addBulk(jobs, { lifo: true });
+      console.log(`[DIRT] Added ${jobs.length} groups of potential duplicates to the FRONT of the processing queue.`);
+
+      // Resume the queue to start processing.
+      await fileProcessingQueue.resume();
+      console.log('[DIRT] File processing queue RESUMED.');
+
+      console.log('[DIRT] Waiting for all processing jobs to complete...');
     });
-    await Promise.all(promises);
+  } else {
+    // If there are no jobs, we still need to resume the queue.
+    console.log('[DIRT] No potential duplicates found to process.');
+    await fileProcessingQueue.resume();
+    console.log('[DIRT] File processing queue RESUMED.');
+    return filesBySize;
+  }
 }
 
-/**
- * Hashes files in intervals, filtering out unique files at each step.
- * @param {number} size - The size of the files being hashed.
- * @param {Array<object>} inputFiles - The files to hash.
- * @returns {Promise<Array<object>>} A promise that resolves to an array of files with their hashes.
- */
-export async function hashFilesInIntervals(size, inputFiles) {
-    let files = inputFiles;
-    if (!Array.isArray(files)) {
-        throw new TypeError("Expected 'files' to be an array, but received: " + typeof files);
-    }
-    let hashers = files.map(() => blake3.createHash());
-    let processedBytes = files.map(() => 0);
-    while (files.length > 1) {
-        await processFileChunks(files, hashers, processedBytes, size, CHUNK_SIZE);
-        const intermediateHashes = files.map((_, index) => hashers[index].digest('hex'));
-        // console.debug('Intermediate hashes:', intermediateHashes);
-        const hashCounts = {};
-        for (const hash of intermediateHashes) {
-            hashCounts[hash] = (hashCounts[hash] || 0) + 1;
-        }
-        const result = files.reduce((acc, file, index) => {
-            if (hashCounts[intermediateHashes[index]] !== 1) {
-                acc.files.push(file);
-                acc.hashers.push(hashers[index]);
-                acc.processedBytes.push(processedBytes[index]);
-            }
-            return acc;
-        }, { files: [], hashers: [], processedBytes: [] });
-
-        if (result.files.every((_file, index) => processedBytes[index] >= size)) {
-            // Only add hashes to the files that made it through filtering
-            result.files.forEach((file, index) => {
-                file.hash = result.hashers[index].digest('hex');
-            });
-            break;
-        }
-        files = result.files;
-        hashers = result.hashers;
-        processedBytes = result.processedBytes;
-    }
-    
-    // Remove the final hash assignment that was affecting all files
-    // console.log('Final result:', JSON.stringify(files, null, 2));
-    return inputFiles;
-}
+module.exports = { scan, getFileStats };

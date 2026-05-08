@@ -1,0 +1,133 @@
+Menu="dirtSettings:1"
+Title="Main"
+---
+<?
+//require_once "$docroot/plugins/dynamix.vm.manager/include/libvirt_helpers.php";
+//require_once "$docroot/plugins/dynamix/include/Helpers.php";
+$plugin  = 'bobbintb.system.dirt';
+$cfg     = parse_plugin_cfg($plugin);
+$width   = [400,300];
+$blacklist = ['system'];
+$cfg['datetime_format']	= $cfg['datetime_format'] ?? "f";
+$cfg['dbdir'] = $cfg['dbdir'] ?? "/boot/config/plugins/$plugin/";
+$cfg['share'] = $cfg['share'] ?? implode(',', array_diff(array_column($shares, 'name'), $blacklist));
+?>
+<link type="text/css" rel="stylesheet" href="<?= autov('/webGui/styles/jquery.filetree.css') ?>">
+
+
+<form markdown="1" name="dirt_settings" method="POST" action="/update.php" target="progressFrame" onsubmit="prepareShare(this)">
+<input type="hidden" name="#file" value="<?= htmlspecialchars($plugin . '/' . $plugin . '.cfg') ?>">
+
+_(Included share(s))_:
+: <select id="share" name="share" multiple style="display:none">
+  <? foreach ($shares as $share):?>
+  <?= mk_option_check($cfg['share'], $share['name'], $share['name']) ?>
+  <? endforeach;?>
+  </select>
+
+_(Datetime format)_:
+: <input name="datetime_format" type="text" value="<?= htmlspecialchars($cfg['datetime_format']) ?>">
+
+:dirt_plug:
+> The datetime format for file metadata. See here for available options: [Luxon Date Tokens](https://moment.github.io/luxon/#/parsing?id=table-of-tokens)
+:end
+
+_(Database directory)_:
+: <input type="text" id="dbdir" name="dbdir" autocomplete="off" spellcheck="false" value="<?= htmlspecialchars($cfg['dbdir']) ?>" data-pickfolders="true" data-pickfilter="HIDE_FILES_FILTER"> <? if (!is_dir($cfg['dbdir'])):?><span><i class="fa fa-warning icon warning"></i> _(Path does not exist)_</span><? endif;?>
+
+<input type="submit" name="#default" value="_(Default)_" onclick="if(confirm('Are you sure?')) {$('input[class^=share]').prop('checked', false);}">
+: <input type="submit" name="#apply" value="_(Apply)_" disabled><input type="button" id="scan-button" value="_(Scan)_" disabled onclick="this.disabled=true; dataObj = Array.from(document.querySelectorAll('#share option:checked')).map(o => o.value); dirtySock('scan', dataObj);">
+</form>
+
+<script src="<?= autov('/webGui/javascript/jquery.filetree.js') ?>" charset="utf-8"></script>
+<script>
+$(function() {
+  $('#share').dropdownchecklist({emptyText:'_(None)_', width:<?= $width[0] ?>, explicitClose:'..._(close)_'});
+  $('#dbdir').fileTreeAttach();
+  document.querySelectorAll('#share option:checked').forEach(opt => opt.selected = true);
+  connect();
+});
+
+let socket;
+
+function connect() {
+  socket = new WebSocket(`ws://<?= $_SERVER["SERVER_ADDR"] ?>:41820?clientId=dirtSettings.page`);
+
+  socket.onopen = function() {
+    console.log("WebSocket connection established.");
+  };
+
+  socket.onmessage = function(event) {
+    console.log("Message from server: ", event.data);
+    try {
+      const msg = JSON.parse(event.data);
+      if (msg.action === 'dbStatus') {
+        const btn = document.getElementById('scan-button');
+        if (btn) {
+          btn.disabled = msg.data.hasData;
+        }
+      }
+    } catch (e) {
+      console.error("Error parsing message:", e);
+    }
+  };
+
+  socket.onclose = function(event) {
+    console.log("WebSocket connection closed. Reconnecting in 1 second...");
+    setTimeout(function() {
+      connect();
+    }, 1000);
+  };
+
+  socket.onerror = function(error) {
+    console.error("WebSocket error: ", error);
+    socket.close();
+  };
+}
+
+function dirtySock(action, dataObj) {
+	if (dataObj.length > 0) {
+    const message = {
+      clientId: "dirtSettings.page",
+      action: action,
+      data: dataObj
+    };
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(message));
+    } else {
+      console.error("WebSocket is not connected. Message not sent:", message);
+    }
+  }
+}
+
+
+function prepareShare(form) {
+  var share = '';
+  // console.log(JSON.stringify(<?= json_encode($_SERVER) ?>, null, 2));
+
+
+  for (var i=0,item; item=form.share.options[i]; i++) {
+    if (item.selected) {
+      console.log("Selected before submission:", item.value);
+      if (share.length) share += ',';
+      share += item.value;
+      item.selected = false;
+    }
+  }
+  var after = share.split(',').map(s => `/mnt/user/${s}`);
+  var before = "<?= $cfg['share'] ?>".split(',').map(s => `/mnt/user/${s}`);
+
+  var removed = before.filter(x => !after.includes(x));
+  var added = after.filter(x => !before.includes(x));
+
+  console.log("Removed:", removed);
+  console.log("Added:", added);
+  dirtySock('removeShare', removed)
+  dirtySock('addShare', added)
+
+  item = form.share.options[0];
+  item.value = share;
+  item.selected = true;
+  $('input.thin').prop('disabled',false);
+}
+</script>

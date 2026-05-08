@@ -1,0 +1,319 @@
+Menu="dirtSettings:2"
+Title="Debug"
+---
+<style>
+    .debug-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    .debug-section {
+        background-color: var(--body-background);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .debug-section h3 {
+        margin-top: 0;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+        font-size: 1.2em;
+        color: var(--header-text);
+    }
+    .info-grid {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 12px 20px;
+        align-items: center;
+    }
+    .info-label {
+        font-weight: bold;
+        color: var(--text-muted);
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.85em;
+        font-weight: bold;
+        margin-left: 8px;
+    }
+    .status-enabled { background-color: #28a745; color: white; }
+    .status-disabled { background-color: #6c757d; color: white; }
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+    pre#script-output {
+        max-height: 250px;
+        overflow-y: auto;
+        background-color: #1a1a1a;
+        color: #00ff00;
+        padding: 12px;
+        border-radius: 4px;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 11px;
+        margin-top: 15px;
+        white-space: pre-wrap;
+        border: 1px solid #333;
+    }
+    .control-group {
+        margin-bottom: 18px;
+    }
+    .control-group:last-child {
+        margin-bottom: 0;
+    }
+    .control-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        font-size: 0.9em;
+    }
+    .input-row {
+        display: flex;
+        gap: 8px;
+    }
+    input[type="text"], input[type="number"] {
+        flex-grow: 1;
+        padding: 6px 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background: var(--input-background);
+        color: var(--input-text);
+    }
+    button {
+        padding: 6px 15px;
+        cursor: pointer;
+    }
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 4px;
+    }
+    .btn-danger:hover { background-color: #c82333; }
+    .btn-full { width: 100%; }
+
+    .kernel-card {
+        padding: 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background-color: rgba(255,255,255,0.05);
+    }
+</style>
+
+<div id="debug-content">
+    <div class="debug-grid">
+        <!-- System Information -->
+        <div class="debug-section full-width">
+            <h3>System Status</h3>
+            <div class="debug-grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="kernel-card">
+                    <div class="info-label">Running Kernel</div>
+                    <div style="font-size: 1.1em; margin-top: 5px;">
+                        <span id="running-kernel-version" style="font-weight: bold;">Loading...</span>
+                        <span id="running-ebpf-badge" class="status-badge">...</span>
+                    </div>
+                </div>
+                <div class="kernel-card">
+                    <div class="info-label">Boot Kernel (/boot/bzimage)</div>
+                    <div style="font-size: 1.1em; margin-top: 5px;">
+                        <span id="boot-kernel-version" style="font-weight: bold;">Loading...</span>
+                        <span id="boot-ebpf-badge" class="status-badge">...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; text-align: center;">
+                <button id="install-ebpf-btn">Update to eBPF-enabled Kernel</button>
+            </div>
+
+            <div id="script-output-container" style="display: none; margin-top: 20px;">
+                <div class="info-label">Installation Logs:</div>
+                <pre id="script-output"></pre>
+            </div>
+        </div>
+
+        <!-- Database Queries -->
+        <div class="debug-section">
+            <h3>Redis Queries</h3>
+
+            <div class="control-group">
+                <label>Find File by Exact Path</label>
+                <div class="input-row">
+                    <input type="text" id="path-input" placeholder="/mnt/user/share/file.txt">
+                    <button id="by-path-btn">Query</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Find Files by Size (bytes)</label>
+                <div class="input-row">
+                    <input type="number" id="size-input" placeholder="1048576">
+                    <button id="by-size-btn">Query</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Advanced Scans</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <button id="multiple-paths-btn">Find Hard Links</button>
+                    <button id="non-unique-hash-btn">Find Duplicates</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operations -->
+        <div class="debug-section">
+            <h3>File Operations</h3>
+
+            <div class="control-group">
+                <label>Create & Upsert New File</label>
+                <input type="text" id="create-path-input" placeholder="Enter full path" style="margin-bottom: 8px;">
+                <div class="input-row">
+                    <input type="number" id="create-size-input" placeholder="Size in bytes">
+                    <button id="create-file-btn">Create</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Trigger Manual Upsert</label>
+                <div class="input-row">
+                    <input type="text" id="upsert-path-input" placeholder="Enter full path">
+                    <button id="upsert-file-btn">Upsert</button>
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
+
+            <div class="control-group">
+                <button id="save-db-snapshot-btn" class="btn-full">Save Database Snapshot</button>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
+
+            <div class="control-group">
+                <button id="wipe-db-btn" class="btn-full btn-danger">Wipe Redis Database</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(function() {
+    let socket;
+
+    function connect() {
+      socket = new WebSocket(`ws://${window.location.hostname}:41820?clientId=dirt-debug.page`);
+
+      socket.onopen = function() {
+        console.log("Debug Tab: WebSocket connection established.");
+      };
+
+      socket.onmessage = function(event) {
+        console.log("Debug Tab: Message from server: ", event.data);
+        const parsedMessage = JSON.parse(event.data);
+        const { action, data } = parsedMessage;
+
+        if (action === 'dbStatus' && data.systemInfo) {
+          const sys = data.systemInfo;
+          $('#running-kernel-version').text(sys.running.version);
+          $('#running-ebpf-badge')
+            .text(sys.running.ebpfEnabled ? 'eBPF ENABLED' : 'eBPF DISABLED')
+            .removeClass('status-enabled status-disabled')
+            .addClass(sys.running.ebpfEnabled ? 'status-enabled' : 'status-disabled');
+
+          $('#boot-kernel-version').text(sys.boot.version);
+          $('#boot-ebpf-badge')
+            .text(sys.boot.ebpfEnabled ? 'eBPF ENABLED' : 'eBPF DISABLED')
+            .removeClass('status-enabled status-disabled')
+            .addClass(sys.boot.ebpfEnabled ? 'status-enabled' : 'status-disabled');
+        } else if (action === 'scriptOutput') {
+          const $output = $('#script-output');
+          $output.append(data.text);
+          $output.scrollTop($output[0].scrollHeight);
+        } else if (action === 'scriptComplete') {
+          $('#script-output').append(`\n--- Process finished with code ${data.code} ---\n`);
+          $('#install-ebpf-btn').prop('disabled', false).text('Update to eBPF-enabled Kernel');
+        } else if (action === 'wipeComplete') {
+          alert('Redis database has been wiped.');
+        }
+      };
+
+      socket.onclose = function(event) {
+        setTimeout(connect, 1000);
+      };
+
+      socket.onerror = function(error) {
+        socket.close();
+      };
+    }
+
+    function dirtySock(action, data) {
+        const message = {
+          clientId: "dirt-debug.page",
+          action: action,
+          data: data
+        };
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify(message));
+        }
+    }
+
+    connect();
+
+    // --- Event Listeners ---
+    $('#by-size-btn').on('click', function() {
+        const size = $('#size-input').val();
+        if (size) dirtySock('debugFindFilesBySize', parseInt(size, 10));
+    });
+
+    $('#by-path-btn').on('click', function() {
+        const path = $('#path-input').val();
+        if (path) dirtySock('debugFindFileByPath', path);
+    });
+
+    $('#multiple-paths-btn').on('click', function() {
+        dirtySock('debugFindFilesWithMultiplePaths', null);
+    });
+
+    $('#non-unique-hash-btn').on('click', function() {
+        dirtySock('debugFindFilesWithNonUniqueHashes', null);
+    });
+
+    $('#save-db-snapshot-btn').on('click', function() {
+        dirtySock('saveDbSnapshot', null);
+    });
+
+    $('#create-file-btn').on('click', function() {
+        const path = $('#create-path-input').val();
+        const size = $('#create-size-input').val();
+        if (path && size) {
+            dirtySock('debugCreateFileAndUpsert', { path: path, size: parseInt(size, 10) });
+        }
+    });
+
+    $('#upsert-file-btn').on('click', function() {
+        const path = $('#upsert-path-input').val();
+        if (path) dirtySock('debugUpsertExistingFile', { path: path });
+    });
+
+    $('#wipe-db-btn').on('click', function() {
+        if (confirm("This will permanently delete ALL data in the Redis database. Are you sure?")) {
+            dirtySock('wipeDatabase', null);
+        }
+    });
+
+    $('#install-ebpf-btn').on('click', function() {
+        if (confirm("This will download and install a new kernel to your flash drive. A reboot will be required. Are you sure?")) {
+            $(this).prop('disabled', true).text('Updating Kernel...');
+            $('#script-output').text('');
+            $('#script-output-container').show();
+            dirtySock('installEbpfKernel', null);
+        }
+    });
+});
+</script>

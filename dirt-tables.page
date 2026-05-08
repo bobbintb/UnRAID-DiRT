@@ -1,0 +1,327 @@
+Menu="DiskUtilities"
+Title="Deduplication in Real-Time"
+Icon="fa-search-minus"
+---
+<link href="https://unpkg.com/tabulator-tables@6.3.1/dist/css/tabulator.min.css" rel="stylesheet">
+<link href="/plugins/bobbintb.system.dirt/nodejs/frontend/css/dirt-tabulator.css" rel="stylesheet">
+<script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@3.5.0/build/global/luxon.min.js"></script>
+<script src="/plugins/bobbintb.system.dirt/nodejs/frontend/dirt-tabulator-formatters.js"></script>
+<script src="/plugins/bobbintb.system.dirt/nodejs/frontend/dirt-tabulator-helpers.js"></script>
+<script src="/plugins/bobbintb.system.dirt/nodejs/frontend/left-table.js"></script>
+<script src="/plugins/bobbintb.system.dirt/nodejs/frontend/right-table.js"></script>
+<script src="https://unpkg.com/split.js/dist/split.min.js"></script>
+
+<div class="table-container">
+    <div id="left-panel">
+        <div id="left-table"></div>
+    </div>
+    <div id="right-panel">
+        <div id="right-table"></div>
+        <button id="process-button">Process</button>
+    </div>
+</div>
+
+<div id="modal-overlay" class="modal-overlay" style="display: none;">
+    <div id="modal-content" class="modal-content">
+        <h3>Confirm Actions</h3>
+        <pre id="command-list"></pre>
+        <div class="modal-buttons">
+            <button id="dialog-copy">Copy to Clipboard</button>
+            <button id="dialog-ok">ok</button>
+            <button id="dialog-cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let socket;
+    window.originalFiles = {}; // hash -> original path mapping
+    window.datetimeFormat = 'f'; // Default to Luxon "f" format
+
+    window.dirtySock = function(action, data) {
+        const message = {
+            clientId: "dirt-tables.page",
+            action: action,
+            data: data
+        };
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify(message));
+        } else {
+            console.error("Tabulator Tab: WebSocket is not connected.");
+        }
+    };
+
+document.addEventListener('DOMContentLoaded', function() {
+    const leftTable = new Tabulator("#left-table", generateLeftTableConfig());
+    const rightTable = new Tabulator("#right-table", rightTableConfig);
+
+    const RESIZE_THROTTLE_MS = 32; // Targets ~30fps for smooth yet responsive resizing
+    let throttleTimeout;
+
+    Split(['#left-panel', '#right-panel'], {
+        sizes: [70, 30],
+        gutterSize: 8,
+        cursor: 'col-resize',
+        onDrag: function() {
+            if (throttleTimeout) return;
+
+            throttleTimeout = setTimeout(() => {
+                if (leftTable) leftTable.redraw();
+                if (rightTable) rightTable.redraw();
+
+                // Redraw visible nested tables in real-time
+                document.querySelectorAll(".nested-table-container").forEach(container => {
+                    if (container.style.display !== "none") {
+                        const subTableEl = container.querySelector(".sub-table-instance");
+                        if (subTableEl) {
+                            const subTable = Tabulator.findTable(subTableEl);
+                            if (subTable && subTable.length > 0) subTable[0].redraw();
+                        }
+                    }
+                });
+                throttleTimeout = null;
+            }, RESIZE_THROTTLE_MS);
+        },
+        onDragEnd: function() {
+            if (throttleTimeout) {
+                clearTimeout(throttleTimeout);
+                throttleTimeout = null;
+            }
+            if (leftTable) {
+                leftTable.redraw();
+                // Ensure nested tables are correctly sized by checking their containers
+                document.querySelectorAll(".nested-table-container").forEach(container => {
+                    if (container.style.display !== "none") {
+                        const subTableEl = container.querySelector(".sub-table-instance");
+                        if (subTableEl) {
+                            const subTable = Tabulator.findTable(subTableEl);
+                            if (subTable && subTable.length > 0) subTable[0].redraw();
+                        }
+                    }
+                });
+            }
+            if (rightTable) rightTable.redraw();
+        }
+    });
+
+    function generateCommands(activeActions) {
+        let commands = "";
+        activeActions.forEach(item => {
+            const paths = item.path.split('<br>').filter(p => p);
+            const originalPath = window.originalFiles[item.hash];
+
+            paths.forEach(p => {
+                if (item.action === 'delete') {
+                    commands += `rm "${p}"\n`;
+                } else if (item.action === 'link' && originalPath) {
+                    commands += `ln -f "${originalPath}" "${p}"\n`;
+                }
+            });
+        });
+        return commands || "# No actions to perform.";
+    }
+
+    rightTable.on("tableBuilt", function(){
+        rightTable.setFilter(function(data){
+            return data.action === "link" || data.action === "delete";
+        });
+    });
+
+    rightTable.on("dataChanged", () => {
+        rightTable.refreshFilter();
+    });
+
+    function connect() {
+        socket = new WebSocket(`ws://${window.location.hostname}:41820?clientId=dirt-tables.page`);
+
+        socket.onopen = function() {
+            console.log("Tabulator Tab: WebSocket connection established.");
+            dirtySock('findDuplicates', null);
+        };
+
+        socket.onmessage = function(event) {
+            const parsedMessage = JSON.parse(event.data);
+            const { action, data } = parsedMessage;
+
+            if (action === 'dbStatus') {
+                console.log("Tabulator Tab: Received dbStatus.");
+                if (data.config && data.config.datetime_format) {
+                    window.datetimeFormat = data.config.datetime_format;
+                    console.log(`Tabulator Tab: Datetime format set to ${window.datetimeFormat}`);
+                    leftTable.redraw(true); // Redraw to apply new formatting if data already exists
+                }
+            } else if (action === 'duplicateFiles') {
+                console.log("Tabulator Tab: Received duplicateFiles data package.");
+                const { duplicates, state, actions } = data;
+                window.originalFiles = state;
+                const { leftTableData, rightTableData } = processDuplicateFiles(duplicates, state, actions);
+                rightTable.setData(rightTableData);
+                leftTable.setData(leftTableData);
+            } else if (action === 'addOrUpdateFile') {
+                console.log(`Tabulator Tab: Received addOrUpdateFile for ino ${data.ino}`);
+                const paths = data.path.split('<br>').filter(p => p);
+                const newRows = paths.map(p => ({ ...data, path: p }));
+
+                // Update Right Table (find stale rows by ino)
+                const rightRows = rightTable.getRows().filter(r => r.getData().ino === data.ino);
+                rightRows.forEach(r => {
+                    if (!paths.includes(r.getData().path)) {
+                        r.delete();
+                    }
+                });
+                rightTable.updateOrAddData(newRows);
+
+                // Update Sub Table
+                const subTable = findSubTableByHash(data.hash);
+                if (subTable) {
+                    const subRows = subTable.getRows().filter(r => r.getData().ino === data.ino);
+                    subRows.forEach(r => {
+                         if (!paths.includes(r.getData().path)) {
+                             r.delete();
+                         }
+                    });
+                    subTable.updateOrAddData(newRows);
+                }
+            } else if (action === 'removeFile') {
+                console.log(`Tabulator Tab: Received removeFile for ino ${data.ino}`);
+
+                // Delete all rows matching the inode from Right Table
+                const rightRows = rightTable.getRows().filter(r => r.getData().ino === data.ino);
+                rightRows.forEach(r => r.delete());
+
+                const subTable = findSubTableByHash(data.hash);
+                if (subTable) {
+                    const subRows = subTable.getRows().filter(r => r.getData().ino === data.ino);
+                    subRows.forEach(r => r.delete());
+                }
+            } else if (action === 'actionSet') {
+                console.log(`Tabulator Tab: Received actionSet for ino ${data.ino} to action ${data.action}`);
+                const { path, action, ino } = data;
+
+                // Update Left Table (Nested)
+                const rows = leftTable.getRows();
+                for (const row of rows) {
+                    const subTable = findSubTableByRow(row);
+                    if (subTable) {
+                        const subRow = subTable.getRow(ino);
+                        if (subRow) {
+                            // Update both action and dummy columns to force re-render
+                            subRow.update({ action, delete_col: action, link_col: action }).then(() => {
+                                if (typeof checkAndUpdateMasterRow === 'function') checkAndUpdateMasterRow(subTable);
+                            });
+                            break;
+                        }
+                    }
+                }
+
+                // Update Right Table
+                if (ino) {
+                    const rightRow = rightTable.getRow(ino);
+                    if (rightRow) {
+                        rightRow.update({ action });
+                    }
+                }
+            } else if (action === 'originalFileSet') {
+                console.log(`Tabulator Tab: Received originalFileSet for hash ${data.hash} to path ${data.path} (ino ${data.ino})`);
+                const { hash, path, ino } = data;
+                window.originalFiles[hash] = path;
+
+                const subTable = findSubTableByHash(hash);
+                if (subTable) {
+                    subTable.getRows().forEach(row => {
+                        const rowData = row.getData();
+                        const isOriginal = (ino && rowData.ino === ino) || (!ino && rowData.path === path);
+                        const newAction = isOriginal ? null : rowData.action;
+
+                        row.update({
+                            isOriginal,
+                            action: newAction,
+                            delete_col: newAction,
+                            link_col: newAction
+                        }).then(() => {
+                            // Update CSS class for original-row
+                            const rowEl = row.getElement();
+                            if (isOriginal) {
+                                rowEl.classList.add('original-row');
+                            } else {
+                                rowEl.classList.remove('original-row');
+                            }
+                        });
+                    });
+                    if (typeof checkAndUpdateMasterRow === 'function') checkAndUpdateMasterRow(subTable);
+                }
+            }
+        };
+
+        function findSubTableByRow(row) {
+            const rowEl = row.getElement();
+            const subTableEl = rowEl.querySelector(".sub-table-instance");
+            if (subTableEl) {
+                const table = Tabulator.findTable(subTableEl);
+                return table ? table[0] : null;
+            }
+            return null;
+        }
+
+        function findSubTableByHash(hash) {
+            const row = leftTable.getRow(hash);
+            if (row) {
+                const rowEl = row.getElement();
+                const subTableEl = rowEl.querySelector(".sub-table-instance");
+                if (subTableEl) {
+                    const table = Tabulator.findTable(subTableEl);
+                    return table ? table[0] : null;
+                }
+            }
+            return null;
+        }
+
+        socket.onclose = function(event) {
+            console.log("Tabulator Tab: WebSocket connection closed. Reconnecting...");
+            setTimeout(connect, 1000);
+        };
+
+        socket.onerror = function(error) {
+            console.error("Tabulator Tab: WebSocket error: ", error);
+            socket.close();
+        };
+    }
+
+    document.getElementById('process-button').addEventListener('click', () => {
+        const activeActions = rightTable.getData("active");
+        if (activeActions.length === 0) {
+            alert("No actions to process.");
+            return;
+        }
+        const commands = generateCommands(activeActions);
+        document.getElementById('command-list').textContent = commands;
+        document.getElementById('modal-overlay').style.display = 'flex';
+    });
+
+    document.getElementById('dialog-copy').addEventListener('click', () => {
+        const commands = document.getElementById('command-list').textContent;
+        navigator.clipboard.writeText(commands).then(() => {
+            const btn = document.getElementById('dialog-copy');
+            const originalText = btn.textContent;
+            btn.textContent = "Copied!";
+            setTimeout(() => { btn.textContent = originalText; }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            alert("Failed to copy to clipboard.");
+        });
+    });
+
+    document.getElementById('dialog-ok').addEventListener('click', () => {
+        window.dirtySock('processActions', {});
+        console.log("Tabulator Tab: Process actions requested.");
+        document.getElementById('modal-overlay').style.display = 'none';
+    });
+
+    document.getElementById('dialog-cancel').addEventListener('click', () => {
+        document.getElementById('modal-overlay').style.display = 'none';
+    });
+
+    connect();
+});
+</script>
