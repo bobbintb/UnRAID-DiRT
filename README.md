@@ -45,7 +45,7 @@ DiRT consists of two main components:
 
 3.  **Configure the plugin**:
     *   Copy the plugin files to the appropriate directories on your UnRAID server.
-    *   The main configuration file is located at `/boot/config/plugins/bobbintb.system.dirt/bobbintb.system.dirt.cfg`. You can edit this file to specify the shares to monitor and other settings.
+    *   The main configuration file is located at `/boot/config/plugins/bobbintb.system.dirt/dirt.cfg`. You can edit this file to specify the shares to monitor and other settings.
 
 ### Running the Application
 

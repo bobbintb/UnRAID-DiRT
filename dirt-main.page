@@ -5,7 +5,8 @@ Title="Main"
 //require_once "$docroot/plugins/dynamix.vm.manager/include/libvirt_helpers.php";
 //require_once "$docroot/plugins/dynamix/include/Helpers.php";
 $plugin  = 'bobbintb.system.dirt';
-$cfg     = parse_plugin_cfg($plugin);
+$cfg_file = "/boot/config/plugins/$plugin/dirt.cfg";
+$cfg     = is_file($cfg_file) ? parse_ini_file($cfg_file) : [];
 $width   = [400,300];
 $blacklist = ['system'];
 $cfg['datetime_format']	= $cfg['datetime_format'] ?? "f";
@@ -16,7 +17,7 @@ $cfg['share'] = $cfg['share'] ?? implode(',', array_diff(array_column($shares, '
 
 
 <form markdown="1" name="dirt_settings" method="POST" action="/update.php" target="progressFrame" onsubmit="prepareShare(this)">
-<input type="hidden" name="#file" value="<?= htmlspecialchars($plugin . '/' . $plugin . '.cfg') ?>">
+<input type="hidden" name="#file" value="<?= htmlspecialchars($plugin . '/dirt.cfg') ?>">
 
 _(Included share(s))_:
 : <select id="share" name="share" multiple style="display:none">
