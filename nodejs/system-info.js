@@ -64,6 +64,24 @@ function getBzImageVersion(bzImagePath) {
 }
 
 /**
+ * Reads the Unraid version from a version file.
+ * @param {string} path - Path to the version file.
+ * @returns {string} The Unraid version or 'Unknown'.
+ */
+function getUnraidVersion(path) {
+    try {
+        if (fs.existsSync(path)) {
+            const content = fs.readFileSync(path, 'utf8');
+            const match = content.match(/version="([^"]+)"/);
+            return match ? match[1] : 'Unknown';
+        }
+    } catch (e) {
+        console.error(`[SystemInfo] Error reading Unraid version from ${path}:`, e.message);
+    }
+    return 'Unknown';
+}
+
+/**
  * Gets system information including kernel versions and eBPF statuses.
  * @returns {Object} An object containing running and boot kernel info.
  */
@@ -71,21 +89,25 @@ function getSystemInfo() {
     const runningRelease = os.release();
     const runningVersion = runningRelease.split('-')[0];
     const runningEbpf = runningRelease.endsWith('-eBPF');
+    const runningUnraid = getUnraidVersion('/etc/unraid-version');
 
     const bootRelease = getBzImageVersion('/boot/bzimage') || 'Unknown';
     const bootVersion = bootRelease.split('-')[0];
     const bootEbpf = bootRelease.endsWith('-eBPF');
+    const bootUnraid = getUnraidVersion('/boot/unraid-version');
 
     return {
         running: {
             release: runningRelease,
             version: runningVersion,
-            ebpfEnabled: runningEbpf
+            ebpfEnabled: runningEbpf,
+            unraidVersion: runningUnraid
         },
         boot: {
             release: bootRelease,
             version: bootVersion,
-            ebpfEnabled: bootEbpf
+            ebpfEnabled: bootEbpf,
+            unraidVersion: bootUnraid
         }
     };
 }
