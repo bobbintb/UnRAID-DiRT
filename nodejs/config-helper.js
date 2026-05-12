@@ -4,7 +4,7 @@ const path = require('path');
 async function getPluginConfig() {
   const plugin = 'bobbintb.system.dirt';
   const baseDir = process.env.DIRT_CONFIG_DIR || '/boot/config';
-  const cfgPath = `${baseDir}/plugins/${plugin}/${plugin}.cfg`;
+  const cfgPath = `${baseDir}/plugins/${plugin}/dirt.cfg`;
   const config = {
     datetime_format: 'f', // Default
   };
