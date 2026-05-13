@@ -1,69 +1,6 @@
 Menu="dirtSettings:2"
 Title="Debug"
 ---
-<?php
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['service_action'])) {
-    $service = $_POST['service'];
-    $action = $_POST['action'];
-    $output = [];
-    $return_var = 0;
-
-    switch ($service) {
-        case 'valkey':
-            if ($action === 'start') exec('valkey start', $output, $return_var);
-            if ($action === 'stop') exec('valkey stop', $output, $return_var);
-            break;
-        case 'dirt':
-            if ($action === 'start') exec('dirt start', $output, $return_var);
-            if ($action === 'stop') exec('dirt stop', $output, $return_var);
-            break;
-        case 'nodejs':
-            // Commands based on package.json
-            if ($action === 'start') {
-                // We need to run this from the nodejs directory
-                $cmd = "cd " . __DIR__ . "/nodejs && npm run start";
-                exec($cmd, $output, $return_var);
-            }
-            if ($action === 'stop') {
-                $cmd = "cd " . __DIR__ . "/nodejs && npm run stop";
-                exec($cmd, $output, $return_var);
-            }
-            break;
-    }
-
-    header('Content-Type: application/json');
-    echo json_encode(['success' => $return_var === 0, 'output' => $output]);
-    exit;
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['get_service_status'])) {
-    $statuses = [
-        'valkey' => false,
-        'dirt' => false,
-        'nodejs' => false
-    ];
-
-    // Check Valkey
-    exec('pgrep valkey', $output, $return_var);
-    $statuses['valkey'] = ($return_var === 0);
-
-    // Check DiRT
-    exec('pgrep -f "node nodejs/dirt.js"', $output, $return_var);
-    $statuses['dirt'] = ($return_var === 0);
-
-    // Node JS server is effectively the same as DiRT in this context,
-    // but the user asked for a button for both.
-    // If they are different processes, we'd check differently.
-    // Given 'node nodejs/dirt.js' is the server, I'll use that for both for now,
-    // or check for 'node' process generally if preferred.
-    // Actually, 'dirt' command likely starts the node server.
-    $statuses['nodejs'] = $statuses['dirt'];
-
-    header('Content-Type: application/json');
-    echo json_encode($statuses);
-    exit;
-}
-?>
 <style>
     .debug-grid {
         display: grid;
@@ -374,7 +311,7 @@ $(function() {
 
     // --- Service Control Logic ---
     function updateServiceStatuses() {
-        $.getJSON('?get_service_status=1', function(data) {
+        $.getJSON('/plugins/bobbintb.system.dirt/service_manager.php?get_service_status=1', function(data) {
             Object.keys(data).forEach(service => {
                 const isRunning = data[service];
                 const $badge = $(`#${service}-status-badge`);
@@ -398,7 +335,7 @@ $(function() {
         $startBtn.prop('disabled', true);
         $stopBtn.prop('disabled', true);
 
-        $.post('', {
+        $.post('/plugins/bobbintb.system.dirt/service_manager.php', {
             service_action: 1,
             service: service,
             action: action

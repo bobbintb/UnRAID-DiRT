@@ -68,15 +68,24 @@ function getBzImageVersion(bzImagePath) {
  * @param {string} path - Path to the version file.
  * @returns {string} The Unraid version or 'Unknown'.
  */
-function getUnraidVersion(path) {
-    try {
-        if (fs.existsSync(path)) {
-            const content = fs.readFileSync(path, 'utf8');
-            const match = content.match(/version="([^"]+)"/);
-            return match ? match[1] : 'Unknown';
+function getUnraidVersion(paths) {
+    if (!Array.isArray(paths)) paths = [paths];
+
+    for (const path of paths) {
+        try {
+            if (fs.existsSync(path)) {
+                const content = fs.readFileSync(path, 'utf8');
+                // Try version="6.12.8" format
+                const match = content.match(/version="([^"]+)"/);
+                if (match) return match[1];
+
+                // Try plain version string if it looks like a version number
+                const plainVersion = content.trim();
+                if (/^\d/.test(plainVersion)) return plainVersion;
+            }
+        } catch (e) {
+            console.error(`[SystemInfo] Error reading Unraid version from ${path}:`, e.message);
         }
-    } catch (e) {
-        console.error(`[SystemInfo] Error reading Unraid version from ${path}:`, e.message);
     }
     return 'Unknown';
 }
@@ -94,7 +103,14 @@ function getSystemInfo() {
     const bootRelease = getBzImageVersion('/boot/bzimage') || 'Unknown';
     const bootVersion = bootRelease.split('-')[0];
     const bootEbpf = bootRelease.endsWith('-eBPF');
-    const bootUnraid = getUnraidVersion('/boot/unraid-version');
+
+    // On Unraid, the version in /etc/unraid-version is what was booted.
+    // There isn't typically a separate version file on /boot unless manually placed.
+    // We'll fallback to the running version if /boot specific ones aren't found.
+    let bootUnraid = getUnraidVersion(['/boot/unraid-version', '/boot/VERSION']);
+    if (bootUnraid === 'Unknown') {
+        bootUnraid = runningUnraid;
+    }
 
     return {
         running: {
