@@ -43,15 +43,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['get_service_status'])) 
     ];
 
     // Check Valkey
-    // Use 'which' to see if command exists, and 'pgrep' to see if running
-    exec('which valkey', $out_valkey, $ret_valkey);
+    exec('which valkey 2>/dev/null', $out_valkey, $ret_valkey);
     if ($ret_valkey === 0) {
         exec('pgrep valkey', $out_pgrep_valkey, $ret_pgrep_valkey);
         $statuses['valkey'] = ($ret_pgrep_valkey === 0);
     }
 
     // Check DiRT / Node JS
-    // We check for the dirt.js process directly
+    // We check for the dirt.js process directly as it's the core of the service
     exec('pgrep -f "dirt.js"', $out_pgrep_dirt, $ret_pgrep_dirt);
     $statuses['dirt'] = ($ret_pgrep_dirt === 0);
     $statuses['nodejs'] = $statuses['dirt'];

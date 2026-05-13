@@ -76,19 +76,11 @@ function getUnraidVersion(paths) {
             if (fs.existsSync(path)) {
                 const content = fs.readFileSync(path, 'utf8');
 
-                // Case 1: changes.txt (often found on /boot)
-                if (path.endsWith('changes.txt')) {
-                    const firstLine = content.split('\n')[0];
-                    const versionMatch = firstLine.match(/Unraid OS version (\d+\.\d+\.\d+)/i) ||
-                                         firstLine.match(/version (\d+\.\d+\.\d+)/i);
-                    if (versionMatch) return versionMatch[1];
-                }
-
-                // Case 2: version="6.12.8" format (standard /etc/unraid-version)
+                // Case 1: version="6.12.8" format (standard /etc/unraid-version)
                 const match = content.match(/version="([^"]+)"/);
                 if (match) return match[1];
 
-                // Case 3: plain version string if it looks like a version number
+                // Case 2: plain version string if it looks like a version number
                 const plainVersion = content.trim();
                 if (/^\d/.test(plainVersion)) return plainVersion;
             }
@@ -97,6 +89,34 @@ function getUnraidVersion(paths) {
         }
     }
     return 'Unknown';
+}
+
+/**
+ * Extracts Unraid version from /boot/bzroot using the provided method.
+ * @returns {string} The version string or 'Unknown'.
+ */
+function getBootUnraidVersion() {
+    try {
+        const bzrootPath = '/boot/bzroot';
+        if (fs.existsSync(bzrootPath)) {
+            // Find the offset of the 7z/xz header
+            const findOffsetCmd = `grep -boa $'\\xfd7zXZ\\x00' ${bzrootPath} | head -1 | cut -d: -f1`;
+            const offset = execSync(findOffsetCmd).toString().trim();
+
+            if (offset) {
+                // Extract etc/unraid-version from the compressed archive
+                const extractCmd = `dd if=${bzrootPath} iflag=skip_bytes skip=${offset} 2>/dev/null | xzcat 2>/dev/null | cpio --to-stdout -i etc/unraid-version 2>/dev/null`;
+                const versionContent = execSync(extractCmd).toString().trim();
+                const match = versionContent.match(/version="([^"]+)"/);
+                if (match) return match[1];
+            }
+        }
+    } catch (e) {
+        // Silently fail, fall back to other methods
+    }
+
+    // Fallback to simpler methods
+    return getUnraidVersion(['/boot/changes.txt', '/boot/unraid-version', '/boot/VERSION']);
 }
 
 /**
@@ -112,13 +132,7 @@ function getSystemInfo() {
     const bootRelease = getBzImageVersion('/boot/bzimage') || 'Unknown';
     const bootVersion = bootRelease.split('-')[0];
     const bootEbpf = bootRelease.endsWith('-eBPF');
-
-    // On Unraid, the boot version can often be found in changes.txt on the flash drive.
-    // We also check /boot/unraid-version and /boot/VERSION as fallbacks.
-    let bootUnraid = getUnraidVersion(['/boot/changes.txt', '/boot/unraid-version', '/boot/VERSION']);
-
-    // If we still don't have it, we return 'Unknown' as the user wants to know
-    // the specific version of the boot image.
+    const bootUnraid = getBootUnraidVersion();
 
     return {
         running: {
