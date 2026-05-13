@@ -417,9 +417,8 @@ $(function() {
     $('#dirt-start-btn').on('click', () => handleServiceAction('dirt', 'start'));
     $('#dirt-stop-btn').on('click', () => handleServiceAction('dirt', 'stop'));
 
-    // Initial status check and periodic refresh
+    // Initial status check
     updateServiceStatuses();
-    setInterval(updateServiceStatuses, 5000);
 
     // --- Event Listeners ---
     $('#by-size-btn').on('click', function() {
