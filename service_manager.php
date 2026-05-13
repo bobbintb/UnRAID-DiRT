@@ -1,4 +1,10 @@
 <?php
+// Ensure a full path is set for system commands
+putenv('PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin');
+
+// Set working directory to the plugin folder to avoid "getcwd" errors
+chdir(__DIR__);
+
 if (file_exists("/usr/local/emhttp/plugins/dynamix/include/auth.php")) {
     require_once("/usr/local/emhttp/plugins/dynamix/include/auth.php");
 }
@@ -6,32 +12,34 @@ if (file_exists("/usr/local/emhttp/plugins/dynamix/include/auth.php")) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['service_action'])) {
     $service = $_POST['service'];
     $action = $_POST['action'];
-    $output = [];
-    $return_var = 0;
+
+    // Strict whitelist for actions to prevent shell injection
+    if (!in_array($action, ['start', 'stop'])) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Invalid action']);
+        exit;
+    }
 
     switch ($service) {
         case 'valkey':
-            if ($action === 'start') exec('valkey start > /dev/null 2>&1 &', $output, $return_var);
-            if ($action === 'stop') exec('valkey stop', $output, $return_var);
+            // The user requested "valkey start" and "valkey stop"
+            exec("valkey $action > /dev/null 2>&1 &");
             break;
         case 'dirt':
-            if ($action === 'start') exec('dirt start > /dev/null 2>&1 &', $output, $return_var);
-            if ($action === 'stop') exec('dirt stop', $output, $return_var);
+            // The user requested "dirt start" and "dirt stop"
+            exec("dirt $action > /dev/null 2>&1 &");
             break;
         case 'nodejs':
             if ($action === 'start') {
-                $cmd = "cd " . __DIR__ . "/nodejs && npm run start > /dev/null 2>&1 &";
-                exec($cmd, $output, $return_var);
-            }
-            if ($action === 'stop') {
-                $cmd = "cd " . __DIR__ . "/nodejs && npm run stop";
-                exec($cmd, $output, $return_var);
+                exec("cd nodejs && node dirt.js >> dirt_server.log 2>&1 &");
+            } else {
+                exec("ps aux | grep 'dirt.js' | grep -v grep | awk '{print $2}' | xargs kill -9 > /dev/null 2>&1");
             }
             break;
     }
 
     header('Content-Type: application/json');
-    echo json_encode(['success' => $return_var === 0, 'output' => $output]);
+    echo json_encode(['success' => true]);
     exit;
 }
 
@@ -42,22 +50,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['get_service_status'])) 
         'nodejs' => false
     ];
 
-    // Check Valkey
-    exec('pgrep -x valkey-server || pgrep -x redis-server', $out_pgrep_valkey, $ret_pgrep_valkey);
-    $statuses['valkey'] = ($ret_pgrep_valkey === 0);
-
-    // Check DiRT
-    exec('dirt status 2>/dev/null', $out_dirt, $ret_dirt);
-    foreach ($out_dirt as $line) {
-        if (stripos($line, 'is running') !== false) {
-            $statuses['dirt'] = true;
-            break;
+    // 1. Check Valkey
+    $valkey_pid_file = '/run/valkey_6379.pid';
+    if (file_exists($valkey_pid_file)) {
+        $pid = trim(file_get_contents($valkey_pid_file));
+        if (!empty($pid) && is_numeric($pid)) {
+            // Check if process exists and is actually a valkey/redis server
+            $cmd = "ps -p $pid -o comm= 2>/dev/null";
+            $comm = trim(shell_exec($cmd));
+            if ($comm === 'valkey-server' || $comm === 'redis-server' || $comm === 'valkey') {
+                $statuses['valkey'] = true;
+            }
         }
     }
+    // Fallback to pgrep if PID file is missing or inconclusive
+    if (!$statuses['valkey']) {
+        $statuses['valkey'] = (trim(shell_exec('pgrep -x valkey-server || pgrep -x redis-server')) !== '');
+    }
 
-    // Check Node JS server process
-    exec('pgrep -f "dirt.js"', $out_pgrep_node, $ret_pgrep_node);
-    $statuses['nodejs'] = ($ret_pgrep_node === 0);
+    // 2. Check DiRT
+    // Using exactly the command suggested by the user and parsing the output
+    $dirt_status = shell_exec('dirt status 2>&1');
+    if ($dirt_status && preg_match('/is running at pid/i', $dirt_status)) {
+        $statuses['dirt'] = true;
+    }
+
+    // 3. Check Node JS
+    // Look for node process running dirt.js
+    $node_pgrep = shell_exec('pgrep -f "node.*dirt.js"');
+    if (!empty(trim($node_pgrep))) {
+        $statuses['nodejs'] = true;
+    }
 
     header('Content-Type: application/json');
     echo json_encode($statuses);

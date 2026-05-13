@@ -100,14 +100,15 @@ function getBootUnraidVersion() {
         const bzrootPath = '/boot/bzroot';
         if (fs.existsSync(bzrootPath)) {
             // Find the offset of the 7z/xz header
-            // Use hex escape sequence for grep
-            const findOffsetCmd = `grep -boa $'\\xfd7zXZ\\x00' ${bzrootPath} | head -1 | cut -d: -f1`;
-            const offset = execSync(findOffsetCmd).toString().trim();
+            // Use hex escape sequence for grep, ensuring bash is used for ANSI-C quoting.
+            // We use the exact shell command provided by the user.
+            const findOffsetCmd = "grep -boa $'\\xfd7zXZ\\x00' /boot/bzroot | head -1 | cut -d: -f1";
+            const offset = execSync(findOffsetCmd, { shell: '/bin/bash' }).toString().trim();
 
             if (offset) {
                 // Extract etc/unraid-version from the compressed archive
-                const extractCmd = `dd if=${bzrootPath} iflag=skip_bytes skip=${offset} 2>/dev/null | xzcat 2>/dev/null | cpio --to-stdout -i etc/unraid-version 2>/dev/null`;
-                const versionContent = execSync(extractCmd).toString().trim();
+                const extractCmd = `dd if=/boot/bzroot iflag=skip_bytes skip=${offset} | xzcat | cpio --to-stdout -i etc/unraid-version`;
+                const versionContent = execSync(extractCmd, { shell: '/bin/bash', stdio: ['pipe', 'pipe', 'ignore'] }).toString().trim();
                 const match = versionContent.match(/version="([^"]+)"/);
                 if (match) return match[1];
             }

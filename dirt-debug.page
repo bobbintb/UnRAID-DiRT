@@ -310,8 +310,10 @@ $(function() {
     connect();
 
     // --- Service Control Logic ---
+    const pluginPath = '<?=str_replace("/usr/local/emhttp", "", __DIR__)?>';
+
     function updateServiceStatuses() {
-        const url = '/plugins/bobbintb.system.dirt/service_manager.php?get_service_status=1';
+        const url = pluginPath + '/service_manager.php?get_service_status=1';
         $.getJSON(url, function(data) {
             console.log("Service Statuses Received:", data);
             Object.keys(data).forEach(service => {
@@ -341,7 +343,7 @@ $(function() {
         $startBtn.prop('disabled', true);
         $stopBtn.prop('disabled', true);
 
-        $.post('/plugins/bobbintb.system.dirt/service_manager.php', {
+        $.post(pluginPath + '/service_manager.php', {
             service_action: 1,
             service: service,
             action: action
