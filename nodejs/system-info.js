@@ -100,6 +100,7 @@ function getBootUnraidVersion() {
         const bzrootPath = '/boot/bzroot';
         if (fs.existsSync(bzrootPath)) {
             // Find the offset of the 7z/xz header
+            // Use hex escape sequence for grep
             const findOffsetCmd = `grep -boa $'\\xfd7zXZ\\x00' ${bzrootPath} | head -1 | cut -d: -f1`;
             const offset = execSync(findOffsetCmd).toString().trim();
 

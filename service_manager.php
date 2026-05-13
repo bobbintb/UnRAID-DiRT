@@ -42,34 +42,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['get_service_status'])) 
         'nodejs' => false
     ];
 
-    // Check Valkey using pid file
-    $valkey_pid_file = '/run/valkey_6379.pid';
-    if (file_exists($valkey_pid_file)) {
-        $pid = trim(file_get_contents($valkey_pid_file));
-        if (is_numeric($pid)) {
-            // Check if process is still running and is valkey-server
-            exec("ps -p $pid -o comm=", $out_ps, $ret_ps);
-            if ($ret_ps === 0 && (trim($out_ps[0]) === 'valkey-server' || trim($out_ps[0]) === 'redis-server')) {
-                $statuses['valkey'] = true;
-            }
+    // Check Valkey
+    exec('pgrep -x valkey-server || pgrep -x redis-server', $out_pgrep_valkey, $ret_pgrep_valkey);
+    $statuses['valkey'] = ($ret_pgrep_valkey === 0);
+
+    // Check DiRT
+    exec('dirt status 2>/dev/null', $out_dirt, $ret_dirt);
+    foreach ($out_dirt as $line) {
+        if (stripos($line, 'is running') !== false) {
+            $statuses['dirt'] = true;
+            break;
         }
     }
 
-    // Check DiRT / Node JS
-    // We look for 'node' processes specifically running 'dirt.js'
-    exec('pgrep -a node', $out_pgrep_node, $ret_pgrep_node);
-    $isRunning = false;
-    if ($ret_pgrep_node === 0) {
-        foreach ($out_pgrep_node as $line) {
-            if (strpos($line, 'dirt.js') !== false) {
-                $isRunning = true;
-                break;
-            }
-        }
-    }
-
-    $statuses['dirt'] = $isRunning;
-    $statuses['nodejs'] = $isRunning;
+    // Check Node JS server process
+    exec('pgrep -f "dirt.js"', $out_pgrep_node, $ret_pgrep_node);
+    $statuses['nodejs'] = ($ret_pgrep_node === 0);
 
     header('Content-Type: application/json');
     echo json_encode($statuses);
