@@ -1,6 +1,4 @@
 <?php
-// Try to include auth.php if it exists, otherwise continue for dev environments
-// but on a real Unraid system this should be present and required.
 if (file_exists("/usr/local/emhttp/plugins/dynamix/include/auth.php")) {
     require_once("/usr/local/emhttp/plugins/dynamix/include/auth.php");
 }
@@ -45,14 +43,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['get_service_status'])) 
     ];
 
     // Check Valkey
-    exec('pgrep valkey', $output, $return_var);
-    $statuses['valkey'] = ($return_var === 0);
+    // Use 'which' to see if command exists, and 'pgrep' to see if running
+    exec('which valkey', $out_valkey, $ret_valkey);
+    if ($ret_valkey === 0) {
+        exec('pgrep valkey', $out_pgrep_valkey, $ret_pgrep_valkey);
+        $statuses['valkey'] = ($ret_pgrep_valkey === 0);
+    }
 
     // Check DiRT / Node JS
-    // We search for the dirt.js process.
-    // It might be started as 'node dirt.js' or 'node nodejs/dirt.js'
-    exec('pgrep -f "dirt.js"', $output, $return_var);
-    $statuses['dirt'] = ($return_var === 0);
+    // We check for the dirt.js process directly
+    exec('pgrep -f "dirt.js"', $out_pgrep_dirt, $ret_pgrep_dirt);
+    $statuses['dirt'] = ($ret_pgrep_dirt === 0);
     $statuses['nodejs'] = $statuses['dirt'];
 
     header('Content-Type: application/json');

@@ -75,11 +75,20 @@ function getUnraidVersion(paths) {
         try {
             if (fs.existsSync(path)) {
                 const content = fs.readFileSync(path, 'utf8');
-                // Try version="6.12.8" format
+
+                // Case 1: changes.txt (often found on /boot)
+                if (path.endsWith('changes.txt')) {
+                    const firstLine = content.split('\n')[0];
+                    const versionMatch = firstLine.match(/Unraid OS version (\d+\.\d+\.\d+)/i) ||
+                                         firstLine.match(/version (\d+\.\d+\.\d+)/i);
+                    if (versionMatch) return versionMatch[1];
+                }
+
+                // Case 2: version="6.12.8" format (standard /etc/unraid-version)
                 const match = content.match(/version="([^"]+)"/);
                 if (match) return match[1];
 
-                // Try plain version string if it looks like a version number
+                // Case 3: plain version string if it looks like a version number
                 const plainVersion = content.trim();
                 if (/^\d/.test(plainVersion)) return plainVersion;
             }
@@ -104,13 +113,12 @@ function getSystemInfo() {
     const bootVersion = bootRelease.split('-')[0];
     const bootEbpf = bootRelease.endsWith('-eBPF');
 
-    // On Unraid, the version in /etc/unraid-version is what was booted.
-    // There isn't typically a separate version file on /boot unless manually placed.
-    // We'll fallback to the running version if /boot specific ones aren't found.
-    let bootUnraid = getUnraidVersion(['/boot/unraid-version', '/boot/VERSION']);
-    if (bootUnraid === 'Unknown') {
-        bootUnraid = runningUnraid;
-    }
+    // On Unraid, the boot version can often be found in changes.txt on the flash drive.
+    // We also check /boot/unraid-version and /boot/VERSION as fallbacks.
+    let bootUnraid = getUnraidVersion(['/boot/changes.txt', '/boot/unraid-version', '/boot/VERSION']);
+
+    // If we still don't have it, we return 'Unknown' as the user wants to know
+    // the specific version of the boot image.
 
     return {
         running: {
