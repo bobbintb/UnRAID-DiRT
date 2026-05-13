@@ -311,7 +311,8 @@ $(function() {
 
     // --- Service Control Logic ---
     function updateServiceStatuses() {
-        $.getJSON('/plugins/bobbintb.system.dirt/service_manager.php?get_service_status=1', function(data) {
+        const url = '/plugins/bobbintb.system.dirt/service_manager.php?get_service_status=1';
+        $.getJSON(url, function(data) {
             Object.keys(data).forEach(service => {
                 const isRunning = data[service];
                 const $badge = $(`#${service}-status-badge`);
@@ -325,6 +326,10 @@ $(function() {
                 $startBtn.prop('disabled', isRunning);
                 $stopBtn.prop('disabled', !isRunning);
             });
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error("Service Status Check Failed:", textStatus, errorThrown);
+            // Fallback: update badges to show error
+            $('.status-badge[id$="-status-badge"]').text('ERROR').addClass('status-disabled');
         });
     }
 
@@ -344,7 +349,11 @@ $(function() {
                 alert(`Error ${action}ing ${service}: ` + response.output.join('\n'));
             }
             updateServiceStatuses();
-        }, 'json');
+        }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+            console.error(`Service Action (${action}) Failed:`, textStatus, errorThrown);
+            alert(`Failed to perform ${action} on ${service}. See console for details.`);
+            updateServiceStatuses();
+        });
     }
 
     $('#valkey-start-btn').on('click', () => handleServiceAction('valkey', 'start'));
