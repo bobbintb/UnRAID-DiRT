@@ -313,6 +313,7 @@ $(function() {
     function updateServiceStatuses() {
         const url = '/plugins/bobbintb.system.dirt/service_manager.php?get_service_status=1';
         $.getJSON(url, function(data) {
+            console.log("Service Statuses Received:", data);
             Object.keys(data).forEach(service => {
                 const isRunning = data[service];
                 const $badge = $(`#${service}-status-badge`);
