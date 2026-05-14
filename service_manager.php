@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['service_action'])) {
             }
             break;
         case 'nodejs':
-            $dir = '/usr/local/emhttp/plugins/bobbintb.system.dirt/nodejs';
+            $dir = '/usr/local/emhttp/plugins/bobbintb.system.dirt';
             if ($action === 'start') {
                 exec("cd $dir && npm run start > /dev/null 2>&1 &");
             } else {
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['get_service_status'])) 
     }
 
     // 3. Node JS Status
-    exec('pgrep -f "node.*dirt.js"', $out_node, $ret_node);
+    exec('pgrep -f "node .*dirt\.j[s]"', $out_node, $ret_node);
     $statuses['nodejs'] = ($ret_node === 0);
 
     header('Content-Type: application/json');
