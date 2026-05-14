@@ -310,6 +310,7 @@ $(function() {
     connect();
 
     // --- Service Control Logic ---
+    // In Unraid plugins, paths starting with /plugins/ are absolute to the web root
     const serviceManagerUrl = '/plugins/bobbintb.system.dirt/service_manager.php';
 
     function updateServiceStatuses() {
