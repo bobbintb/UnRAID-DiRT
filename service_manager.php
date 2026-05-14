@@ -20,16 +20,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['service_action'])) {
     switch ($service) {
         case 'valkey':
             if ($action === 'start') {
-                exec('valkey start > /dev/null 2>&1 &');
+                exec('/etc/rc.d/rc.valkey start > /dev/null 2>&1 &');
             } else {
-                exec('valkey stop');
+                exec('/etc/rc.d/rc.valkey stop');
             }
             break;
         case 'dirt':
             if ($action === 'start') {
-                exec('dirt start > /dev/null 2>&1 &');
+                exec('/etc/rc.d/rc.dirt start > /dev/null 2>&1 &');
             } else {
-                exec('dirt stop');
+                exec('/etc/rc.d/rc.dirt stop');
             }
             break;
         case 'nodejs':
@@ -54,11 +54,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['get_service_status'])) 
         'nodejs' => false
     ];
 
-    // 1. Valkey Status: check if pid file exists
+    // 1. Valkey Status
+    clearstatcache();
     $statuses['valkey'] = file_exists('/run/valkey_6379.pid');
 
     // 2. DiRT Status
-    exec('dirt status 2>&1', $out_dirt);
+    exec('/etc/rc.d/rc.dirt status 2>&1', $out_dirt);
     foreach ($out_dirt as $line) {
         if (preg_match('/is running at pid/i', $line)) {
             $statuses['dirt'] = true;
