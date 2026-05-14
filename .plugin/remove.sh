@@ -29,7 +29,8 @@ if [ -d "$PLUGIN_PATH" ]; then
 
     # 3. Remove the plugin folder entirely
     echo "Removing plugin directory: $PLUGIN_PATH"
-    rm -rf "$PLUGIN_PATH"
+    rm -dr "$PLUGIN_PATH"
+    rm -dr "/usr/local/emhttp/plugins/${PLUGIN_NAME}"
 else
     echo "Plugin directory $PLUGIN_PATH not found. Nothing to do."
 fi
