@@ -20,16 +20,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['service_action'])) {
     switch ($service) {
         case 'valkey':
             if ($action === 'start') {
-                exec('valkey start > /dev/null 2>&1 &');
+                exec('/etc/rc.d/rc.valkey start');
             } else {
-                exec('valkey stop');
+                exec('/etc/rc.d/rc.valkey stop');
             }
             break;
         case 'dirt':
             if ($action === 'start') {
-                exec('dirt start > /dev/null 2>&1 &');
+                exec('/etc/rc.d/rc.dirt start');
             } else {
-                exec('dirt stop');
+                exec('/etc/rc.d/rc.dirt stop');
             }
             break;
         case 'nodejs':
