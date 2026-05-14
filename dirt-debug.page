@@ -139,35 +139,6 @@ Title="Debug"
             </div>
         </div>
 
-        <!-- Database Queries -->
-        <div class="debug-section">
-            <h3>Redis Queries</h3>
-
-            <div class="control-group">
-                <label>Find File by Exact Path</label>
-                <div class="input-row">
-                    <input type="text" id="path-input" placeholder="/mnt/user/share/file.txt">
-                    <button id="by-path-btn">Query</button>
-                </div>
-            </div>
-
-            <div class="control-group">
-                <label>Find Files by Size (bytes)</label>
-                <div class="input-row">
-                    <input type="number" id="size-input" placeholder="1048576">
-                    <button id="by-size-btn">Query</button>
-                </div>
-            </div>
-
-            <div class="control-group">
-                <label>Advanced Scans</label>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <button id="multiple-paths-btn">Find Hard Links</button>
-                    <button id="non-unique-hash-btn">Find Duplicates</button>
-                </div>
-            </div>
-        </div>
-
         <!-- Service Control -->
         <div class="debug-section full-width">
             <h3>Service Control</h3>
@@ -204,6 +175,35 @@ Title="Debug"
                             <button id="dirt-stop-btn" class="btn-danger" style="padding: 2px 8px; font-size: 0.8em; border: none; border-radius: 4px;">Stop</button>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Database Queries -->
+        <div class="debug-section">
+            <h3>Redis Queries</h3>
+
+            <div class="control-group">
+                <label>Find File by Exact Path</label>
+                <div class="input-row">
+                    <input type="text" id="path-input" placeholder="/mnt/user/share/file.txt">
+                    <button id="by-path-btn">Query</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Find Files by Size (bytes)</label>
+                <div class="input-row">
+                    <input type="number" id="size-input" placeholder="1048576">
+                    <button id="by-size-btn">Query</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Advanced Scans</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <button id="multiple-paths-btn">Find Hard Links</button>
+                    <button id="non-unique-hash-btn">Find Duplicates</button>
                 </div>
             </div>
         </div>
