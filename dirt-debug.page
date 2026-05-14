@@ -114,15 +114,17 @@ Title="Debug"
                 <div class="kernel-card">
                     <div class="info-label">Running Kernel</div>
                     <div style="font-size: 1.1em; margin-top: 5px;">
-                        <span id="running-kernel-version" style="font-weight: bold;">Loading...</span>
-                        <span id="running-ebpf-badge" class="status-badge">...</span>
+                        <span id="running-kernel-version" style="font-weight: bold;">Loading...</span><br>
+                        <span id="running-unraid-version" style="font-size: 0.9em; color: var(--text-muted);">...</span><br>
+                        <span id="running-ebpf-badge" class="status-badge" style="margin-left: 0; margin-top: 5px;">...</span>
                     </div>
                 </div>
                 <div class="kernel-card">
                     <div class="info-label">Boot Kernel (/boot/bzimage)</div>
                     <div style="font-size: 1.1em; margin-top: 5px;">
-                        <span id="boot-kernel-version" style="font-weight: bold;">Loading...</span>
-                        <span id="boot-ebpf-badge" class="status-badge">...</span>
+                        <span id="boot-kernel-version" style="font-weight: bold;">Loading...</span><br>
+                        <span id="boot-unraid-version" style="font-size: 0.9em; color: var(--text-muted);">...</span><br>
+                        <span id="boot-ebpf-badge" class="status-badge" style="margin-left: 0; margin-top: 5px;">...</span>
                     </div>
                 </div>
             </div>
@@ -162,6 +164,46 @@ Title="Debug"
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <button id="multiple-paths-btn">Find Hard Links</button>
                     <button id="non-unique-hash-btn">Find Duplicates</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service Control -->
+        <div class="debug-section full-width">
+            <h3>Service Control</h3>
+            <div class="debug-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                <!-- Valkey -->
+                <div class="kernel-card">
+                    <div class="info-label">Valkey Status</div>
+                    <div style="font-size: 1.1em; margin-top: 5px; display: flex; align-items: center; justify-content: space-between;">
+                        <span id="valkey-status-badge" class="status-badge" style="margin-left: 0;">...</span>
+                        <div class="input-row">
+                            <button id="valkey-start-btn" class="status-enabled" style="padding: 2px 8px; font-size: 0.8em; border: none; border-radius: 4px;">Start</button>
+                            <button id="valkey-stop-btn" class="btn-danger" style="padding: 2px 8px; font-size: 0.8em; border: none; border-radius: 4px;">Stop</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Node JS Server -->
+                <div class="kernel-card">
+                    <div class="info-label">Node JS Server Status</div>
+                    <div style="font-size: 1.1em; margin-top: 5px; display: flex; align-items: center; justify-content: space-between;">
+                        <span id="nodejs-status-badge" class="status-badge" style="margin-left: 0;">...</span>
+                        <div class="input-row">
+                            <button id="nodejs-start-btn" class="status-enabled" style="padding: 2px 8px; font-size: 0.8em; border: none; border-radius: 4px;">Start</button>
+                            <button id="nodejs-stop-btn" class="btn-danger" style="padding: 2px 8px; font-size: 0.8em; border: none; border-radius: 4px;">Stop</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- DiRT -->
+                <div class="kernel-card">
+                    <div class="info-label">DiRT Status</div>
+                    <div style="font-size: 1.1em; margin-top: 5px; display: flex; align-items: center; justify-content: space-between;">
+                        <span id="dirt-status-badge" class="status-badge" style="margin-left: 0;">...</span>
+                        <div class="input-row">
+                            <button id="dirt-start-btn" class="status-enabled" style="padding: 2px 8px; font-size: 0.8em; border: none; border-radius: 4px;">Start</button>
+                            <button id="dirt-stop-btn" class="btn-danger" style="padding: 2px 8px; font-size: 0.8em; border: none; border-radius: 4px;">Stop</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -221,12 +263,14 @@ $(function() {
         if (action === 'dbStatus' && data.systemInfo) {
           const sys = data.systemInfo;
           $('#running-kernel-version').text(sys.running.version);
+          $('#running-unraid-version').text('Unraid Version: ' + sys.running.unraidVersion);
           $('#running-ebpf-badge')
             .text(sys.running.ebpfEnabled ? 'eBPF ENABLED' : 'eBPF DISABLED')
             .removeClass('status-enabled status-disabled')
             .addClass(sys.running.ebpfEnabled ? 'status-enabled' : 'status-disabled');
 
           $('#boot-kernel-version').text(sys.boot.version);
+          $('#boot-unraid-version').text('Unraid Version: ' + sys.boot.unraidVersion);
           $('#boot-ebpf-badge')
             .text(sys.boot.ebpfEnabled ? 'eBPF ENABLED' : 'eBPF DISABLED')
             .removeClass('status-enabled status-disabled')
@@ -264,6 +308,67 @@ $(function() {
     }
 
     connect();
+
+    // --- Service Control Logic ---
+    // In Unraid plugins, paths starting with /plugins/ are absolute to the web root
+    const serviceManagerUrl = '/plugins/bobbintb.system.dirt/service_manager.php';
+
+    function updateServiceStatuses() {
+        const url = serviceManagerUrl + '?get_service_status=1';
+        $.getJSON(url, function(data) {
+            console.log("Service Statuses Received:", data);
+            Object.keys(data).forEach(service => {
+                const isRunning = data[service];
+                const $badge = $(`#${service}-status-badge`);
+                const $startBtn = $(`#${service}-start-btn`);
+                const $stopBtn = $(`#${service}-stop-btn`);
+
+                $badge.text(isRunning ? 'RUNNING' : 'STOPPED')
+                      .removeClass('status-enabled status-disabled')
+                      .addClass(isRunning ? 'status-enabled' : 'status-disabled');
+
+                $startBtn.prop('disabled', isRunning);
+                $stopBtn.prop('disabled', !isRunning);
+            });
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error("Service Status Check Failed:", textStatus, errorThrown);
+            // Fallback: update badges to show error
+            $('.status-badge[id$="-status-badge"]').text('ERROR').addClass('status-disabled');
+        });
+    }
+
+    function handleServiceAction(service, action) {
+        const $startBtn = $(`#${service}-start-btn`);
+        const $stopBtn = $(`#${service}-stop-btn`);
+
+        $startBtn.prop('disabled', true);
+        $stopBtn.prop('disabled', true);
+
+        $.post(serviceManagerUrl, {
+            service_action: 1,
+            service: service,
+            action: action
+        }, function(response) {
+            if (!response.success) {
+                alert(`Error ${action}ing ${service}: ` + response.output.join('\n'));
+            }
+            updateServiceStatuses();
+        }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+            console.error(`Service Action (${action}) Failed:`, textStatus, errorThrown);
+            alert(`Failed to perform ${action} on ${service}. See console for details.`);
+            updateServiceStatuses();
+        });
+    }
+
+    $('#valkey-start-btn').on('click', () => handleServiceAction('valkey', 'start'));
+    $('#valkey-stop-btn').on('click', () => handleServiceAction('valkey', 'stop'));
+    $('#nodejs-start-btn').on('click', () => handleServiceAction('nodejs', 'start'));
+    $('#nodejs-stop-btn').on('click', () => handleServiceAction('nodejs', 'stop'));
+    $('#dirt-start-btn').on('click', () => handleServiceAction('dirt', 'start'));
+    $('#dirt-stop-btn').on('click', () => handleServiceAction('dirt', 'stop'));
+
+    // Initial status check
+    updateServiceStatuses();
 
     // --- Event Listeners ---
     $('#by-size-btn').on('click', function() {

@@ -64,6 +64,64 @@ function getBzImageVersion(bzImagePath) {
 }
 
 /**
+ * Reads the Unraid version from a version file.
+ * @param {string} path - Path to the version file.
+ * @returns {string} The Unraid version or 'Unknown'.
+ */
+function getUnraidVersion(paths) {
+    if (!Array.isArray(paths)) paths = [paths];
+
+    for (const path of paths) {
+        try {
+            if (fs.existsSync(path)) {
+                const content = fs.readFileSync(path, 'utf8');
+
+                // Case 1: version="6.12.8" format (standard /etc/unraid-version)
+                const match = content.match(/version="([^"]+)"/);
+                if (match) return match[1];
+
+                // Case 2: plain version string if it looks like a version number
+                const plainVersion = content.trim();
+                if (/^\d/.test(plainVersion)) return plainVersion;
+            }
+        } catch (e) {
+            console.error(`[SystemInfo] Error reading Unraid version from ${path}:`, e.message);
+        }
+    }
+    return 'Unknown';
+}
+
+/**
+ * Extracts Unraid version from /boot/bzroot using the provided method.
+ * @returns {string} The version string or 'Unknown'.
+ */
+function getBootUnraidVersion() {
+    try {
+        const bzrootPath = '/boot/bzroot';
+        if (fs.existsSync(bzrootPath)) {
+            // Find the offset of the 7z/xz header
+            // Use hex escape sequence for grep, ensuring bash is used for ANSI-C quoting.
+            // We use the exact shell command provided by the user.
+            const findOffsetCmd = "grep -boa $'\\xfd7zXZ\\x00' /boot/bzroot | head -1 | cut -d: -f1";
+            const offset = execSync(findOffsetCmd, { shell: '/bin/bash' }).toString().trim();
+
+            if (offset) {
+                // Extract etc/unraid-version from the compressed archive
+                const extractCmd = `dd if=/boot/bzroot iflag=skip_bytes skip=${offset} | xzcat | cpio --to-stdout -i etc/unraid-version`;
+                const versionContent = execSync(extractCmd, { shell: '/bin/bash', stdio: ['pipe', 'pipe', 'ignore'] }).toString().trim();
+                const match = versionContent.match(/version="([^"]+)"/);
+                if (match) return match[1];
+            }
+        }
+    } catch (e) {
+        // Silently fail, fall back to other methods
+    }
+
+    // Fallback to simpler methods
+    return getUnraidVersion(['/boot/changes.txt', '/boot/unraid-version', '/boot/VERSION']);
+}
+
+/**
  * Gets system information including kernel versions and eBPF statuses.
  * @returns {Object} An object containing running and boot kernel info.
  */
@@ -71,21 +129,25 @@ function getSystemInfo() {
     const runningRelease = os.release();
     const runningVersion = runningRelease.split('-')[0];
     const runningEbpf = runningRelease.endsWith('-eBPF');
+    const runningUnraid = getUnraidVersion('/etc/unraid-version');
 
     const bootRelease = getBzImageVersion('/boot/bzimage') || 'Unknown';
     const bootVersion = bootRelease.split('-')[0];
     const bootEbpf = bootRelease.endsWith('-eBPF');
+    const bootUnraid = getBootUnraidVersion();
 
     return {
         running: {
             release: runningRelease,
             version: runningVersion,
-            ebpfEnabled: runningEbpf
+            ebpfEnabled: runningEbpf,
+            unraidVersion: runningUnraid
         },
         boot: {
             release: bootRelease,
             version: bootVersion,
-            ebpfEnabled: bootEbpf
+            ebpfEnabled: bootEbpf,
+            unraidVersion: bootUnraid
         }
     };
 }
