@@ -142,6 +142,41 @@ Title="Debug"
         <!-- Service Control -->
         <div class="debug-section full-width">
             <h3>Service Control</h3>
+            <div class="debug-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                <!-- Valkey -->
+                <div class="kernel-card">
+                    <div class="info-label">Valkey Status</div>
+                    <div style="font-size: 1.1em; margin-top: 5px; display: flex; align-items: center; justify-content: space-between;">
+                        <span id="valkey-status-badge" class="status-badge" style="margin-left: 0;">...</span>
+                        <div class="input-row">
+                            <button id="valkey-start-btn" class="status-enabled" style="padding: 2px 8px; font-size: 0.8em; border: none; border-radius: 4px;">Start</button>
+                            <button id="valkey-stop-btn" class="btn-danger" style="padding: 2px 8px; font-size: 0.8em; border: none; border-radius: 4px;">Stop</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Node JS Server -->
+                <div class="kernel-card">
+                    <div class="info-label">Node JS Server Status</div>
+                    <div style="font-size: 1.1em; margin-top: 5px; display: flex; align-items: center; justify-content: space-between;">
+                        <span id="nodejs-status-badge" class="status-badge" style="margin-left: 0;">...</span>
+                        <div class="input-row">
+                            <button id="nodejs-start-btn" class="status-enabled" style="padding: 2px 8px; font-size: 0.8em; border: none; border-radius: 4px;">Start</button>
+                            <button id="nodejs-stop-btn" class="btn-danger" style="padding: 2px 8px; font-size: 0.8em; border: none; border-radius: 4px;">Stop</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- DiRT -->
+                <div class="kernel-card">
+                    <div class="info-label">DiRT Status</div>
+                    <div style="font-size: 1.1em; margin-top: 5px; display: flex; align-items: center; justify-content: space-between;">
+                        <span id="dirt-status-badge" class="status-badge" style="margin-left: 0;">...</span>
+                        <div class="input-row">
+                            <button id="dirt-start-btn" class="status-enabled" style="padding: 2px 8px; font-size: 0.8em; border: none; border-radius: 4px;">Start</button>
+                            <button id="dirt-stop-btn" class="btn-danger" style="padding: 2px 8px; font-size: 0.8em; border: none; border-radius: 4px;">Stop</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Database Queries -->
