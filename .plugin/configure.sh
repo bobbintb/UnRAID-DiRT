@@ -5,7 +5,7 @@ echo "-----------------------------------------------------------"
 chmod +x /etc/rc.d/rc.valkey
 
 echo "alias valkey='/etc/rc.d/rc.valkey'" >> /etc/profile
-echo "alias dirt='/etc/rc.d/rc.dirt'" >> /etc/profile
+echo "alias dirt-backend='/etc/rc.d/rc.dirt-backend'" >> /etc/profile
 
 . /etc/profile
 
