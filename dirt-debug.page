@@ -307,10 +307,44 @@ $(function() {
         }
     }
 
+    function refreshServiceStatus() {
+        $.get('/plugins/bobbintb.system.dirt/service_manager.php?get_service_status=1', function(data) {
+            ['valkey', 'nodejs', 'dirt'].forEach(function(service) {
+                const isRunning = data[service];
+                const badge = $(`#${service}-status-badge`);
+                badge.text(isRunning ? 'RUNNING' : 'STOPPED')
+                     .removeClass('status-enabled status-disabled')
+                     .addClass(isRunning ? 'status-enabled' : 'status-disabled');
+            });
+        });
+    }
+
     connect();
+    refreshServiceStatus();
 
 
     // --- Event Listeners ---
+    ['valkey', 'nodejs', 'dirt'].forEach(function(service) {
+        $(`#${service}-start-btn`).on('click', function() {
+            $.post('/plugins/bobbintb.system.dirt/service_manager.php', {
+                service_action: 1,
+                service: service,
+                action: 'start'
+            }, function() {
+                refreshServiceStatus();
+            });
+        });
+        $(`#${service}-stop-btn`).on('click', function() {
+            $.post('/plugins/bobbintb.system.dirt/service_manager.php', {
+                service_action: 1,
+                service: service,
+                action: 'stop'
+            }, function() {
+                refreshServiceStatus();
+            });
+        });
+    });
+
     $('#by-size-btn').on('click', function() {
         const size = $('#size-input').val();
         if (size) dirtySock('debugFindFilesBySize', parseInt(size, 10));
