@@ -315,6 +315,9 @@ $(function() {
                 badge.text(isRunning ? 'RUNNING' : 'STOPPED')
                      .removeClass('status-enabled status-disabled')
                      .addClass(isRunning ? 'status-enabled' : 'status-disabled');
+
+                $(`#${service}-start-btn`).prop('disabled', isRunning);
+                $(`#${service}-stop-btn`).prop('disabled', !isRunning);
             });
         });
     }
